@@ -945,6 +945,7 @@ body {
           <input type="radio" name="mobile_sort" value="Newest First" class="mobile-sort-radio">
           <span>Newest First</span>
         </label>
+      </div>
     </aside>
 
     <!-- Product Grid -->
@@ -983,16 +984,15 @@ body {
       <div class="flipkart-product-grid" id="storeGrid">
         <!-- Products will be dynamically loaded here -->
       </div>
+      <div class="flipkart-empty text-center py-5" id="storeEmpty" style="display: none;">
+        <h4>No products found</h4>
+        <p>Try adjusting your filters or search terms</p>
+      </div>
       </div>
     </div>
   </main>
 </div>
 
-</div>
-
-<div class="flipkart-empty text-center py-5" id="storeEmpty" style="display: none;">
-  <h4>No products found</h4>
-  <p>Try adjusting your filters or search terms</p>
 </div>
 
 <script>
@@ -1076,8 +1076,8 @@ function renderProducts(skipAnimation = false) {
     case 'Price -- High to Low': filtered.sort((a, b) => b.price - a.price); break;
     case 'Newest First': filtered.sort((a, b) => b.id - a.id); break;
     case 'Discount': filtered.sort((a, b) => {
-      const discA = (a.orig - a.price) / a.orig;
-      const discB = (b.orig - b.price) / b.orig;
+      const discA = a.orig > 0 ? (a.orig - a.price) / a.orig : 0;
+      const discB = b.orig > 0 ? (b.orig - b.price) / b.orig : 0;
       return discB - discA;
     }); break;
     // Default is Popularity (stable sort by reviews/rating)

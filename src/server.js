@@ -450,11 +450,11 @@ app.get('/store/product/:id', (req, res) => {
   const productId = Number(req.params.id);
   const product = STORE_PRODUCTS.find(p => p.id === productId) || null;
   if (!product) {
-    return res.status(404).render('store-payment-success', {
+    return res.status(404).render('store-product', {
       pageTitle: 'Product Not Found | 2AM Study Store',
-      metaDescription: 'Requested product is not available.',
-      paymentId: '',
-      orderId: '',
+      metaDescription: 'The requested product is not available.',
+      product: null,
+      storeProducts: STORE_PRODUCTS,
       hideBot: true
     });
   }
@@ -622,10 +622,6 @@ app.post('/store/api/store/cart/add', (req, res) => {
   res.json({ success: true, items: cart, total: cart.reduce((s, i) => s + i.price * i.qty, 0), itemCount: cart.reduce((s, i) => s + i.qty, 0) });
 });
 
-app.get('/store/api/store/cart', (req, res) => {
-  const cart = req.session.cart || [];
-  res.json({ success: true, items: cart, total: cart.reduce((s, i) => s + i.price * i.qty, 0), itemCount: cart.reduce((s, i) => s + i.qty, 0) });
-});
 
 app.post('/store/api/store/cart/remove', (req, res) => {
   const { productId } = req.body;
@@ -752,9 +748,11 @@ app.post('/store/api/store/checkout/coupon', (req, res) => {
   const couponLimitReached = cart.length > 2 || cart.some(i => i.qty > 1);
 
   const COUPONS = {
-    'HAPPY BIRTHDAY': { type: 'full_no_delivery' },
+    'HAPPY BIRTHDAY NISHU': { type: 'full_no_delivery' },
+    'HAPPY BIRTHDAY BHAIYA': { type: 'full_no_delivery' },
+    'HAPPY BIRTHDAY NISHI': { type: 'full_no_delivery' },
+    'HAPPY BIRTHDAY APP KO': { type: 'full_no_delivery' },
     'WELCOME': { type: 'flat_first_time', value: 100 },
-    'BHAIYA': { type: 'full_with_delivery_free' },
     'STUDY10': { type: 'flat', value: 50 }
   };
 
@@ -766,7 +764,8 @@ app.post('/store/api/store/checkout/coupon', (req, res) => {
   let freeDelivery = false;
   let message = '';
 
-  if ((upper === 'HAPPY BIRTHDAY' || upper === 'BHAIYA') && couponLimitReached) {
+  const BIRTHDAY_COUPONS = ['HAPPY BIRTHDAY NISHU', 'HAPPY BIRTHDAY BHAIYA', 'HAPPY BIRTHDAY NISHI', 'HAPPY BIRTHDAY APP KO'];
+  if (BIRTHDAY_COUPONS.includes(upper) && couponLimitReached) {
     return res.status(400).json({ success: false, error: 'Coupon not applicable: cart limit exceeded (max 2 items, qty 1 each)' });
   }
 
@@ -830,13 +829,6 @@ app.get('/store/payment-success', (req, res) => {
   });
 });
 
-app.get('/store/cart', (req, res) => {
-  res.render('store-cart', {
-    pageTitle: 'Your Shopping Cart | 2AM Study Store',
-    metaDescription: 'Review the items in your cart and proceed to checkout.',
-    hideBot: true
-  });
-});
 
 
 // --- Blog Section ---

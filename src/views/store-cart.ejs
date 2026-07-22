@@ -386,6 +386,10 @@ body {
   .cart-right { position: static; }
 }
 
+@media (min-width: 769px) {
+  .checkout-fixed-bar { display: none !important; }
+}
+
 </style>
 
 
@@ -409,7 +413,7 @@ body {
             %>
                 <div class="suggested-card">
                    <a href="/store/product/<%= p.id %>" class="suggested-img-link">
-                      <img src="<%= p.images[0] %>" alt="<%= p.name %>" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
+                      <img src="<%= (p.images && p.images[0]) || '/assets/images/store/placeholder.jpg' %>" alt="<%= p.name %>" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
                    </a>
                    <div class="suggested-details">
                       <a href="/store/product/<%= p.id %>" class="s-title"><%= p.name %></a>
@@ -434,6 +438,14 @@ body {
       </div>
     <% } %>
   </div>
+</div>
+
+<div class="checkout-fixed-bar d-flex d-md-none" id="mobileCartFixedBar" style="display: none;">
+  <div class="mobile-cart-total">
+    <span class="mobile-label">Total Amount</span>
+    <span class="mobile-value" id="mobileCartTotalVal">₹0</span>
+  </div>
+  <button class="checkout-btn" onclick="window.location.href='/store/order-summary'">PROCEED TO CHECKOUT</button>
 </div>
 
 <script>
@@ -519,6 +531,8 @@ function renderCart() {
   const container = document.getElementById('cartContent');
   
   if (cartItems.length === 0) {
+    const mobBar = document.getElementById('mobileCartFixedBar');
+    if (mobBar) mobBar.style.display = 'none';
     container.innerHTML = `
       <div class="empty-cart-state" style="grid-column: span 2;">
         <div style="margin-bottom: 20px;">
@@ -574,19 +588,18 @@ function renderCart() {
           <span>₹${total.toLocaleString()}</span>
         </div>
         
-        <div class="checkout-fixed-bar">
-          <div class="mobile-cart-total d-block d-md-none">
-            <span class="mobile-label">Total Amount</span>
-            <span class="mobile-value">₹${total.toLocaleString()}</span>
-          </div>
-          <button class="checkout-btn" onclick="window.location.href='/store/order-summary'">PROCEED TO CHECKOUT</button>
-        </div>
+        <button class="checkout-btn d-none d-md-block" onclick="window.location.href='/store/order-summary'">PROCEED TO CHECKOUT</button>
       </div>
       <div style="margin-top: 15px; color: var(--cart-text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-shield-halved"></i> 100% Safe and Secure Payments
       </div>
     </div>
   `;
+
+  const mobBar = document.getElementById('mobileCartFixedBar');
+  const mobVal = document.getElementById('mobileCartTotalVal');
+  if (mobVal) mobVal.textContent = `₹${total.toLocaleString()}`;
+  if (mobBar) mobBar.style.display = 'flex';
 }
 
 loadCart();

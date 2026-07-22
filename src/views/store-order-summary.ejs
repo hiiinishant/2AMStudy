@@ -443,8 +443,12 @@ body {
             <span class="summary-value" id="couponDiscount" style="color: var(--order-green);">-₹0</span>
           </div>
           <div class="summary-row" style="padding: 10px 0;">
+            <span class="summary-label">Platform Fee</span>
+            <span class="summary-value" id="platformFee">₹1</span>
+          </div>
+          <div class="summary-row" style="padding: 10px 0;">
             <span class="summary-label">Delivery Charges</span>
-            <span class="summary-value" style="color: var(--order-green); font-weight: 700;">FREE</span>
+            <span class="summary-value" id="deliveryCharges" style="color: var(--order-green); font-weight: 700;">FREE</span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 2px dashed var(--order-border); margin-top: 6px;">
             <span style="font-size: 1rem; font-weight: 700;">Total Amount</span>
@@ -612,7 +616,10 @@ function updateSummary() {
   
   const discount = mrpTotal - priceTotal;
   const couponDiscount = appliedCouponData ? (appliedCouponData.discount || 0) : 0;
-  const finalTotal = Math.max(0, priceTotal - couponDiscount);
+  const isFreeDelivery = appliedCouponData ? (appliedCouponData.freeDelivery || false) : false;
+  const deliveryCharge = isFreeDelivery ? 0 : (priceTotal > 0 && priceTotal < 499 ? 50 : 0);
+  const platformFee = 1;
+  const finalTotal = Math.max(1, priceTotal - couponDiscount + deliveryCharge + platformFee);
   const totalSavings = discount + couponDiscount;
   const itemText = totalItems === 1 ? '1 item' : `${totalItems} items`;
 
@@ -623,28 +630,24 @@ function updateSummary() {
   if (mrpEl) mrpEl.textContent = `₹${mrpTotal.toLocaleString()}`;
   const discEl = document.getElementById('discountTotal');
   if (discEl) discEl.textContent = `-₹${discount.toLocaleString()}`;
+  const delEl = document.getElementById('deliveryCharges');
+  if (delEl) {
+    if (deliveryCharge === 0) {
+      delEl.innerHTML = `<span style="text-decoration: line-through; color: var(--order-text-muted); font-size: 0.85rem; margin-right: 6px; opacity: 0.7;">₹50</span> <span style="color: var(--order-green); font-weight: 700;">FREE</span>`;
+    } else {
+      delEl.innerHTML = `₹${deliveryCharge}`;
+      delEl.style.color = "var(--order-text)";
+    }
+  }
   const totEl = document.getElementById('total');
   if (totEl) totEl.textContent = `₹${finalTotal.toLocaleString()}`;
   const savEl = document.getElementById('savingsText');
   if (savEl) savEl.textContent = `You will save ₹${totalSavings.toLocaleString()} on this order`;
 
-  // Mobile/Inline left-side Flipkart-style price details update
-  const priceLabel2 = document.getElementById('priceLabel2');
-  if (priceLabel2) priceLabel2.textContent = `Price (${itemText})`;
-  const mrpEl2 = document.getElementById('mrpTotal2');
-  if (mrpEl2) mrpEl2.textContent = `₹${mrpTotal.toLocaleString()}`;
-  const discEl2 = document.getElementById('discountTotal2');
-  if (discEl2) discEl2.textContent = `-₹${discount.toLocaleString()}`;
-  const totEl2 = document.getElementById('total2');
-  if (totEl2) totEl2.textContent = `₹${finalTotal.toLocaleString()}`;
-  const savEl2 = document.getElementById('savingsText2');
-  if (savEl2) savEl2.textContent = `You will save ₹${totalSavings.toLocaleString()} on this order`;
-
-  
   const mobileTotalEl = document.getElementById('mobileSummaryTotal');
   if (mobileTotalEl) mobileTotalEl.textContent = `₹${finalTotal.toLocaleString()}`;
 
-  // Update the new fixed mobile checkout bar
+  // Update fixed mobile checkout bar
   const mobBarTotal = document.getElementById('mobBarTotal');
   if (mobBarTotal) mobBarTotal.textContent = `₹${finalTotal.toLocaleString()}`;
 
@@ -652,7 +655,7 @@ function updateSummary() {
   const mobileBar = document.getElementById('mobileCheckoutBar');
   if (mobileBar) mobileBar.style.display = cartItems.length > 0 ? 'flex' : 'none';
 
-  // Coupon row (Desktop)
+  // Coupon row
   const couponRow = document.getElementById('couponRow');
   const couponDiscountEl = document.getElementById('couponDiscount');
   if (couponRow && couponDiscountEl) {
@@ -661,18 +664,6 @@ function updateSummary() {
       couponDiscountEl.textContent = `-₹${couponDiscount}`;
     } else {
       couponRow.style.display = 'none';
-    }
-  }
-
-  // Coupon row (Mobile/Inline)
-  const couponRow2 = document.getElementById('couponRow2');
-  const couponDiscountEl2 = document.getElementById('couponDiscount2');
-  if (couponRow2 && couponDiscountEl2) {
-    if (couponDiscount > 0) {
-      couponRow2.style.display = 'flex';
-      couponDiscountEl2.textContent = `-₹${couponDiscount}`;
-    } else {
-      couponRow2.style.display = 'none';
     }
   }
 }

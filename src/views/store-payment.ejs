@@ -459,24 +459,33 @@ body {
     // The frontend does zero arithmetic — it only renders what the server sends.
     const s = checkoutData.summary;
 
-    document.getElementById('rpBasePrice').textContent = `₹${s.mrpSubtotal}`;
-    document.getElementById('rpDiscount').textContent = `- ₹${s.baseStoreDiscount}`;
+    const rpBasePrice = document.getElementById('rpBasePrice');
+    if (rpBasePrice) rpBasePrice.textContent = `₹${s.mrpSubtotal}`;
+    const rpDiscount = document.getElementById('rpDiscount');
+    if (rpDiscount) rpDiscount.textContent = `- ₹${s.baseStoreDiscount}`;
+    
+    const rpCouponRow = document.getElementById('rpCouponRow');
+    const rpCouponDisc = document.getElementById('rpCouponDisc');
     if (s.couponDiscount > 0) {
-      document.getElementById('rpCouponRow').style.display = 'flex';
-      document.getElementById('rpCouponDisc').textContent = `- ₹${s.couponDiscount}`;
+      if (rpCouponRow) rpCouponRow.style.display = 'flex';
+      if (rpCouponDisc) rpCouponDisc.textContent = `- ₹${s.couponDiscount}`;
+    } else {
+      if (rpCouponRow) rpCouponRow.style.display = 'none';
     }
+
     const delEl = document.getElementById('rpDelivery');
     const delEl2 = document.getElementById('rpDelivery2');
     if (s.delivery === 0) {
       const freeDeliveryHTML = `<span style="text-decoration: line-through; color: var(--rp-text-muted); font-size: 0.85rem; margin-right: 6px; opacity: 0.7;">₹50</span> <span style="color: #388e3c; font-weight: 700;">FREE</span>`;
-      delEl.innerHTML = freeDeliveryHTML;
+      if (delEl) delEl.innerHTML = freeDeliveryHTML;
       if (delEl2) delEl2.innerHTML = freeDeliveryHTML;
     } else {
-      delEl.textContent = `₹${s.delivery}`;
+      if (delEl) delEl.textContent = `₹${s.delivery}`;
       if (delEl2) delEl2.textContent = `₹${s.delivery}`;
     }
     
-    document.getElementById('rpFinalTotal').textContent = `₹${s.finalTotal}`;
+    const rpFinalTotal = document.getElementById('rpFinalTotal');
+    if (rpFinalTotal) rpFinalTotal.textContent = `₹${s.finalTotal}`;
     const rpFinalTotal2 = document.getElementById('rpFinalTotal2');
     if (rpFinalTotal2) rpFinalTotal2.textContent = `₹${s.finalTotal}`;
 
@@ -484,11 +493,14 @@ body {
     if (mobBarTotalEl) mobBarTotalEl.textContent = `₹${s.finalTotal}`;
     
     const taxHtml = '<div style="font-size:0.8rem; color: var(--rp-text-muted); text-align:right; margin-top:2px; font-weight:500; opacity: 0.8;">Inclusive of all taxes</div>';
-    document.getElementById('rpFinalTotal').insertAdjacentHTML('afterend', taxHtml);
+    if (rpFinalTotal) rpFinalTotal.insertAdjacentHTML('afterend', taxHtml);
     if (rpFinalTotal2) rpFinalTotal2.insertAdjacentHTML('afterend', taxHtml);
 
-    document.getElementById('payNowBtn').innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
-    document.getElementById('rpSavedBlock').textContent = `🎉 You saved ₹${s.totalSaved} on this order`;
+    const payNowBtn = document.getElementById('payNowBtn');
+    if (payNowBtn) payNowBtn.innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
+    
+    const rpSavedBlock = document.getElementById('rpSavedBlock');
+    if (rpSavedBlock) rpSavedBlock.textContent = `🎉 You saved ₹${s.totalSaved} on this order`;
     const rpSavedBlock2 = document.getElementById('rpSavedBlock2');
     if (rpSavedBlock2) rpSavedBlock2.textContent = `🎉 You saved ₹${s.totalSaved} on this order`;
 
@@ -499,10 +511,14 @@ body {
     if (rpBasePrice2) rpBasePrice2.textContent = `₹${s.mrpSubtotal}`;
     const rpDiscount2 = document.getElementById('rpDiscount2');
     if (rpDiscount2) rpDiscount2.textContent = `- ₹${s.baseStoreDiscount}`;
+    
+    const rpCouponRow2 = document.getElementById('rpCouponRow2');
+    const rpCouponDisc2 = document.getElementById('rpCouponDisc2');
     if (s.couponDiscount > 0) {
-      document.getElementById('rpCouponRow2').style.display = 'flex';
-      const rpCouponDisc2 = document.getElementById('rpCouponDisc2');
+      if (rpCouponRow2) rpCouponRow2.style.display = 'flex';
       if (rpCouponDisc2) rpCouponDisc2.textContent = `- ₹${s.couponDiscount}`;
+    } else {
+      if (rpCouponRow2) rpCouponRow2.style.display = 'none';
     }
 
     // Pay Button Config
@@ -538,6 +554,14 @@ body {
           order_id: order.id,
           prefill: { name: checkoutCustomer.name, email: checkoutCustomer.email, contact: checkoutCustomer.phone },
           theme: { color: '#6366f1' },
+          modal: {
+            ondismiss: function () {
+              document.querySelectorAll('.mob-cta, .btn-rp-pay').forEach(b => {
+                b.disabled = false;
+                b.innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
+              });
+            }
+          },
           handler: async function (response) {
             document.body.insertAdjacentHTML('beforeend', `
               <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,18,32,0.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -578,8 +602,10 @@ body {
         });
         
         rzp.on('payment.failed', function () {
-          btn.innerHTML = `Proceed to Pay ₹${confirmedTotal}`;
-          btn.disabled = false;
+          document.querySelectorAll('.mob-cta, .btn-rp-pay').forEach(b => {
+            b.disabled = false;
+          });
+          btn.innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
         });
 
         rzp.open();

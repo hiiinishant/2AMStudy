@@ -425,7 +425,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 
       <!-- Action Buttons (Sticky Right Bottom) -->
       <div class="fk-image-actions fk-sticky-desktop">
-        <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>)">
+        <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>, this)">
           <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
         </button>
         <button class="fk-btn-buy" onclick="buyNow(<%= product.id %>)">
@@ -474,7 +474,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
       <span class="fk-sticky-price">Rs. <%= product.price %></span>
     </div>
     <div class="fk-sticky-actions">
-      <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>)">
+      <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>, this)">
         <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
       </button>
       <button class="fk-btn-buy" onclick="buyNow(<%= product.id %>)">
