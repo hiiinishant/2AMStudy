@@ -131,7 +131,7 @@ function appendChatMessage(role, text, isRaw = false) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
   // Add to internal history (excluding UI fragments or temporary messages)
-  if (text !== '<span class="opacity-50">...</span>' && text !== '<span class="opacity-50">2AM Study thinking...</span>') {
+  if (text !== '<span class="opacity-50">...</span>' && text !== '<span class="opacity-50">2 AM Study Assistant thinking...</span>') {
     FocusBot.chatHistory.push({ role, text });
   }
 
@@ -155,7 +155,7 @@ async function submitDoubt() {
   appendChatMessage('user', doubt);
 
   // 2. Show Typing Indicator
-  const typing = appendChatMessage('model', '<span class="opacity-50">2AM Study thinking...</span>', true);
+  const typing = appendChatMessage('model', '<span class="opacity-50">2 AM Study Assistant thinking...</span>', true);
 
   try {
     const response = await fetch('/api/doubt', {
@@ -174,10 +174,10 @@ async function submitDoubt() {
       // Update history with the actual answer
       FocusBot.chatHistory.push({ role: 'model', text: data.answer });
     } else {
-      typing.innerHTML = data.error || "Sorry, I'm having trouble thinking right now.";
+      typing.innerHTML = "Sorry! I'm a little busy with Nishant right now. Please try again in about a minute. 😊";
     }
   } catch (error) {
-    typing.innerHTML = "Connection error. Please check your internet.";
+    typing.innerHTML = "Sorry! I'm a little busy with Nishant right now. Please try again in about a minute. 😊";
   } finally {
     FocusBot.isThinking = false;
     const messages = document.getElementById('bot-chat-messages');

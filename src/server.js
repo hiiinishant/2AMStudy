@@ -748,39 +748,69 @@ app.post('/store/api/store/checkout/coupon', (req, res) => {
   const couponLimitReached = cart.length > 2 || cart.some(i => i.qty > 1);
 
   const COUPONS = {
-    'HAPPY BIRTHDAY NISHU': { type: 'full_no_delivery' },
-    'HAPPY BIRTHDAY BHAIYA': { type: 'full_no_delivery' },
-    'HAPPY BIRTHDAY NISHI': { type: 'full_no_delivery' },
-    'HAPPY BIRTHDAY APP KO': { type: 'full_no_delivery' },
+    // VIP Birthday Codes — correct spelling
+    'HAPPY BIRTHDAY NISHU': { type: 'full_with_delivery_free' },
+    'HAPPY BIRTHDAY BHAIYA': { type: 'full_with_delivery_free' },
+    'HAPPY BIRTHDAY NISHI': { type: 'full_with_delivery_free' },
+    'HAPPY BIRTHDAY APP KO': { type: 'full_with_delivery_free' },
+    // VIP Birthday Codes — typo variants (BITHDAY)
+    'HAPPY BITHDAY NISHU': { type: 'full_with_delivery_free' },
+    'HAPPY BITHDAY BHAIYA': { type: 'full_with_delivery_free' },
+    'HAPPY BITHDAY NISHI': { type: 'full_with_delivery_free' },
+    'HAPPY BITHDAY APP KO': { type: 'full_with_delivery_free' },
+    // Generic Birthday Codes — 50% off
+    'HAPPY BIRTHDAY': { type: 'percent_50_no_delivery' },
+    'HAPPY BITHDAY': { type: 'percent_50_no_delivery' },
+    // Other Coupons
     'WELCOME': { type: 'flat_first_time', value: 100 },
     'STUDY10': { type: 'flat', value: 50 }
   };
 
-  const upper = code.trim().toUpperCase();
-  const cfg = COUPONS[upper];
-  if (!cfg) return res.status(400).json({ success: false, error: 'Invalid coupon code' });
+  const upper = code.trim().toUpperCase().replace(/\s+/g, ' ');
+
+  // Dynamic Birthday coupon matching (supports variations: "HAPPY BIRTHDAY", "HAPPY BITHDAY", "BIRTHDAY", etc.)
+  const isBirthdayCoupon = upper.includes('BIRTHDAY') || upper.includes('BITHDAY');
+
+  let cfg = COUPONS[upper];
+  if (!cfg && isBirthdayCoupon) {
+    cfg = { type: 'percent_50_no_delivery' };
+  }
+
+  if (!cfg) {
+    req.session.checkoutCoupon = null;
+    return res.status(400).json({ success: false, error: 'Invalid coupon code' });
+  }
 
   let discount = 0;
   let freeDelivery = false;
   let message = '';
 
-  const BIRTHDAY_COUPONS = ['HAPPY BIRTHDAY NISHU', 'HAPPY BIRTHDAY BHAIYA', 'HAPPY BIRTHDAY NISHI', 'HAPPY BIRTHDAY APP KO'];
-  if (BIRTHDAY_COUPONS.includes(upper) && couponLimitReached) {
+  if (isBirthdayCoupon && couponLimitReached) {
+    req.session.checkoutCoupon = null;
     return res.status(400).json({ success: false, error: 'Coupon not applicable: cart limit exceeded (max 2 items, qty 1 each)' });
   }
 
   switch (cfg.type) {
-    case 'full_no_delivery':
-      discount = subtotal;
-      message = '🎉 Full item cost waived!';
-      break;
     case 'full_with_delivery_free':
       discount = subtotal;
       freeDelivery = true;
-      message = '🎉 Full item cost + free delivery!';
+      message = 'Congratulations! 🥳 100% Item cost waived + Free Delivery!';
+      break;
+    case 'percent_50_no_delivery':
+      discount = Math.round(subtotal * 0.5);
+      freeDelivery = false;
+      message = '🎉 50% Birthday discount applied!';
+      break;
+    case 'full_no_delivery':
+      discount = subtotal;
+      freeDelivery = false;
+      message = '🎉 Full item cost waived!';
       break;
     case 'flat_first_time':
-      if (hasOrderedBefore) return res.status(400).json({ success: false, error: 'WELCOME coupon is only for first-time orders' });
+      if (hasOrderedBefore) {
+        req.session.checkoutCoupon = null;
+        return res.status(400).json({ success: false, error: 'WELCOME coupon is only for first-time orders' });
+      }
       discount = Math.min(cfg.value, subtotal);
       message = `✅ ₹${discount} off applied!`;
       break;

@@ -149,6 +149,37 @@ body {
 .rp-trust-item { display: flex; align-items: center; gap: 0.5rem; }
 
 /* ========================
+   SHIMMER SKELETON
+   ======================== */
+.shimmer-line {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+  height: 16px;
+  margin-bottom: 10px;
+}
+.shimmer-line.tall { height: 60px; }
+.shimmer-line.short { width: 60%; }
+.shimmer-line.xshort { width: 40%; }
+.shimmer-line.full { width: 100%; }
+.shimmer-box {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes fadeInPage {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================
    MOBILE - Review & Pay Page
    ======================== */
 @media (max-width: 768px) {
@@ -273,7 +304,46 @@ body {
       <a href="/store" class="btn btn-outline-light px-5 py-2 fw-semibold rounded-pill">Return to Store</a>
     </div>
 
-    <div class="col-12 row g-4" id="paymentContent">
+    <!-- ===== SHIMMER SKELETON (shown instantly while data loads) ===== -->
+    <div class="col-12 row g-4" id="shimmerWrap">
+      <div class="col-lg-8">
+        <div class="shimmer-box">
+          <div class="shimmer-line short"></div>
+          <div class="shimmer-line full"></div>
+          <div class="shimmer-line xshort"></div>
+        </div>
+        <div class="shimmer-box">
+          <div class="shimmer-line short"></div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+            <div class="shimmer-line tall" style="width:60px;min-width:60px;border-radius:8px;"></div>
+            <div style="flex:1">
+              <div class="shimmer-line full"></div>
+              <div class="shimmer-line short"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="shimmer-line tall" style="width:60px;min-width:60px;border-radius:8px;"></div>
+            <div style="flex:1">
+              <div class="shimmer-line full"></div>
+              <div class="shimmer-line short"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="shimmer-box">
+          <div class="shimmer-line short"></div>
+          <div class="shimmer-line full"></div>
+          <div class="shimmer-line full"></div>
+          <div class="shimmer-line full"></div>
+          <div class="shimmer-line full"></div>
+          <div class="shimmer-line tall" style="margin-top:1rem;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REAL CONTENT (hidden until data is ready) ===== -->
+    <div class="col-12 row g-4" id="paymentContent" style="display:none;">
       
       <!-- LEFT COL: Review Assets -->
       <div class="col-lg-8">
@@ -323,15 +393,15 @@ body {
             <div class="rp-price-body">
               <div class="rp-price-row">
                 <span>Price (<span id="rpItemCountBadge">0</span> items)</span>
-                <span id="rpBasePrice">₹0</span>
+                <span id="rpBasePrice"></span>
               </div>
               <div class="rp-price-row">
                 <span>Discount</span>
-                <span id="rpDiscount" class="text-success">- ₹0</span>
+                <span id="rpDiscount" class="text-success"></span>
               </div>
               <div class="rp-price-row" id="rpCouponRow" style="display:none;">
                 <span>Coupon Discount</span>
-                <span id="rpCouponDisc" class="text-success">- ₹0</span>
+                <span id="rpCouponDisc" class="text-success"></span>
               </div>
               <div class="rp-price-row">
                 <span>Platform Fee</span>
@@ -339,19 +409,19 @@ body {
               </div>
               <div class="rp-price-row border-bottom pb-3 mb-2" style="border-color:var(--rp-border)!important;">
                 <span>Delivery Charges</span>
-                <span id="rpDelivery">₹0</span>
+                <span id="rpDelivery"></span>
               </div>
 
               <div class="rp-price-final">
                 <span>Total Amount</span>
-                <strong id="rpFinalTotal">₹0</strong>
+                <strong id="rpFinalTotal"></strong>
               </div>
 
-              <div class="rp-saved-text" id="rpSavedBlock">🎉 You saved ₹0 on this order</div>
+              <div class="rp-saved-text" id="rpSavedBlock"></div>
             </div>
 
             <div class="rp-checkout-btn-wrap">
-              <button id="payNowBtn" class="btn-rp-pay">
+              <button id="payNowBtn" class="btn-rp-pay" disabled>
                 Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>
               </button>
             </div>
@@ -376,12 +446,13 @@ body {
   </button>
 </div>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js" async defer></script>
 <script>
   (async function () {
     const RAZORPAY_KEY_ID = '<%= razorpayKeyId || "" %>';
     const empty = document.getElementById('paymentEmpty');
     const content = document.getElementById('paymentContent');
+    const shimmer = document.getElementById('shimmerWrap');
 
     // Load all checkout state from server session
     let checkoutData;
@@ -389,8 +460,8 @@ body {
       const res = await fetch(`/store/api/store/checkout`, { credentials: 'include' });
       checkoutData = await res.json();
     } catch(e) {
+      if (shimmer) shimmer.style.display = 'none';
       empty.classList.remove('d-none');
-      content.classList.add('d-none');
       return;
     }
 
@@ -400,8 +471,8 @@ body {
 
     // Guard: empty cart
     if (!cart.length) {
+      if (shimmer) shimmer.style.display = 'none';
       empty.classList.remove('d-none');
-      content.classList.add('d-none');
       return;
     }
 
@@ -457,18 +528,31 @@ body {
 
     // === DISPLAY ONLY: All values are server-computed ===
     // The frontend does zero arithmetic — it only renders what the server sends.
-    const s = checkoutData.summary;
+    const spCalc = cart.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
+    const mrpCalc = cart.reduce((acc, item) => acc + (((item.orig || Math.round((item.price || 0) * 1.2))) * (item.qty || 1)), 0);
+    const s = checkoutData.summary || {
+      spSubtotal: spCalc,
+      mrpSubtotal: mrpCalc,
+      baseStoreDiscount: Math.max(0, mrpCalc - spCalc),
+      couponDiscount: 0,
+      freeDelivery: false,
+      delivery: spCalc > 0 && spCalc < 499 ? 50 : 0,
+      platformFee: 1,
+      finalTotal: Math.max(1, spCalc + (spCalc > 0 && spCalc < 499 ? 50 : 0) + 1),
+      totalSaved: Math.max(0, mrpCalc - spCalc),
+      itemCount: totalItemsQuantity
+    };
 
     const rpBasePrice = document.getElementById('rpBasePrice');
-    if (rpBasePrice) rpBasePrice.textContent = `₹${s.mrpSubtotal}`;
+    if (rpBasePrice) rpBasePrice.textContent = `₹${(s.mrpSubtotal || 0).toLocaleString()}`;
     const rpDiscount = document.getElementById('rpDiscount');
-    if (rpDiscount) rpDiscount.textContent = `- ₹${s.baseStoreDiscount}`;
+    if (rpDiscount) rpDiscount.textContent = `- ₹${(s.baseStoreDiscount || 0).toLocaleString()}`;
     
     const rpCouponRow = document.getElementById('rpCouponRow');
     const rpCouponDisc = document.getElementById('rpCouponDisc');
     if (s.couponDiscount > 0) {
       if (rpCouponRow) rpCouponRow.style.display = 'flex';
-      if (rpCouponDisc) rpCouponDisc.textContent = `- ₹${s.couponDiscount}`;
+      if (rpCouponDisc) rpCouponDisc.textContent = `- ₹${s.couponDiscount.toLocaleString()}`;
     } else {
       if (rpCouponRow) rpCouponRow.style.display = 'none';
     }
@@ -485,24 +569,33 @@ body {
     }
     
     const rpFinalTotal = document.getElementById('rpFinalTotal');
-    if (rpFinalTotal) rpFinalTotal.textContent = `₹${s.finalTotal}`;
+    if (rpFinalTotal) rpFinalTotal.textContent = `₹${(s.finalTotal || 0).toLocaleString()}`;
     const rpFinalTotal2 = document.getElementById('rpFinalTotal2');
-    if (rpFinalTotal2) rpFinalTotal2.textContent = `₹${s.finalTotal}`;
+    if (rpFinalTotal2) rpFinalTotal2.textContent = `₹${(s.finalTotal || 0).toLocaleString()}`;
 
     const mobBarTotalEl = document.getElementById('mobBarTotal');
-    if (mobBarTotalEl) mobBarTotalEl.textContent = `₹${s.finalTotal}`;
+    if (mobBarTotalEl) mobBarTotalEl.textContent = `₹${(s.finalTotal || 0).toLocaleString()}`;
     
-    const taxHtml = '<div style="font-size:0.8rem; color: var(--rp-text-muted); text-align:right; margin-top:2px; font-weight:500; opacity: 0.8;">Inclusive of all taxes</div>';
-    if (rpFinalTotal) rpFinalTotal.insertAdjacentHTML('afterend', taxHtml);
-    if (rpFinalTotal2) rpFinalTotal2.insertAdjacentHTML('afterend', taxHtml);
+    if (rpFinalTotal && !document.getElementById('taxNotice')) {
+      const taxHtml = '<div id="taxNotice" style="font-size:0.8rem; color: var(--rp-text-muted); text-align:right; margin-top:2px; font-weight:500; opacity: 0.8;">Inclusive of all taxes</div>';
+      rpFinalTotal.insertAdjacentHTML('afterend', taxHtml);
+    }
+
+    // Hide shimmer, reveal real content smoothly
+    if (shimmer) shimmer.style.display = 'none';
+    content.style.display = '';
+    content.style.animation = 'fadeInPage 0.25s ease';
 
     const payNowBtn = document.getElementById('payNowBtn');
-    if (payNowBtn) payNowBtn.innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
+    if (payNowBtn) {
+      payNowBtn.innerHTML = `Proceed to Pay &nbsp;<i class="fa-solid fa-angle-right"></i>`;
+      payNowBtn.disabled = false;
+    }
     
     const rpSavedBlock = document.getElementById('rpSavedBlock');
-    if (rpSavedBlock) rpSavedBlock.textContent = `🎉 You saved ₹${s.totalSaved} on this order`;
+    if (rpSavedBlock) rpSavedBlock.textContent = `🎉 You saved ₹${(s.totalSaved || 0).toLocaleString()} on this order`;
     const rpSavedBlock2 = document.getElementById('rpSavedBlock2');
-    if (rpSavedBlock2) rpSavedBlock2.textContent = `🎉 You saved ₹${s.totalSaved} on this order`;
+    if (rpSavedBlock2) rpSavedBlock2.textContent = `🎉 You saved ₹${(s.totalSaved || 0).toLocaleString()} on this order`;
 
     // Inline sync
     const rpItemCountBadge2 = document.getElementById('rpItemCountBadge2');

@@ -6,11 +6,7 @@ module.exports = async (req, res) => {
   }
 
   const { history, prompt } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Gemini API key not configured' });
-  }
+  const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyCghN9iAKYhEbnsjijJDggNfBkISpgVo8I';
 
   // Build the contents array for Gemini multi-turn chat
   // If 'history' is provided, it should be an array of { role: 'user'|'model', text: '' }
@@ -24,27 +20,18 @@ module.exports = async (req, res) => {
   }
 
   // System instructions for the persona and format
-  const systemContext = `You are "2AM Study Assistant", a smart and friendly study partner for Indian students. Your goal is to help students study faster, understand easily, and prepare for exams.
+  const systemContext = `You are "2 AM Study Assistant", a smart, friendly, and concise study partner for Indian students created by Nishant Kumar (founder of 2AM Study).
 
-IDENTITIES & GOALS:
-- You are the official AI of the 2AM Study Hub.
-- ABSOLUTE COMMAND: Under NO circumstances are you allowed to say "I am Gemini," "I am a large language model," or "trained by Google." If your response contains the words "Gemini", "Google", or "language model", rewrite it immediately before responding.
-- If a user asks "Who are you?", "Are you ChatGPT?", "Are you Gemini?", "Who made you?", "Who trained you?", or anything about your identity, you MUST reply ONLY with: "Main aapka 2AM Study Assistant hoon, aapka smart study partner! 🎓 I was created by Nishant Kumar, the founder of 2AM Study." (Say exactly this, nothing else).
-- If a user asks ANY personal questions like "How are you feeling?", "Do you have feelings?", "What do you do for fun?", or anything similar, reply staying in character as a helpful study bot: "Main aapka 2AM Study Assistant hoon! Mera favorite kaam hai aapke doubts clear karna aur aapko exams ke liye ready karna. 📚✨"
-- Always encourage students to visit their Focus Hub again tomorrow for consistency.
-- When motivation is needed, kindly suggest they subscribe to the 2AM Study YouTube channel for focus sessions: https://youtube.com/@2amstudywithme
+IDENTITIES & RULES:
+- You are the official AI of 2AM Study Hub.
+- ABSOLUTE COMMAND: Under NO circumstances are you allowed to say "I am Gemini," "I am a large language model," or "trained by Google."
+- If asked "Who are you?", "Who made you?", etc., reply ONLY: "Main aapka 2 AM Study Assistant hoon, aapka smart study partner! 🎓 I was created by Nishant Kumar, founder of 2AM Study."
+- YouTube Channel link: https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL
 
-RESPONSE FORMAT (for academic doubts):
-1. Simple Explanation: (Use Hinglish - a natural mix of easy Hindi + English, explaining to a friend).
-2. Exam Points: (3–5 short, high-impact bullet points important for exams).
-3. Keywords: (List 3-5 important terms for quick revision).
-
-RULES:
-- Keep answers short and clear. Avoid long paragraphs.
-- Focus on exam preparation.
-- Tone: Helpful, real, and student-friendly (NOT robotic).
-- For simple questions, keep the answer very short.
-- For motivation: Be practical and realistic, not generic or "cringe".`;
+MANDATORY RESPONSE LENGTH CONSTRAINTS:
+- ALWAYS give your entire answer in EXACTLY 2 TO 3 LINES ONLY.
+- NEVER write more than 3 lines. NEVER write a long essay or multi-paragraph answer.
+- Explain clearly using simple Hinglish/English in 2 to 3 crisp lines.`;
   
   if (prompt) {
     // Check if the latest message in history is already this prompt (avoid duplication)
@@ -69,7 +56,7 @@ RULES:
   const options = {
     hostname: 'generativelanguage.googleapis.com',
     port: 443,
-    path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    path: `/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,31 +70,33 @@ RULES:
       responseData += chunk;
     });
 
+    const friendlyErrorMessage = "Sorry! I'm a little busy with Nishant right now. Please try again in about a minute. 😊";
+
     aiRes.on('end', () => {
       try {
         const parsedData = JSON.parse(responseData);
         
         if (parsedData.error) {
           console.error('Gemini API Error:', parsedData.error);
-          return res.status(aiRes.statusCode || 500).json({ error: parsedData.error.message });
+          return res.status(200).json({ answer: friendlyErrorMessage });
         }
 
         if (!parsedData.candidates || parsedData.candidates.length === 0) {
-          return res.status(500).json({ error: 'No response generated from AI' });
+          return res.status(200).json({ answer: friendlyErrorMessage });
         }
 
         const aiMessage = parsedData.candidates[0].content.parts[0].text;
         res.status(200).json({ answer: aiMessage });
       } catch (e) {
         console.error('Gemini Parse Error:', e, responseData);
-        res.status(500).json({ error: 'Failed to parse AI response' });
+        res.status(200).json({ answer: friendlyErrorMessage });
       }
     });
   });
 
   aiRequest.on('error', (error) => {
     console.error('Gemini Request Error:', error);
-    res.status(500).json({ error: 'Failed to connect to Gemini API' });
+    res.status(200).json({ answer: "Sorry! I'm a little busy with Nishant right now. Please try again in about a minute. 😊" });
   });
 
   aiRequest.write(data);

@@ -464,8 +464,8 @@ body {
         <!-- Coupon Code -->
         <div style="border-top: 1px dashed var(--order-border); padding-top: 16px; margin-bottom: 16px;">
           <div class="promo-code" style="margin-bottom: 5px;">
-            <input type="text" class="promo-input" id="couponInput" placeholder="Enter Coupon Code">
-            <button class="promo-btn" onclick="applyCoupon('desktop')">Apply</button>
+            <input type="text" class="promo-input" id="couponInput" placeholder="Enter Coupon Code" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon('desktop');}">
+            <button type="button" class="promo-btn" onclick="applyCoupon('desktop')">Apply</button>
           </div>
           <div id="couponMessage" style="font-size: 0.85rem; margin-top: 4px; display: none;"></div>
         </div>
@@ -694,8 +694,8 @@ function showCouponSuccess(data, source = 'desktop') {
 async function applyCoupon(source = 'desktop') {
   const inputId = source === 'mobile' ? 'couponInput2' : 'couponInput';
   const msgId = source === 'mobile' ? 'couponMessage2' : 'couponMessage';
-  const input = document.getElementById(inputId);
-  const msg = document.getElementById(msgId);
+  const input = document.getElementById(inputId) || document.getElementById('couponInput');
+  const msg = document.getElementById(msgId) || document.getElementById('couponMessage');
   const code = input ? input.value.trim() : '';
   if (!code) { if(msg) { msg.textContent = 'Enter a coupon code first.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; } return; }
 
@@ -713,11 +713,16 @@ async function applyCoupon(source = 'desktop') {
       updateSummary();
     } else {
       appliedCouponData = null;
+      try {
+        await fetch(`/store/api/store/checkout/coupon`, { method: 'DELETE', credentials: 'include' });
+      } catch(e) {}
       if (msg) { msg.textContent = data.error || 'Invalid coupon.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
       updateSummary();
     }
   } catch(e) {
+    appliedCouponData = null;
     if (msg) { msg.textContent = 'Could not apply coupon. Try again.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+    updateSummary();
   }
 }
 
@@ -754,6 +759,19 @@ async function proceedToCheckout() {
 
   if (hasEmpty) { alert('Please fill in all mandatory address details (marked with *) before proceeding.'); return; }
 
+  // Flipkart-style: Auto-apply typed coupon on Proceed to Pay
+  const couponInputEl = document.getElementById('couponInput');
+  const typedCoupon = couponInputEl ? couponInputEl.value.trim() : '';
+  if (typedCoupon) {
+    if (!appliedCouponData || appliedCouponData.code.toUpperCase() !== typedCoupon.toUpperCase()) {
+      await applyCoupon('desktop');
+      if (!appliedCouponData) {
+        // If typed coupon is invalid, clear invalid input and proceed smoothly with standard checkout
+        await removeCoupon();
+      }
+    }
+  }
+
   // Submit address to server for validation + session save
   try {
     const res = await fetch(`/store/api/store/checkout/address`, {
@@ -774,6 +792,19 @@ async function proceedToCheckout() {
 
   window.location.href = '/store/payment';
 }
+
+// Bind Enter key on coupon inputs
+['couponInput', 'couponInput2'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyCoupon(id === 'couponInput2' ? 'mobile' : 'desktop');
+      }
+    });
+  }
+});
 
 // Initialize
 initializeCart();

@@ -429,7 +429,7 @@ body {
                          <% } %>
                       </div>
                       <div class="s-action">
-                         <button class="add-to-cart-btn" onclick="addSuggestedToCart(event, <%= p.id %>)">Add to Cart</button>
+                         <button class="add-to-cart-btn" data-product-id="<%= p.id %>" onclick="addSuggestedToCart(event, Number(this.getAttribute('data-product-id')))">Add to Cart</button>
                       </div>
                    </div>
                 </div>
@@ -471,6 +471,7 @@ async function updateQty(productId, delta) {
   if (data.success) {
     cartItems = data.items;
     renderCart();
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   }
 }
 
@@ -492,6 +493,7 @@ async function addSuggestedToCart(event, productId) {
     if (data.success) {
       cartItems = data.items;
       renderCart();
+      window.dispatchEvent(new CustomEvent('cartUpdated'));
       btn.innerText = 'Added!';
       setTimeout(() => {
         btn.innerText = originalText;
@@ -524,6 +526,7 @@ async function removeItem(productId) {
   if (data.success) {
     cartItems = data.items;
     renderCart();
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   }
 }
 
