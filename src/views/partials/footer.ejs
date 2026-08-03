@@ -2253,6 +2253,15 @@
     console.error("Error initializing Firebase:", error);
   }
 
+  // Register Service Worker for Browser Push Notifications
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => {
+        console.warn('Service Worker registration notice:', err);
+      });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     // Intercept generic forms on the site to route them through Firebase
     const forms = document.querySelectorAll("form");

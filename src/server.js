@@ -864,6 +864,177 @@ function saveStudentSafetySupports() {
   }
 }
 
+// Student Safety Notification Logs JSON persistence
+const notifLogsFilePath = path.join(__dirname, 'data', 'studentSafetyNotificationLogs.json');
+let studentSafetyNotificationLogs = [];
+try {
+  if (fs.existsSync(notifLogsFilePath)) {
+    studentSafetyNotificationLogs = JSON.parse(fs.readFileSync(notifLogsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load studentSafetyNotificationLogs.json:", e);
+}
+
+function saveNotificationLogs() {
+  try {
+    fs.writeFileSync(notifLogsFilePath, JSON.stringify(studentSafetyNotificationLogs, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save studentSafetyNotificationLogs.json:", e);
+  }
+}
+
+// User Push Subscriptions JSON persistence
+const pushSubsFilePath = path.join(__dirname, 'data', 'userPushSubscriptions.json');
+let userPushSubscriptions = {};
+try {
+  if (fs.existsSync(pushSubsFilePath)) {
+    userPushSubscriptions = JSON.parse(fs.readFileSync(pushSubsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load userPushSubscriptions.json:", e);
+}
+
+function savePushSubscriptions() {
+  try {
+    fs.writeFileSync(pushSubsFilePath, JSON.stringify(userPushSubscriptions, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save userPushSubscriptions.json:", e);
+  }
+}
+
+// Web Push VAPID Keys Setup
+let webpush = null;
+let vapidKeys = {
+  publicKey: process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa1622b7d-6-3983278923-28329783921789-231',
+  privateKey: process.env.VAPID_PRIVATE_KEY || 'N2819381290381902830192830918230'
+};
+try {
+  webpush = require('web-push');
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    vapidKeys = webpush.generateVAPIDKeys();
+  }
+  webpush.setVapidDetails(
+    'mailto:safety@2amstudy.online',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+  );
+} catch (e) {
+  console.warn("Web Push initialization notice:", e.message);
+}
+
+/**
+ * Smart Notification Dispatcher (Push First, Email Fallback)
+ * Priority 1: Web Push (if granted, token exists & pushEnabled !== false) -> STOP
+ * Priority 2: Email (if push unavailable/failed & emailEnabled !== false) -> STOP
+ * Never sends both Push and Email for the same event!
+ */
+async function dispatchSmartNotification({ userId, userEmail, caseId, title, message, targetUrl }) {
+  if (!userId && !userEmail) return null;
+
+  // Prevent duplicate notification for same user and case
+  const existingLog = studentSafetyNotificationLogs.find(l => (l.userId === userId || l.userEmail === userEmail) && l.caseId === caseId && l.status !== 'failed');
+  if (existingLog) {
+    console.log(`[SmartNotif] Skip duplicate notification for user ${userId || userEmail} on case ${caseId}`);
+    return existingLog;
+  }
+
+  const logId = 'NLOG-' + uuidv4().substring(0, 8).toUpperCase();
+  const subData = userPushSubscriptions[userId] || userPushSubscriptions[userEmail] || {};
+  const pushSub = subData.pushSubscription;
+  const isPushEnabled = subData.pushEnabled !== false;
+  const isEmailEnabled = subData.emailNotifications !== false;
+  const isSafetyEnabled = subData.safetyAlerts !== false;
+
+  if (!isSafetyEnabled) {
+    console.log(`[SmartNotif] Safety alerts disabled for user ${userId}`);
+    return null;
+  }
+
+  // Priority 1: Push Notification
+  if (isPushEnabled && pushSub && webpush) {
+    try {
+      const payload = JSON.stringify({
+        title: title || '🛡️ 2AM Student Safety Alert',
+        body: message,
+        icon: '/favicon.ico',
+        url: targetUrl || `/student-safety#${caseId}`,
+        notificationId: logId,
+        caseId: caseId
+      });
+      await webpush.sendNotification(pushSub, payload);
+      
+      const log = {
+        logId,
+        userId: userId || 'anonymous',
+        userEmail: userEmail || null,
+        caseId,
+        deliveryMethod: 'push',
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        openedAt: null
+      };
+      studentSafetyNotificationLogs.unshift(log);
+      saveNotificationLogs();
+      console.log(`[SmartNotif] ✅ Push sent successfully to ${userId || userEmail} for case ${caseId}`);
+      return log;
+    } catch (pushErr) {
+      console.warn(`[SmartNotif] ⚠️ Push failed for ${userId || userEmail}, falling back to email:`, pushErr.message);
+    }
+  }
+
+  // Priority 2: Email Fallback (Only if Push was unavailable, disabled, or failed)
+  if (isEmailEnabled && userEmail) {
+    try {
+      const emailHtml = `
+        <div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <span style="background:#d1fae5;color:#065f46;padding:6px 16px;border-radius:99px;font-size:12px;font-weight:700;">🛡️ STUDENT IDENTITY SHIELD</span>
+          </div>
+          <h2 style="color:#0f172a;margin-bottom:12px;text-align:center;">${title || 'Case Status Update'}</h2>
+          <p style="color:#334155;font-size:15px;line-height:1.6;">${message}</p>
+          <div style="text-align:center;margin-top:28px;">
+            <a href="https://2amstudy.online${targetUrl || `/student-safety#${caseId}`}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:99px;font-weight:700;text-decoration:none;font-size:14px;">View Verified Case</a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:32px;">You received this fallback email because Push Notifications were unreached or disabled.</p>
+        </div>
+      `;
+      await sendSafetyEmail(userEmail, title || `[2AM Study] Case ${caseId} Verified ✅`, emailHtml);
+      
+      const log = {
+        logId,
+        userId: userId || 'anonymous',
+        userEmail,
+        caseId,
+        deliveryMethod: 'email',
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        openedAt: null
+      };
+      studentSafetyNotificationLogs.unshift(log);
+      saveNotificationLogs();
+      console.log(`[SmartNotif] 📧 Fallback email sent successfully to ${userEmail} for case ${caseId}`);
+      return log;
+    } catch (emailErr) {
+      console.error(`[SmartNotif] ❌ Email fallback failed for ${userEmail}:`, emailErr.message);
+    }
+  }
+
+  // If both failed
+  const failedLog = {
+    logId,
+    userId: userId || 'anonymous',
+    userEmail: userEmail || null,
+    caseId,
+    deliveryMethod: pushSub ? 'push' : 'email',
+    status: 'failed',
+    sentAt: new Date().toISOString(),
+    openedAt: null
+  };
+  studentSafetyNotificationLogs.unshift(failedLog);
+  saveNotificationLogs();
+  return failedLog;
+}
+
 // Admin Moderation Dashboard View
 app.get('/student-safety/admin', (req, res) => {
   res.render('admin-moderation', {
@@ -1056,7 +1227,18 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
       request_evidence: { subject: `[2AM Study] Action Required — Case ${caseId}`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#d97706;">📩 Additional Evidence Required</h2><p>Our team is reviewing Case <strong>${caseId}</strong> and needs more information to proceed.</p><p><strong>Moderator Note:</strong> ${note || 'Please provide additional proof or ID verification.'}</p></div>` },
       resolve: { subject: `[2AM Study] Case ${caseId} Resolved 🎉`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">🎉 Case Resolved!</h2><p>Great news! Case <strong>${caseId}</strong> has been officially resolved. Thank you for helping keep 2AM Study safe.</p></div>` }
     };
-    if (emailTemplates[action]) {
+
+    if (action === 'approve') {
+      // Smart Notification System (Push First, Email Fallback)
+      dispatchSmartNotification({
+        userId: targetCase.userId,
+        userEmail: targetCase.reporterEmail,
+        caseId,
+        title: `[2AM Study] Case ${caseId} Verified ✅`,
+        message: `Your report for ${targetCase.fakeUsername || 'fake profile'} has been verified by our moderation team.`,
+        targetUrl: `/student-safety#${caseId}`
+      });
+    } else if (emailTemplates[action]) {
       sendSafetyEmail(targetCase.reporterEmail || null, emailTemplates[action].subject, emailTemplates[action].body);
     }
 
@@ -1087,6 +1269,90 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
     status: targetCase.status,
     case: targetCase,
     message: `Case ${caseId} successfully updated to status "${targetCase.status}".`
+  });
+});
+
+// VAPID Public Key API
+app.get('/api/student-safety/vapid-public-key', (req, res) => {
+  res.json({ success: true, publicKey: vapidKeys ? vapidKeys.publicKey : null });
+});
+
+// Save Push Subscription & Preferences API
+app.post('/api/student-safety/save-push-token', (req, res) => {
+  const { userId, userEmail, pushSubscription, pushEnabled, emailNotifications, safetyAlerts } = req.body;
+  const key = userId || userEmail;
+  if (!key) return res.status(400).json({ success: false, message: 'userId or userEmail required.' });
+
+  userPushSubscriptions[key] = {
+    userId: userId || null,
+    userEmail: userEmail || null,
+    pushSubscription: pushSubscription || (userPushSubscriptions[key] ? userPushSubscriptions[key].pushSubscription : null),
+    pushEnabled: pushEnabled !== undefined ? pushEnabled : true,
+    emailNotifications: emailNotifications !== undefined ? emailNotifications : true,
+    safetyAlerts: safetyAlerts !== undefined ? safetyAlerts : true,
+    updatedAt: new Date().toISOString()
+  };
+  savePushSubscriptions();
+  res.json({ success: true, message: 'Notification preferences & push token saved cleanly.' });
+});
+
+// Test Push Notification API
+app.post('/api/student-safety/test-push', async (req, res) => {
+  const { pushSubscription, userId, userEmail } = req.body;
+  if (!pushSubscription || !pushSubscription.endpoint) {
+    return res.status(400).json({ success: false, message: 'Valid push subscription object required.' });
+  }
+  if (!webpush) {
+    return res.status(500).json({ success: false, message: 'Web push module is not initialized on server.' });
+  }
+
+  try {
+    const payload = JSON.stringify({
+      title: '🧪 2AM Study Push Test',
+      body: 'Success! Web Push notifications (Priority 1) are active on this device.',
+      icon: '/favicon.ico',
+      url: '/settings',
+      notificationId: 'TEST-' + Date.now()
+    });
+    await webpush.sendNotification(pushSubscription, payload);
+    res.json({ success: true, message: 'Test push notification sent successfully!' });
+  } catch (err) {
+    console.error('Test push send error:', err);
+    res.status(500).json({ success: false, message: 'Failed to send test push: ' + err.message });
+  }
+});
+
+// Notification Click/Open Tracking API
+app.post('/api/student-safety/notifications/:id/open', (req, res) => {
+  const { id } = req.params;
+  const log = studentSafetyNotificationLogs.find(l => l.logId === id || l.notificationId === id);
+  if (log) {
+    log.status = 'opened';
+    log.openedAt = new Date().toISOString();
+    saveNotificationLogs();
+  }
+  res.json({ success: true, message: 'Notification click recorded.' });
+});
+
+// Admin Notification System Analytics API
+app.get('/api/student-safety/admin/notification-analytics', (req, res) => {
+  const total = studentSafetyNotificationLogs.length;
+  const pushSent = studentSafetyNotificationLogs.filter(l => l.deliveryMethod === 'push' && (l.status === 'sent' || l.status === 'opened')).length;
+  const emailSent = studentSafetyNotificationLogs.filter(l => l.deliveryMethod === 'email' && (l.status === 'sent' || l.status === 'opened')).length;
+  const failed = studentSafetyNotificationLogs.filter(l => l.status === 'failed').length;
+  const opened = studentSafetyNotificationLogs.filter(l => l.status === 'opened').length;
+  const sentTotal = pushSent + emailSent;
+  const openRate = sentTotal > 0 ? Math.round((opened / sentTotal) * 100) : 0;
+
+  res.json({
+    success: true,
+    total,
+    pushSent,
+    emailSent,
+    failed,
+    opened,
+    openRate: `${openRate}%`,
+    logs: studentSafetyNotificationLogs.slice(0, 50)
   });
 });
 

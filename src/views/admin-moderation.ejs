@@ -95,6 +95,34 @@
     </div>
   </div>
 
+  <!-- ── SMART NOTIFICATION SYSTEM ANALYTICS ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size:.7rem;">🚀 Push Sent (Priority 1)</div>
+        <div class="fs-3 fw-extrabold text-success" id="notif-stat-push">0</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size:.7rem;">📧 Emails (Priority 2 Fallback)</div>
+        <div class="fs-3 fw-extrabold text-primary" id="notif-stat-email">0</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size:.7rem;">❌ Failed Deliveries</div>
+        <div class="fs-3 fw-extrabold text-danger" id="notif-stat-failed">0</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size:.7rem;">📈 Open / Click Rate</div>
+        <div class="fs-3 fw-extrabold text-info" id="notif-stat-openrate">0%</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── SEARCH & FILTER BAR ── -->
   <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
     <div class="row g-2 align-items-center">
@@ -141,7 +169,7 @@
     </div>
   </div>
 
-  <!-- ── TABS: Queue / Audit Log ── -->
+  <!-- ── TABS: Queue / Audit Log / Notification Dispatch Logs ── -->
   <ul class="nav nav-tabs border-bottom-0 mb-0" id="dashboardTabs">
     <li class="nav-item">
       <button class="nav-link active fw-semibold px-4" id="tab-queue-btn" data-tab="queue">
@@ -152,6 +180,11 @@
     <li class="nav-item">
       <button class="nav-link fw-semibold px-4" id="tab-logs-btn" data-tab="logs">
         <i class="fa-solid fa-scroll me-1"></i> Audit Logs
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold px-4" id="tab-notiflogs-btn" data-tab="notiflogs">
+        <i class="fa-solid fa-bell me-1"></i> Notification Delivery Logs
       </button>
     </li>
   </ul>
@@ -213,6 +246,31 @@
           </thead>
           <tbody id="auditLogBody">
             <tr><td colspan="8" class="text-center text-muted py-4">Loading audit logs…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOTIFICATION DISPATCH LOGS TAB ── -->
+  <div id="tab-notiflogs" class="d-none card border-0 shadow-sm rounded-bottom-4 rounded-top-end-4 bg-white">
+    <div class="p-4">
+      <h5 class="fw-bold mb-3 text-dark">🔔 Smart Notification Delivery Logs (Push First, Email Fallback)</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Log ID</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Case ID</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Target User</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Delivery Method</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Status</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Sent At</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Opened At</th>
+            </tr>
+          </thead>
+          <tbody id="notifLogBody">
+            <tr><td colspan="7" class="text-center text-muted py-4">Loading notification logs…</td></tr>
           </tbody>
         </table>
       </div>
@@ -363,9 +421,59 @@
     setupSelectAll();
     setupKeyboardShortcuts();
     setupLightbox();
-    document.getElementById('refreshBtn').addEventListener('click', () => loadCases());
+    document.getElementById('refreshBtn').addEventListener('click', () => { loadCases(); loadNotifAnalytics(); });
     loadCases();
     loadAuditLogs();
+    loadNotifAnalytics();
+  }
+
+  // ── Load Notification Analytics & Logs ──
+  async function loadNotifAnalytics() {
+    try {
+      const res = await fetch('/api/student-safety/admin/notification-analytics');
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('notif-stat-push').textContent = data.pushSent;
+        document.getElementById('notif-stat-email').textContent = data.emailSent;
+        document.getElementById('notif-stat-failed').textContent = data.failed;
+        document.getElementById('notif-stat-openrate').textContent = data.openRate;
+
+        const tbody = document.getElementById('notifLogBody');
+        if (tbody && data.logs) {
+          if (data.logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No notification delivery logs recorded yet.</td></tr>`;
+          } else {
+            tbody.innerHTML = data.logs.map(l => `
+              <tr>
+                <td><code class="small text-muted">${escHtml(l.logId || '—')}</code></td>
+                <td><code class="small text-primary">${escHtml(l.caseId || '—')}</code></td>
+                <td><span class="small font-monospace">${escHtml(l.userId || l.userEmail || '—')}</span></td>
+                <td><span class="badge bg-${l.deliveryMethod === 'push' ? 'success' : 'primary'} rounded-pill px-3 py-1">${escHtml(l.deliveryMethod)}</span></td>
+                <td><span class="badge bg-${l.status === 'opened' ? 'info' : (l.status === 'sent' ? 'success' : 'danger')} rounded-pill px-3 py-1">${escHtml(l.status)}</span></td>
+                <td><span class="small text-muted">${l.sentAt ? new Date(l.sentAt).toLocaleString('en-IN') : '—'}</span></td>
+                <td><span class="small text-muted">${l.openedAt ? new Date(l.openedAt).toLocaleString('en-IN') : '—'}</span></td>
+              </tr>
+            `).join('');
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Notification analytics fetch error:", err);
+    }
+  }
+
+  // ── Tabs ──
+  function setupTabs() {
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.getAttribute('data-tab');
+        document.getElementById('tab-queue').classList.toggle('d-none', tab !== 'queue');
+        document.getElementById('tab-logs').classList.toggle('d-none', tab !== 'logs');
+        document.getElementById('tab-notiflogs').classList.toggle('d-none', tab !== 'notiflogs');
+      });
+    });
   }
 
   // ── Load Cases ──
@@ -858,19 +966,6 @@
     } catch(err) {
       tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Failed to load logs.</td></tr>`;
     }
-  }
-
-  // ── Tabs ──
-  function setupTabs() {
-    document.querySelectorAll('[data-tab]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.getAttribute('data-tab');
-        document.getElementById('tab-queue').classList.toggle('d-none', tab !== 'queue');
-        document.getElementById('tab-logs').classList.toggle('d-none', tab !== 'logs');
-      });
-    });
   }
 
   // ── Keyboard Shortcuts ──

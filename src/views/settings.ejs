@@ -8,7 +8,7 @@
           ⚙️ Account Settings
         </div>
         <h1 class="display-6 fw-extrabold text-dark mb-1">Profile & Preferences</h1>
-        <p class="text-muted small mb-0">Update your display name, institution details, and security preferences.</p>
+        <p class="text-muted small mb-0">Manage your profile, notification delivery channels, and Student Safety alerts.</p>
       </div>
       <a href="/profile" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
         👤 View Profile
@@ -18,14 +18,14 @@
 </section>
 
 <main class="container py-5">
-  <div class="row justify-content-center">
+  <div class="row justify-content-center g-4">
     <div class="col-lg-8">
       
       <div id="settingsAlert" class="alert border-0 rounded-3 p-3 small mb-4 d-none"></div>
 
-      <!-- Settings Card -->
-      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
-        <h2 class="h5 fw-bold text-dark mb-4">Edit Profile Information</h2>
+      <!-- Settings Card: Edit Profile -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5 mb-4">
+        <h2 class="h5 fw-bold text-dark mb-4">👤 Edit Profile Information</h2>
 
         <form id="settingsForm">
           <div class="mb-3">
@@ -48,6 +48,69 @@
             Save Changes
           </button>
         </form>
+      </div>
+
+      <!-- Notification Preferences Card (Push First, Email Fallback) -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div>
+            <h2 class="h5 fw-bold text-dark mb-1">🔔 Smart Notification Preferences</h2>
+            <p class="text-muted small mb-0">Configured with <strong>Push-First, Email-Fallback</strong> strategy. You will never receive duplicate notifications.</p>
+          </div>
+          <span id="pushStatusBadge" class="badge bg-secondary rounded-pill px-3 py-2">Checking Browser Push...</span>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Browser Push Toggle & Permission Button -->
+        <div class="p-3 bg-light rounded-4 mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-3">
+            <div>
+              <div class="fw-bold text-dark mb-1">🚀 Browser Push Notifications (Priority 1)</div>
+              <div class="text-muted small">Receive instant alerts directly in your browser even when 2AM Study is running in background.</div>
+            </div>
+            <div class="form-check form-switch fs-4">
+              <input class="form-check-input" type="checkbox" role="switch" id="togglePushEnabled" checked>
+            </div>
+          </div>
+          
+          <div class="d-flex gap-2 flex-wrap align-items-center">
+            <button type="button" id="requestPushBtn" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+              🔔 Enable Push Notifications
+            </button>
+            <button type="button" id="testPushBtn" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+              🧪 Send Test Push
+            </button>
+          </div>
+        </div>
+
+        <!-- Email Notifications Toggle (Fallback) -->
+        <div class="d-flex align-items-center justify-content-between py-3 border-bottom flex-wrap gap-3">
+          <div>
+            <div class="fw-bold text-dark mb-1">📧 Email Notifications (Priority 2 Fallback)</div>
+            <div class="text-muted small">Sent automatically only if Push Notifications are unavailable, blocked, or disabled.</div>
+          </div>
+          <div class="form-check form-switch fs-4">
+            <input class="form-check-input" type="checkbox" role="switch" id="toggleEmailNotifications" checked>
+          </div>
+        </div>
+
+        <!-- Student Safety Alerts Toggle -->
+        <div class="d-flex align-items-center justify-content-between py-3 border-bottom flex-wrap gap-3">
+          <div>
+            <div class="fw-bold text-dark mb-1">🛡️ Student Safety Verification Alerts</div>
+            <div class="text-muted small">Receive alerts when an admin verifies, resolves, or updates your reported impersonation cases.</div>
+          </div>
+          <div class="form-check form-switch fs-4">
+            <input class="form-check-input" type="checkbox" role="switch" id="toggleSafetyAlerts" checked>
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="button" id="saveNotifPrefsBtn" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
+            Save Preferences
+          </button>
+        </div>
       </div>
 
     </div>
@@ -75,6 +138,84 @@
   const form = document.getElementById('settingsForm');
   const alertEl = document.getElementById('settingsAlert');
   const saveBtn = document.getElementById('saveSettingsBtn');
+  const pushBadge = document.getElementById('pushStatusBadge');
+  const requestPushBtn = document.getElementById('requestPushBtn');
+  const testPushBtn = document.getElementById('testPushBtn');
+  const saveNotifPrefsBtn = document.getElementById('saveNotifPrefsBtn');
+
+  let currentSubscription = null;
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  function updatePushBadge() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      pushBadge.className = 'badge bg-danger rounded-pill px-3 py-2';
+      pushBadge.textContent = '❌ Push Unsupported';
+      requestPushBtn.disabled = true;
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      pushBadge.className = 'badge bg-success rounded-pill px-3 py-2';
+      pushBadge.textContent = '✅ Push Permission Granted';
+      requestPushBtn.textContent = '✅ Push Active';
+      requestPushBtn.className = 'btn btn-sm btn-success rounded-pill px-3 fw-bold';
+    } else if (Notification.permission === 'denied') {
+      pushBadge.className = 'badge bg-danger rounded-pill px-3 py-2';
+      pushBadge.textContent = '🚫 Push Blocked';
+      requestPushBtn.textContent = '⚠️ Blocked in Browser';
+      requestPushBtn.className = 'btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold';
+    } else {
+      pushBadge.className = 'badge bg-warning text-dark rounded-pill px-3 py-2';
+      pushBadge.textContent = '⚡ Permission Needed';
+    }
+  }
+
+  async function registerAndSubscribePush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      alert('Browser Push Notifications are not supported on this browser.');
+      return null;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      updatePushBadge();
+      if (permission !== 'granted') {
+        alert('Notification permission was not granted.');
+        return null;
+      }
+
+      const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+
+      // Fetch VAPID public key
+      const vapidRes = await fetch('/api/student-safety/vapid-public-key');
+      const vapidData = await vapidRes.json();
+
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub && vapidData.publicKey) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidData.publicKey)
+        });
+      }
+      currentSubscription = sub;
+      return sub;
+    } catch (err) {
+      console.error("Push registration error:", err);
+      alert('Could not enable Push Notifications: ' + err.message);
+      return null;
+    }
+  }
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -85,13 +226,129 @@
     document.getElementById('settingsEmail').value = user.email;
     document.getElementById('settingsName').value = user.displayName || user.email.split('@')[0];
 
+    updatePushBadge();
+
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists() && snap.data().college) {
-        document.getElementById('settingsCollege').value = snap.data().college;
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.college) document.getElementById('settingsCollege').value = data.college;
+        if (data.pushEnabled !== undefined) document.getElementById('togglePushEnabled').checked = data.pushEnabled;
+        if (data.emailNotifications !== undefined) document.getElementById('toggleEmailNotifications').checked = data.emailNotifications;
+        if (data.safetyAlerts !== undefined) document.getElementById('toggleSafetyAlerts').checked = data.safetyAlerts;
+        if (data.pushSubscription) currentSubscription = data.pushSubscription;
       }
     } catch (e) {
       console.warn("Settings fetch warning:", e);
+    }
+  });
+
+  requestPushBtn.addEventListener('click', async () => {
+    requestPushBtn.disabled = true;
+    requestPushBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Enabling...`;
+    const sub = await registerAndSubscribePush();
+    if (sub && auth.currentUser) {
+      // Save subscription to backend
+      await fetch('/api/student-safety/save-push-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email,
+          pushSubscription: sub,
+          pushEnabled: true,
+          emailNotifications: document.getElementById('toggleEmailNotifications').checked,
+          safetyAlerts: document.getElementById('toggleSafetyAlerts').checked
+        })
+      });
+      alert('✅ Browser Push Notifications enabled successfully!');
+    }
+    requestPushBtn.disabled = false;
+    updatePushBadge();
+  });
+
+  testPushBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    let sub = currentSubscription;
+    if (!sub) {
+      sub = await registerAndSubscribePush();
+    }
+    if (!sub) {
+      alert('Please enable Push Notifications first before testing.');
+      return;
+    }
+
+    testPushBtn.disabled = true;
+    testPushBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Sending...`;
+
+    try {
+      const res = await fetch('/api/student-safety/test-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pushSubscription: sub,
+          userId: user ? user.uid : 'anonymous',
+          userEmail: user ? user.email : null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('🚀 Test push notification triggered! Check your browser notifications.');
+      } else {
+        alert('❌ Test push failed: ' + data.message);
+      }
+    } catch (err) {
+      alert('Error sending test push: ' + err.message);
+    } finally {
+      testPushBtn.disabled = false;
+      testPushBtn.textContent = '🧪 Send Test Push';
+    }
+  });
+
+  saveNotifPrefsBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const pushEnabled = document.getElementById('togglePushEnabled').checked;
+    const emailNotifications = document.getElementById('toggleEmailNotifications').checked;
+    const safetyAlerts = document.getElementById('toggleSafetyAlerts').checked;
+
+    saveNotifPrefsBtn.disabled = true;
+    saveNotifPrefsBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Saving...`;
+
+    try {
+      // Save to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        pushEnabled,
+        emailNotifications,
+        safetyAlerts,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // Sync with backend
+      await fetch('/api/student-safety/save-push-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          userEmail: user.email,
+          pushSubscription: currentSubscription,
+          pushEnabled,
+          emailNotifications,
+          safetyAlerts
+        })
+      });
+
+      alertEl.className = 'alert alert-success border-0 rounded-3 p-3 small mb-4';
+      alertEl.textContent = '✅ Notification preferences saved successfully!';
+      alertEl.classList.remove('d-none');
+    } catch (err) {
+      alertEl.className = 'alert alert-danger border-0 rounded-3 p-3 small mb-4';
+      alertEl.textContent = 'Failed to save preferences: ' + err.message;
+      alertEl.classList.remove('d-none');
+    } finally {
+      saveNotifPrefsBtn.disabled = false;
+      saveNotifPrefsBtn.textContent = 'Save Preferences';
     }
   });
 
@@ -100,7 +357,7 @@
     const user = auth.currentUser;
     if (!user) return;
 
-    const newName = document.getElementById('signupName')?.value || document.getElementById('settingsName').value.trim();
+    const newName = document.getElementById('settingsName').value.trim();
     const newCollege = document.getElementById('settingsCollege').value.trim();
 
     saveBtn.disabled = true;
