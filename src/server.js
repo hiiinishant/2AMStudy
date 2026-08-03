@@ -872,14 +872,16 @@ app.get('/student-safety/admin', (req, res) => {
   });
 });
 
-// Admin Moderation Action Endpoint (Supports approve, reject, request_evidence, resolve, reopen, delete)
+// Admin Moderation Action Endpoint
 app.post('/api/student-safety/admin/moderate', (req, res) => {
-  const { caseId, action, passcode, note, moderatorUid } = req.body;
+  const { caseId, action, note, moderatorUid, moderatorName } = req.body;
 
-  // Admin passcode authorization check
-  const validPasscode = process.env.ADMIN_PASSCODE || '2AM-ADMIN-2026';
-  if (passcode !== validPasscode && req.headers['x-admin-token'] !== validPasscode) {
-    return res.status(401).json({ success: false, message: 'Invalid admin passcode authorization.' });
+  // Require a moderatorUid — must be sent by authenticated client
+  if (!moderatorUid || moderatorUid.trim() === '' || moderatorUid === 'ADMIN-MODERATOR') {
+    return res.status(401).json({ success: false, message: 'Unauthorized. Valid moderator UID required.' });
+  }
+  if (!caseId || !action) {
+    return res.status(400).json({ success: false, message: 'caseId and action are required.' });
   }
 
   const caseIndex = studentSafetyCases.findIndex(c => c.caseId === caseId);
@@ -888,30 +890,48 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
   }
 
   const targetCase = studentSafetyCases[caseIndex];
-  const modUser = moderatorUid || 'ADMIN-MODERATOR';
+  const previousStatus = targetCase.status;
+  const modUser = moderatorUid;
+  const modName = moderatorName || 'Admin';
   let newStatus = targetCase.status;
   let notificationMsg = '';
+
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const userAgent = req.headers['user-agent'] || 'unknown';
 
   if (action === 'approve') {
     newStatus = 'Verified';
     targetCase.status = newStatus;
+    targetCase.verifiedBy = modUser;
+    targetCase.verifiedByName = modName;
+    targetCase.verifiedAt = new Date().toISOString();
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Your impersonation report (Case ${caseId}) has been approved & verified by our moderation team.`;
   } else if (action === 'reject') {
+    if (!note || note.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Rejection reason is required.' });
+    }
     newStatus = 'Rejected';
     targetCase.status = newStatus;
-    targetCase.rejectionReason = note || 'Invalid or unverified impersonation report.';
+    targetCase.rejectionReason = note.trim();
+    targetCase.rejectedBy = modUser;
+    targetCase.rejectedAt = new Date().toISOString();
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Your impersonation report (Case ${caseId}) was reviewed and rejected. Reason: ${targetCase.rejectionReason}`;
   } else if (action === 'request_evidence') {
+    if (!note || note.trim() === '') {
+      return res.status(400).json({ success: false, message: 'A moderator note describing required evidence is required.' });
+    }
     newStatus = 'Needs Evidence';
     targetCase.status = newStatus;
-    targetCase.moderatorNote = note || 'Additional proof or ID verification required.';
+    targetCase.moderatorNote = note.trim();
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Action required on Case ${caseId}: Our moderation team requested additional evidence. Note: ${targetCase.moderatorNote}`;
   } else if (action === 'resolve') {
     newStatus = 'Resolved';
     targetCase.status = newStatus;
+    targetCase.resolvedBy = modUser;
+    targetCase.resolvedAt = new Date().toISOString();
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Great news! Case ${caseId} has been officially marked as resolved. Thank you for keeping 2AM Study safe.`;
   } else if (action === 'reopen') {
@@ -919,47 +939,90 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
     targetCase.status = newStatus;
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Case ${caseId} has been reopened for moderation review.`;
+  } else if (action === 'merge') {
+    // Merge: sourceCaseId evidence + supportCount merged into this case
+    const { sourceCaseId } = req.body;
+    if (!sourceCaseId) return res.status(400).json({ success: false, message: 'sourceCaseId required for merge action.' });
+    const sourceIdx = studentSafetyCases.findIndex(c => c.caseId === sourceCaseId);
+    if (sourceIdx === -1) return res.status(404).json({ success: false, message: `Source case ${sourceCaseId} not found.` });
+    const sourceCase = studentSafetyCases[sourceIdx];
+
+    // Merge evidence arrays
+    if (Array.isArray(sourceCase.evidence)) {
+      targetCase.evidence = [...(targetCase.evidence || []), ...sourceCase.evidence];
+    }
+    // Add support counts
+    targetCase.supportCount = (targetCase.supportCount || 0) + (sourceCase.supportCount || 0);
+    targetCase.mergedFrom = [...(targetCase.mergedFrom || []), sourceCaseId];
+    targetCase.updatedAt = new Date().toISOString();
+
+    // Remove source case
+    studentSafetyCases.splice(sourceIdx, 1);
+    saveStudentSafetyCases();
+
+    const mergeLog = {
+      logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
+      caseId,
+      sourceCaseId,
+      moderatorUid: modUser,
+      moderatorName: modName,
+      action: 'merge',
+      previousStatus,
+      newStatus: targetCase.status,
+      reason: note || `Merged case ${sourceCaseId} into ${caseId}`,
+      ip,
+      userAgent,
+      createdAt: new Date().toISOString()
+    };
+    studentSafetyModerationLogs.unshift(mergeLog);
+    saveModerationLogs();
+
+    return res.json({ success: true, caseId, status: targetCase.status, case: targetCase, message: `Case ${sourceCaseId} merged into ${caseId}.` });
   } else if (action === 'delete') {
     studentSafetyCases.splice(caseIndex, 1);
     saveStudentSafetyCases();
 
-    // Log deletion
     const modLog = {
       logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
-      caseId: caseId,
+      caseId,
       moderatorUid: modUser,
+      moderatorName: modName,
       action: 'delete',
+      previousStatus,
+      newStatus: 'Deleted',
       reason: note || 'Case deleted by admin',
+      ip,
+      userAgent,
       createdAt: new Date().toISOString()
     };
     studentSafetyModerationLogs.unshift(modLog);
     saveModerationLogs();
 
-    return res.json({
-      success: true,
-      caseId: caseId,
-      status: 'Deleted',
-      message: `Case ${caseId} has been permanently deleted.`
-    });
+    return res.json({ success: true, caseId, status: 'Deleted', message: `Case ${caseId} has been permanently deleted.` });
   } else {
     return res.status(400).json({ success: false, message: 'Invalid moderation action.' });
   }
 
   saveStudentSafetyCases();
 
-  // Audit log entry (studentSafetyModerationLogs)
+  // Full audit log
   const modLog = {
     logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
-    caseId: caseId,
+    caseId,
     moderatorUid: modUser,
-    action: action,
+    moderatorName: modName,
+    action,
+    previousStatus,
+    newStatus,
     reason: note || (action + ' action executed'),
+    ip,
+    userAgent,
     createdAt: new Date().toISOString()
   };
   studentSafetyModerationLogs.unshift(modLog);
   saveModerationLogs();
 
-  // Reporter notification entry (studentSafetyNotifications) with Step 5 enhanced fields
+  // Reporter notifications
   const notifTypeMap = {
     approve: 'success', reject: 'error', request_evidence: 'warning',
     resolve: 'success', reopen: 'info'
@@ -976,7 +1039,7 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
     const notif = {
       notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
       userId: targetCase.userId,
-      caseId: caseId,
+      caseId,
       title: notifTitleMap[action] || 'Case Update',
       type: notifTypeMap[action] || 'info',
       message: notificationMsg,
@@ -987,7 +1050,6 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
     studentSafetyNotifications.unshift(notif);
     saveNotifications();
 
-    // Step 5: Email reporter about status change (fire-and-forget)
     const emailTemplates = {
       approve: { subject: `[2AM Study] Case ${caseId} Verified ✅`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">✅ Your report has been verified!</h2><p>Case <strong>${caseId}</strong> has been reviewed and approved by our moderation team. It is now publicly visible for community support.</p><a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:#1e40af;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:16px;">View Your Case</a><p style="color:#64748b;font-size:13px;margin-top:24px;">Thank you for making 2AM Study safer.</p></div>` },
       reject: { subject: `[2AM Study] Case ${caseId} Update`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#dc2626;">Case Review Update</h2><p>Case <strong>${caseId}</strong> could not be verified at this time.</p><p><strong>Reason:</strong> ${note || 'Insufficient evidence'}</p><p>If you believe this is an error, you may submit a new report with additional evidence.</p></div>` },
@@ -995,32 +1057,25 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
       resolve: { subject: `[2AM Study] Case ${caseId} Resolved 🎉`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">🎉 Case Resolved!</h2><p>Great news! Case <strong>${caseId}</strong> has been officially resolved. Thank you for helping keep 2AM Study safe.</p></div>` }
     };
     if (emailTemplates[action]) {
-      sendSafetyEmail(
-        targetCase.reporterEmail || null,
-        emailTemplates[action].subject,
-        emailTemplates[action].body
-      );
+      sendSafetyEmail(targetCase.reporterEmail || null, emailTemplates[action].subject, emailTemplates[action].body);
     }
 
-    // Step 5: Notify supporters when case is resolved or rejected
     if (action === 'resolve' || action === 'reject') {
       const supporters = studentSafetySupports.filter(s => s.caseId === caseId);
       supporters.forEach(supporter => {
-        if (supporter.userId === targetCase.userId) return; // Reporter already notified
-        const supporterNotif = {
+        if (supporter.userId === targetCase.userId) return;
+        studentSafetyNotifications.unshift({
           notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
           userId: supporter.userId,
-          caseId: caseId,
+          caseId,
           title: action === 'resolve' ? '🎉 Supported Case Resolved' : '❌ Supported Case Closed',
           type: action === 'resolve' ? 'success' : 'info',
           message: action === 'resolve'
             ? `A case you supported (${caseId}) has been officially resolved. Thank you for your community support!`
             : `A case you supported (${caseId}) has been reviewed and closed.`,
-          isRead: false,
-          read: false,
+          isRead: false, read: false,
           createdAt: new Date().toISOString()
-        };
-        studentSafetyNotifications.unshift(supporterNotif);
+        });
       });
       saveNotifications();
     }
@@ -1035,9 +1090,104 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
   });
 });
 
+// Bulk Moderation Endpoint
+app.post('/api/student-safety/admin/moderate/bulk', (req, res) => {
+  const { caseIds, action, note, moderatorUid, moderatorName } = req.body;
+  if (!moderatorUid || moderatorUid.trim() === '' || moderatorUid === 'ADMIN-MODERATOR') {
+    return res.status(401).json({ success: false, message: 'Unauthorized. Valid moderator UID required.' });
+  }
+  if (!Array.isArray(caseIds) || caseIds.length === 0 || !action) {
+    return res.status(400).json({ success: false, message: 'caseIds (array) and action are required.' });
+  }
+  if ((action === 'reject') && (!note || note.trim() === '')) {
+    return res.status(400).json({ success: false, message: 'Rejection reason is required for bulk reject.' });
+  }
+
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const userAgent = req.headers['user-agent'] || 'unknown';
+  const results = [];
+
+  const statusMap = {
+    approve: 'Verified', reject: 'Rejected',
+    request_evidence: 'Needs Evidence', resolve: 'Resolved',
+    reopen: 'Pending Review'
+  };
+
+  caseIds.forEach(caseId => {
+    const idx = studentSafetyCases.findIndex(c => c.caseId === caseId);
+    if (idx === -1) { results.push({ caseId, success: false, message: 'Not found' }); return; }
+
+    if (action === 'delete') {
+      const prevStatus = studentSafetyCases[idx].status;
+      studentSafetyCases.splice(idx, 1);
+      studentSafetyModerationLogs.unshift({
+        logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
+        caseId, moderatorUid, moderatorName: moderatorName || 'Admin',
+        action: 'delete', previousStatus: prevStatus, newStatus: 'Deleted',
+        reason: note || 'Bulk delete by admin', ip, userAgent,
+        createdAt: new Date().toISOString()
+      });
+      results.push({ caseId, success: true, status: 'Deleted' });
+    } else {
+      const tc = studentSafetyCases[idx];
+      const prevStatus = tc.status;
+      const newStatus = statusMap[action] || tc.status;
+      tc.status = newStatus;
+      tc.updatedAt = new Date().toISOString();
+      if (action === 'reject') tc.rejectionReason = note;
+      if (action === 'request_evidence') tc.moderatorNote = note || '';
+      studentSafetyModerationLogs.unshift({
+        logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
+        caseId, moderatorUid, moderatorName: moderatorName || 'Admin',
+        action, previousStatus: prevStatus, newStatus,
+        reason: note || (action + ' bulk action'), ip, userAgent,
+        createdAt: new Date().toISOString()
+      });
+      results.push({ caseId, success: true, status: newStatus });
+    }
+  });
+
+  saveStudentSafetyCases();
+  saveModerationLogs();
+
+  return res.json({ success: true, processed: results.length, results, message: `Bulk ${action} completed on ${results.length} cases.` });
+});
+
+// Admin Stats Endpoint
+app.get('/api/student-safety/admin/stats', (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const todayCount = studentSafetyCases.filter(c => c.createdAt && c.createdAt.startsWith(today)).length;
+  res.json({
+    success: true,
+    total: studentSafetyCases.length,
+    pending: studentSafetyCases.filter(c => c.status === 'Pending Review').length,
+    needsEvidence: studentSafetyCases.filter(c => c.status === 'Needs Evidence').length,
+    verified: studentSafetyCases.filter(c => c.status === 'Verified').length,
+    rejected: studentSafetyCases.filter(c => c.status === 'Rejected').length,
+    resolved: studentSafetyCases.filter(c => c.status === 'Resolved').length,
+    today: todayCount
+  });
+});
+
+// Admin CSV Export Endpoint
+app.get('/api/student-safety/admin/export-csv', (req, res) => {
+  const headers = ['caseId','platform','fakeUsername','fakeProfileUrl','realProfileUrl','reason','description','college','status','anonymous','supportCount','createdAt','updatedAt','rejectionReason','moderatorNote'];
+  const rows = studentSafetyCases.map(c =>
+    headers.map(h => {
+      const val = c[h] !== undefined ? String(c[h]).replace(/"/g, '""') : '';
+      return `"${val}"`;
+    }).join(',')
+  );
+  const csv = [headers.join(','), ...rows].join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="student-safety-cases-${new Date().toISOString().split('T')[0]}.csv"`);
+  res.send(csv);
+});
+
 app.get('/api/student-safety/moderation-logs', (req, res) => {
   res.json({ success: true, logs: studentSafetyModerationLogs });
 });
+
 
 app.get('/api/student-safety/notifications/:userId', (req, res) => {
   const userNotifs = studentSafetyNotifications

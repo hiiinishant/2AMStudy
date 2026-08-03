@@ -1,139 +1,302 @@
 <%- include('partials/header') %>
 
-<section class="py-5 bg-dark text-white" style="padding-top: 90px !important;">
-  <div class="container py-4">
+<!-- ===== ADMIN AUTH GATE OVERLAY ===== -->
+<div id="authOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);z-index:99999;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;color:#fff;">
+    <div class="spinner-border text-indigo-400 mb-3" style="width:3rem;height:3rem;border-color:#818cf8;border-right-color:transparent;" role="status"></div>
+    <div class="fw-semibold" style="color:#a5b4fc;font-size:1rem;">Verifying admin access…</div>
+  </div>
+</div>
+
+<!-- ===== 403 FORBIDDEN CARD ===== -->
+<div id="forbiddenCard" class="d-none" style="min-height:100vh;background:linear-gradient(135deg,#0f172a,#1e1b4b);display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;max-width:480px;padding:40px 24px;color:#fff;">
+    <div style="font-size:5rem;margin-bottom:16px;">🚫</div>
+    <h1 class="fw-extrabold mb-2" style="font-size:2.5rem;">403</h1>
+    <h2 class="mb-3 fw-bold" style="color:#f87171;">Access Forbidden</h2>
+    <p style="color:#94a3b8;margin-bottom:32px;">You don't have admin privileges to access this dashboard. Contact the site administrator to request access.</p>
+    <a href="/" class="btn px-5 py-2 rounded-pill fw-bold" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;">← Go Home</a>
+  </div>
+</div>
+
+<!-- ===== MAIN DASHBOARD (hidden until auth confirmed) ===== -->
+<div id="mainDashboard" class="d-none">
+
+<!-- ── DASHBOARD HEADER ── -->
+<section class="py-4 text-white" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#312e81 100%);padding-top:80px!important;min-height:140px;">
+  <div class="container">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
       <div>
-        <div class="badge bg-danger px-3 py-1 rounded-pill mb-2 fw-semibold">
-          🛡️ Student Identity Shield
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge px-3 py-1 rounded-pill fw-semibold" style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3);">🛡️ Student Identity Shield</span>
+          <span class="badge px-3 py-1 rounded-pill small" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);" id="adminBadge">● Admin Active</span>
         </div>
-        <h1 class="display-6 fw-extrabold mb-1">Admin Moderation Dashboard</h1>
-        <p class="text-white-50 mb-0 small">
-          Review reported fake profiles, verify Cloudinary evidence, approve genuine cases, or request additional details.
-        </p>
+        <h1 class="fw-extrabold mb-0" style="font-size:clamp(1.4rem,3vw,2rem);">Admin Moderation Dashboard</h1>
+        <p class="small mb-0" style="color:#94a3b8;" id="adminNameDisplay">Loading moderator info…</p>
       </div>
-      <div>
-        <a href="/student-safety" class="btn btn-outline-light btn-sm rounded-pill px-3">
-          ← Back to Safety Portal
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button id="refreshBtn" class="btn btn-sm rounded-pill px-3 fw-semibold" style="background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.15);" title="Refresh cases (R)">
+          <i class="fa-solid fa-rotate-right me-1"></i> Refresh
+        </button>
+        <a href="/api/student-safety/admin/export-csv" class="btn btn-sm rounded-pill px-3 fw-semibold" style="background:rgba(99,102,241,.25);color:#a5b4fc;border:1px solid rgba(99,102,241,.4);">
+          <i class="fa-solid fa-file-csv me-1"></i> Export CSV
         </a>
+        <a href="/student-safety" class="btn btn-sm rounded-pill px-3 fw-semibold" style="background:rgba(255,255,255,.06);color:#cbd5e1;border:1px solid rgba(255,255,255,.1);">← Safety Portal</a>
       </div>
     </div>
   </div>
 </section>
 
-<main class="container py-5">
-  <!-- 6 Key Metrics Counters Row -->
-  <div class="row g-3 mb-4 text-center">
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Total Reports</div>
-        <div class="fs-3 fw-extrabold text-dark mt-1" id="stat-total">0</div>
+<main class="container py-4" style="max-width:1400px;">
+
+  <!-- ── STATS ROW ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#fff;">
+        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size:.7rem;letter-spacing:.05em;">Total</div>
+        <div class="fs-2 fw-extrabold text-dark" id="stat-total">—</div>
       </div>
     </div>
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Pending</div>
-        <div class="fs-3 fw-extrabold text-warning mt-1" id="stat-pending">0</div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#92400e;">Pending</div>
+        <div class="fs-2 fw-extrabold text-warning" id="stat-pending">—</div>
       </div>
     </div>
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Needs Evidence</div>
-        <div class="fs-3 fw-extrabold text-info mt-1" id="stat-needs-evidence">0</div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#1e40af;">Needs Evidence</div>
+        <div class="fs-2 fw-extrabold text-info" id="stat-needs-evidence">—</div>
       </div>
     </div>
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Verified</div>
-        <div class="fs-3 fw-extrabold text-success mt-1" id="stat-verified">0</div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#14532d;">Verified</div>
+        <div class="fs-2 fw-extrabold text-success" id="stat-verified">—</div>
       </div>
     </div>
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Rejected</div>
-        <div class="fs-3 fw-extrabold text-danger mt-1" id="stat-rejected">0</div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#fff1f2,#fce7f3);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#9f1239;">Rejected</div>
+        <div class="fs-2 fw-extrabold text-danger" id="stat-rejected">—</div>
       </div>
     </div>
-    <div class="col-4 col-md-2">
-      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Resolved</div>
-        <div class="fs-3 fw-extrabold text-primary mt-1" id="stat-resolved">0</div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#4c1d95;">Resolved</div>
+        <div class="fs-2 fw-extrabold text-primary" id="stat-resolved">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);">
+        <div class="small fw-bold text-uppercase mb-1" style="font-size:.7rem;color:#064e3b;">Today</div>
+        <div class="fs-2 fw-extrabold" style="color:#059669;" id="stat-today">—</div>
       </div>
     </div>
   </div>
 
-  <!-- Admin Passcode Bar -->
-  <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-light">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <div class="d-flex align-items-center gap-2">
-        <span class="fs-5">🔐</span>
-        <span class="fw-bold small text-dark">Firebase Admin Role Authorization</span>
+  <!-- ── SEARCH & FILTER BAR ── -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-4">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" id="searchInput" class="form-control border-0 bg-light" placeholder="Search case ID or username…">
+        </div>
       </div>
-      <div class="d-flex align-items-center gap-2">
-        <input type="password" id="adminPasscode" class="form-control form-control-sm rounded-pill px-3" placeholder="Enter Moderator Passcode" style="max-width: 220px;" value="2AM-ADMIN-2026">
-        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill small">Admin Active</span>
+      <div class="col-6 col-sm-3 col-md-2">
+        <select id="filterStatus" class="form-select border-0 bg-light">
+          <option value="ALL">All Statuses</option>
+          <option value="Pending Review">Pending Review</option>
+          <option value="Needs Evidence">Needs Evidence</option>
+          <option value="Verified">Verified</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+      </div>
+      <div class="col-6 col-sm-3 col-md-2">
+        <select id="filterPlatform" class="form-select border-0 bg-light">
+          <option value="ALL">All Platforms</option>
+          <option>Instagram</option><option>Facebook</option><option>X (Twitter)</option>
+          <option>LinkedIn</option><option>Telegram</option><option>WhatsApp</option><option>Other</option>
+        </select>
+      </div>
+      <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" id="filterDateFrom" class="form-control border-0 bg-light" placeholder="From date">
+      </div>
+      <div class="col-6 col-sm-3 col-md-2">
+        <input type="date" id="filterDateTo" class="form-control border-0 bg-light" placeholder="To date">
       </div>
     </div>
   </div>
 
-  <!-- Queue Filter Tabs -->
-  <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-      <h2 class="h5 fw-bold text-dark mb-0">Moderation Queue</h2>
-      <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filter status">
-        <button type="button" class="btn btn-outline-secondary active filter-btn" data-status="ALL">All</button>
-        <button type="button" class="btn btn-outline-warning filter-btn" data-status="Pending Review">Pending Review</button>
-        <button type="button" class="btn btn-outline-info filter-btn" data-status="Needs Evidence">Needs Evidence</button>
-        <button type="button" class="btn btn-outline-success filter-btn" data-status="Verified">Verified</button>
-        <button type="button" class="btn btn-outline-danger filter-btn" data-status="Rejected">Rejected</button>
-        <button type="button" class="btn btn-outline-primary filter-btn" data-status="Resolved">Resolved</button>
-      </div>
+  <!-- ── BULK ACTIONS BAR (hidden until rows selected) ── -->
+  <div id="bulkActionsBar" class="d-none card border-0 shadow-sm rounded-4 p-3 mb-3" style="background:linear-gradient(135deg,#1e1b4b,#312e81);">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="text-white fw-bold small" id="bulkSelectedCount">0 selected</span>
+      <button class="btn btn-sm btn-success rounded-pill px-3 fw-semibold" id="bulkApproveBtn">✅ Bulk Approve</button>
+      <button class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold" id="bulkRejectBtn">❌ Bulk Reject</button>
+      <button class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold" id="bulkDeleteBtn">🗑 Bulk Delete</button>
+      <button class="btn btn-sm btn-link text-white-50 small ms-auto" id="clearSelectionBtn">Clear selection</button>
     </div>
+  </div>
 
-    <!-- Table of Cases -->
-    <div class="table-responsive">
+  <!-- ── TABS: Queue / Audit Log ── -->
+  <ul class="nav nav-tabs border-bottom-0 mb-0" id="dashboardTabs">
+    <li class="nav-item">
+      <button class="nav-link active fw-semibold px-4" id="tab-queue-btn" data-tab="queue">
+        <i class="fa-solid fa-inbox me-1"></i> Moderation Queue
+        <span class="badge bg-warning text-dark ms-1 small" id="tabPendingBadge">0</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold px-4" id="tab-logs-btn" data-tab="logs">
+        <i class="fa-solid fa-scroll me-1"></i> Audit Logs
+      </button>
+    </li>
+  </ul>
+
+  <!-- ── QUEUE TAB ── -->
+  <div id="tab-queue" class="card border-0 shadow-sm rounded-bottom-4 rounded-top-end-4 bg-white">
+    <!-- Table (desktop) -->
+    <div class="table-responsive d-none d-md-block">
       <table class="table table-hover align-middle mb-0" id="moderationTable">
         <thead class="table-light">
           <tr>
-            <th scope="col" class="small fw-bold text-uppercase">Case ID</th>
-            <th scope="col" class="small fw-bold text-uppercase">Platform</th>
-            <th scope="col" class="small fw-bold text-uppercase">Fake Account</th>
-            <th scope="col" class="small fw-bold text-uppercase">College</th>
-            <th scope="col" class="small fw-bold text-uppercase">Reporter</th>
-            <th scope="col" class="small fw-bold text-uppercase">Submitted</th>
-            <th scope="col" class="small fw-bold text-uppercase">Status</th>
-            <th scope="col" class="small fw-bold text-uppercase text-end">Action</th>
+            <th><input type="checkbox" id="selectAllCheckbox" class="form-check-input" title="Select all"></th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Case ID</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Platform</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Fake Account</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">College</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Reporter</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Date</th>
+            <th class="small fw-bold text-uppercase" style="font-size:.75rem;">Status</th>
+            <th class="small fw-bold text-uppercase text-center" style="font-size:.75rem;">Support</th>
+            <th class="small fw-bold text-uppercase text-end" style="font-size:.75rem;">Action</th>
           </tr>
         </thead>
-        <tbody id="casesTableBody">
-          <!-- Dynamic JS Injection -->
-        </tbody>
+        <tbody id="casesTableBody"></tbody>
       </table>
     </div>
+    <!-- Cards (mobile) -->
+    <div id="mobileCardBody" class="d-md-none p-3"></div>
+    <!-- Pagination -->
+    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top flex-wrap gap-2" id="paginationBar">
+      <span class="small text-muted" id="paginationInfo">Showing — of —</span>
+      <nav><ul class="pagination pagination-sm mb-0" id="paginationControls"></ul></nav>
+    </div>
+    <!-- Empty State -->
+    <div id="emptyState" class="d-none text-center py-5 px-3">
+      <i class="fa-solid fa-inbox fs-1 text-muted opacity-50 mb-3 d-block"></i>
+      <h5 class="text-muted fw-semibold">No reports found</h5>
+      <p class="small text-muted mb-0">Try changing your search or filters.</p>
+    </div>
   </div>
-</main>
 
-<!-- Case Inspection Modal -->
-<div class="modal fade" id="inspectCaseModal" tabindex="-1" aria-labelledby="inspectCaseModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+  <!-- ── AUDIT LOGS TAB ── -->
+  <div id="tab-logs" class="d-none card border-0 shadow-sm rounded-bottom-4 rounded-top-end-4 bg-white">
+    <div class="p-4">
+      <h5 class="fw-bold mb-3 text-dark">📋 Moderation Audit Log</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Log ID</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Case ID</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Moderator</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Action</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Prev Status</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">New Status</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Reason</th>
+              <th class="small fw-bold text-uppercase" style="font-size:.7rem;">Time</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogBody">
+            <tr><td colspan="8" class="text-center text-muted py-4">Loading audit logs…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div><!-- /mainDashboard -->
+
+<!-- ===== CASE DETAILS OFFCANVAS ===== -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="caseOffcanvas" style="width:min(700px,100vw);max-width:100vw;">
+  <div class="offcanvas-header border-bottom py-3" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);">
+    <div>
+      <h5 class="offcanvas-title fw-bold text-white mb-0" id="offcanvasTitle">Case Details</h5>
+      <p class="small mb-0" style="color:#94a3b8;" id="offcanvasSubtitle">Loading…</p>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <div id="offcanvasBody" class="p-4"></div>
+  </div>
+  <!-- Action footer -->
+  <div class="p-3 border-top bg-light d-flex flex-wrap gap-2 justify-content-end" id="offcanvasFooter"></div>
+</div>
+
+<!-- ===== ACTION CONFIRMATION MODAL ===== -->
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 border-0 shadow-lg">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold" id="inspectCaseModalLabel">🔍 Case Details & Evidence Inspection</h5>
+      <div class="modal-header border-0 pb-1" id="actionModalHeader">
+        <h5 class="modal-title fw-bold" id="actionModalTitle">Confirm Action</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-4" id="modalCaseContent">
-        <!-- Content dynamically injected via JS -->
+      <div class="modal-body pt-2">
+        <p class="text-muted mb-3" id="actionModalDesc"></p>
+        <div id="actionNoteSection" class="d-none">
+          <label class="form-label fw-semibold small text-dark" id="actionNoteLabel">Reason <span class="text-danger">*</span></label>
+          <textarea id="actionNoteInput" class="form-control rounded-3" rows="3" placeholder="Enter a clear, specific reason…"></textarea>
+          <div class="invalid-feedback" id="actionNoteError">This field is required.</div>
+        </div>
+        <div id="actionDeleteWarning" class="d-none alert alert-danger py-2 small mt-2 rounded-3">
+          ⚠️ <strong>This action is permanent.</strong> The case and all its data will be deleted and cannot be recovered.
+        </div>
+        <!-- Merge Source Input -->
+        <div id="actionMergeSection" class="d-none mt-3">
+          <label class="form-label fw-semibold small text-dark">Source Case ID to merge <span class="text-danger">*</span></label>
+          <input type="text" id="mergeCaseIdInput" class="form-control rounded-3" placeholder="e.g. CASE-XXXXXXXX">
+        </div>
       </div>
-      <div class="modal-footer border-0 pt-0 flex-wrap gap-2 justify-content-end" id="modalCaseFooter">
-        <!-- Actions dynamically injected via JS -->
+      <div class="modal-footer border-0 pt-0 gap-2">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn rounded-pill px-5 fw-bold" id="actionConfirmBtn">Confirm</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- ===== IMAGE LIGHTBOX ===== -->
+<div id="imgLightbox" class="d-none" style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:none;align-items:center;justify-content:center;cursor:zoom-out;">
+  <img id="imgLightboxImg" src="" alt="Evidence" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:12px;box-shadow:0 40px 80px -20px rgba(0,0,0,.8);">
+  <button id="imgLightboxClose" style="position:fixed;top:20px;right:20px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+</div>
+
+<style>
+  .nav-tabs .nav-link { border-bottom:3px solid transparent;color:#64748b;border-radius:.5rem .5rem 0 0; }
+  .nav-tabs .nav-link.active { color:#4f46e5;border-bottom-color:#4f46e5;background:#fff;font-weight:700; }
+  .nav-tabs .nav-link:hover:not(.active) { background:rgba(99,102,241,.06);color:#4f46e5; }
+  .status-badge { display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:700; }
+  .action-btn-row .btn { border-radius:999px;font-weight:600;font-size:.82rem; }
+  .inspect-row:hover { cursor:pointer;background:#f8fafc!important; }
+  @media (max-width:767px) { .admin-mobile-card { border-radius:1rem;border:1px solid #e2e8f0;background:#fff;padding:1rem;margin-bottom:.75rem;box-shadow:0 2px 8px rgba(0,0,0,.06); } }
+  #caseOffcanvas::-webkit-scrollbar { width:5px; }
+  #caseOffcanvas::-webkit-scrollbar-thumb { background:#cbd5e1;border-radius:4px; }
+  .evidence-img-thumb { cursor:zoom-in;border-radius:.75rem;overflow:hidden;transition:transform .2s,box-shadow .2s; }
+  .evidence-img-thumb:hover { transform:scale(1.03);box-shadow:0 8px 24px rgba(0,0,0,.15); }
+  #imgLightbox { display:none; }
+  #imgLightbox.show { display:flex!important; }
+  .reporter-admin-section { background:linear-gradient(135deg,#fef2f2,#fff7ed);border:1px solid #fca5a5;border-radius:.75rem;padding:1rem; }
+</style>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -144,344 +307,625 @@
     appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
   };
 
-  let db;
-  try {
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-  } catch (err) {
-    console.error("Firebase init error:", err);
-  }
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  const db = getFirestore(fbApp);
 
+  // ── Globals ──
+  let moderatorUid = '';
+  let moderatorName = '';
   let allCases = [];
-  let currentFilter = 'ALL';
+  let filteredCases = [];
+  let selectedCaseIds = new Set();
+  let currentPage = 1;
+  const PAGE_SIZE = 20;
+  let activeInspectCase = null;
+  let pendingAction = null;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    fetchCases();
-
-    // Filter Buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentFilter = e.target.getAttribute('data-status');
-        renderTable();
-      });
-    });
-  });
-
-  async function fetchCases() {
-    try {
-      const res = await fetch('/api/student-safety/cases');
-      const data = await res.json();
-      if (data.cases) {
-        allCases = data.cases;
-      }
-
-      if (db) {
-        try {
-          const querySnapshot = await getDocs(collection(db, "studentSafetyCases"));
-          const fsCases = [];
-          querySnapshot.forEach((docSnap) => {
-            fsCases.push({ docId: docSnap.id, ...docSnap.data() });
-          });
-          if (fsCases.length > 0) {
-            const caseMap = new Map();
-            allCases.forEach(c => caseMap.set(c.caseId, c));
-            fsCases.forEach(c => caseMap.set(c.caseId, c));
-            allCases = Array.from(caseMap.values());
-          }
-        } catch (fsErr) {
-          console.warn("Firestore fetch warning:", fsErr);
-        }
-      }
-
-      updateMetrics();
-      renderTable();
-
-    } catch (err) {
-      console.error("Error fetching cases:", err);
-    }
-  }
-
-  function updateMetrics() {
-    document.getElementById('stat-total').innerText = allCases.length;
-    document.getElementById('stat-pending').innerText = allCases.filter(c => c.status === 'Pending Review').length;
-    document.getElementById('stat-needs-evidence').innerText = allCases.filter(c => c.status === 'Needs Evidence').length;
-    document.getElementById('stat-verified').innerText = allCases.filter(c => c.status === 'Verified').length;
-    document.getElementById('stat-rejected').innerText = allCases.filter(c => c.status === 'Rejected').length;
-    document.getElementById('stat-resolved').innerText = allCases.filter(c => c.status === 'Resolved').length;
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('casesTableBody');
-    tbody.innerHTML = '';
-
-    const filtered = currentFilter === 'ALL' 
-      ? allCases 
-      : allCases.filter(c => c.status === currentFilter);
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="8" class="text-center py-5 text-muted">
-            <i class="fa-solid fa-inbox fs-2 mb-2 d-block opacity-50"></i>
-            No reports found matching status "${currentFilter}".
-          </td>
-        </tr>
-      `;
+  // ── Auth Gate ──
+  onAuthStateChanged(auth, async (user) => {
+    const overlay = document.getElementById('authOverlay');
+    if (!user) {
+      overlay.remove();
+      window.location.href = '/login?redirect=/student-safety/admin';
       return;
     }
 
-    filtered.forEach(item => {
+    // Check Firestore role
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+        overlay.remove();
+        document.getElementById('forbiddenCard').classList.remove('d-none');
+        document.getElementById('forbiddenCard').style.display = 'flex';
+        return;
+      }
+      // Admin confirmed
+      moderatorUid = user.uid;
+      moderatorName = userDoc.data().name || user.displayName || user.email || 'Admin';
+      document.getElementById('adminNameDisplay').textContent = `Signed in as ${moderatorName} · ${user.email}`;
+      overlay.remove();
+      document.getElementById('mainDashboard').classList.remove('d-none');
+      initDashboard();
+    } catch (err) {
+      console.error('Auth check error:', err);
+      overlay.remove();
+      document.getElementById('forbiddenCard').classList.remove('d-none');
+      document.getElementById('forbiddenCard').style.display = 'flex';
+    }
+  });
+
+  // ── Init Dashboard ──
+  function initDashboard() {
+    setupTabs();
+    setupSearchFilters();
+    setupBulkActions();
+    setupSelectAll();
+    setupKeyboardShortcuts();
+    setupLightbox();
+    document.getElementById('refreshBtn').addEventListener('click', () => loadCases());
+    loadCases();
+    loadAuditLogs();
+  }
+
+  // ── Load Cases ──
+  async function loadCases() {
+    try {
+      const res = await fetch('/api/student-safety/cases');
+      const data = await res.json();
+      allCases = (data.cases || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // Merge Firestore cases
+      try {
+        const snap = await getDocs(collection(db, 'studentSafetyCases'));
+        const fsCases = [];
+        snap.forEach(d => fsCases.push({ docId: d.id, ...d.data() }));
+        if (fsCases.length > 0) {
+          const map = new Map();
+          allCases.forEach(c => map.set(c.caseId, c));
+          fsCases.forEach(c => { if (c.caseId && !map.has(c.caseId)) map.set(c.caseId, c); });
+          allCases = Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+      } catch (_) {}
+
+      updateStats();
+      applyFilters();
+    } catch (err) {
+      console.error('Load error:', err);
+    }
+  }
+
+  // ── Update Stats ──
+  function updateStats() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('stat-total').textContent = allCases.length;
+    document.getElementById('stat-pending').textContent = allCases.filter(c => c.status === 'Pending Review').length;
+    document.getElementById('stat-needs-evidence').textContent = allCases.filter(c => c.status === 'Needs Evidence').length;
+    document.getElementById('stat-verified').textContent = allCases.filter(c => c.status === 'Verified').length;
+    document.getElementById('stat-rejected').textContent = allCases.filter(c => c.status === 'Rejected').length;
+    document.getElementById('stat-resolved').textContent = allCases.filter(c => c.status === 'Resolved').length;
+    document.getElementById('stat-today').textContent = allCases.filter(c => c.createdAt && c.createdAt.startsWith(today)).length;
+    document.getElementById('tabPendingBadge').textContent = allCases.filter(c => c.status === 'Pending Review').length;
+  }
+
+  // ── Apply Filters ──
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const status = document.getElementById('filterStatus').value;
+    const platform = document.getElementById('filterPlatform').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+
+    filteredCases = allCases.filter(c => {
+      if (search && !c.caseId?.toLowerCase().includes(search) && !c.fakeUsername?.toLowerCase().includes(search)) return false;
+      if (status !== 'ALL' && c.status !== status) return false;
+      if (platform !== 'ALL' && c.platform !== platform) return false;
+      if (dateFrom && c.createdAt && c.createdAt < dateFrom) return false;
+      if (dateTo && c.createdAt && c.createdAt > dateTo + 'T23:59:59') return false;
+      return true;
+    });
+
+    currentPage = 1;
+    selectedCaseIds.clear();
+    updateBulkBar();
+    renderTable();
+  }
+
+  // ── Setup Search / Filters ──
+  function setupSearchFilters() {
+    ['searchInput','filterStatus','filterPlatform','filterDateFrom','filterDateTo'].forEach(id => {
+      document.getElementById(id).addEventListener('input', applyFilters);
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+  }
+
+  // ── Render Table ──
+  function renderTable() {
+    const tbody = document.getElementById('casesTableBody');
+    const mobileBody = document.getElementById('mobileCardBody');
+    const emptyState = document.getElementById('emptyState');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const paginationControls = document.getElementById('paginationControls');
+
+    const totalPages = Math.ceil(filteredCases.length / PAGE_SIZE);
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = filteredCases.slice(start, start + PAGE_SIZE);
+
+    if (filteredCases.length === 0) {
+      tbody.innerHTML = '';
+      mobileBody.innerHTML = '';
+      emptyState.classList.remove('d-none');
+      paginationInfo.textContent = 'No results';
+      paginationControls.innerHTML = '';
+      return;
+    }
+    emptyState.classList.add('d-none');
+    paginationInfo.textContent = `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, filteredCases.length)} of ${filteredCases.length}`;
+
+    // Pagination
+    paginationControls.innerHTML = '';
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+      li.innerHTML = `<button class="page-link" data-page="${i}">${i}</button>`;
+      li.querySelector('button').addEventListener('click', () => { currentPage = i; renderTable(); });
+      paginationControls.appendChild(li);
+    }
+
+    // Desktop table
+    tbody.innerHTML = '';
+    pageItems.forEach(item => {
+      const isChecked = selectedCaseIds.has(item.caseId);
       const tr = document.createElement('tr');
-      
-      let badgeClass = 'bg-warning text-dark';
-      if (item.status === 'Verified') badgeClass = 'bg-success text-white';
-      if (item.status === 'Rejected') badgeClass = 'bg-danger text-white';
-      if (item.status === 'Needs Evidence') badgeClass = 'bg-info text-dark';
-      if (item.status === 'Resolved') badgeClass = 'bg-primary text-white';
-
-      const submittedDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A';
-
+      tr.className = 'inspect-row';
       tr.innerHTML = `
-        <td><span class="fw-bold font-monospace small">${item.caseId}</span></td>
-        <td><span class="badge bg-light text-dark border">${item.platform || 'Other'}</span></td>
+        <td onclick="event.stopPropagation()"><input type="checkbox" class="form-check-input row-checkbox" data-case-id="${item.caseId}" ${isChecked ? 'checked' : ''}></td>
+        <td><span class="fw-bold font-monospace small text-primary">${item.caseId}</span></td>
+        <td><span class="badge bg-light text-dark border small">${item.platform || 'Other'}</span></td>
         <td>
-          <div class="fw-bold text-dark">${item.fakeUsername || 'N/A'}</div>
-          <a href="${item.fakeProfileUrl}" target="_blank" class="text-muted small text-truncate d-inline-block" style="max-width: 150px;">${item.fakeProfileUrl}</a>
+          <div class="fw-bold text-dark small">${escHtml(item.fakeUsername || 'N/A')}</div>
+          <a href="${escHtml(item.fakeProfileUrl || '#')}" target="_blank" class="text-muted" style="font-size:.72rem;max-width:140px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(item.fakeProfileUrl || '')}</a>
         </td>
-        <td><span class="small text-muted">${item.college || 'N/A'}</span></td>
-        <td><span class="small text-dark font-monospace">${item.anonymous ? '🕵️ Anonymous' : (item.userId || 'Student')}</span></td>
-        <td><span class="small text-muted">${submittedDate}</span></td>
-        <td><span class="badge ${badgeClass} rounded-pill px-3 py-1 small">${item.status}</span></td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 inspect-btn" data-case-id="${item.caseId}">
-            View Details
-          </button>
+        <td><span class="small text-muted">${escHtml(item.college || 'N/A')}</span></td>
+        <td><span class="small text-dark font-monospace" style="font-size:.75rem;">${item.anonymous ? '🕵️ Anonymous' : escHtml(item.userId || 'Student').substring(0,20)}</span></td>
+        <td><span class="small text-muted">${item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-IN') : 'N/A'}</span></td>
+        <td>${statusBadge(item.status)}</td>
+        <td class="text-center"><span class="badge bg-light text-dark border">${item.supportCount || 0}</span></td>
+        <td class="text-end" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 view-btn" data-case-id="${item.caseId}">View</button>
         </td>
       `;
-
       tbody.appendChild(tr);
     });
 
-    document.querySelectorAll('.inspect-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cId = btn.getAttribute('data-case-id');
-        openInspectModal(cId);
+    // Mobile cards
+    mobileBody.innerHTML = '';
+    pageItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'admin-mobile-card';
+      div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-bold font-monospace small text-primary">${item.caseId}</div>
+            <div class="fw-bold text-dark">${escHtml(item.fakeUsername || 'N/A')}</div>
+          </div>
+          ${statusBadge(item.status)}
+        </div>
+        <div class="text-muted small mb-2">${escHtml(item.platform || '')} · ${escHtml(item.college || 'N/A')} · ${item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-IN') : ''}</div>
+        <button class="btn btn-sm btn-outline-primary rounded-pill px-3 w-100 view-btn" data-case-id="${item.caseId}">View Details</button>
+      `;
+      mobileBody.appendChild(div);
+    });
+
+    // Row checkbox listeners
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const id = cb.getAttribute('data-case-id');
+        if (cb.checked) selectedCaseIds.add(id); else selectedCaseIds.delete(id);
+        updateBulkBar();
+        updateSelectAllCheckbox();
+      });
+    });
+
+    // View buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => openCaseOffcanvas(btn.getAttribute('data-case-id')));
+    });
+    // Row click to open
+    document.querySelectorAll('.inspect-row').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const caseId = tr.querySelector('.view-btn')?.getAttribute('data-case-id');
+        if (caseId) openCaseOffcanvas(caseId);
       });
     });
   }
 
-  function openInspectModal(cId) {
-    const targetCase = allCases.find(c => c.caseId === cId);
-    if (!targetCase) return;
+  // ── Open Case Offcanvas ──
+  function openCaseOffcanvas(caseId) {
+    const c = allCases.find(x => x.caseId === caseId);
+    if (!c) return;
+    activeInspectCase = c;
 
-    const modalContent = document.getElementById('modalCaseContent');
-    const modalFooter = document.getElementById('modalCaseFooter');
+    document.getElementById('offcanvasTitle').textContent = `🔍 ${c.caseId}`;
+    document.getElementById('offcanvasSubtitle').textContent = `${c.platform} · ${c.fakeUsername} · ${statusText(c.status)}`;
 
-    // Render Cloudinary Images & PDFs
-    let imagesHtml = '';
-    let pdfsHtml = '';
-
-    if (Array.isArray(targetCase.evidence) && targetCase.evidence.length > 0) {
-      targetCase.evidence.forEach((ev, idx) => {
+    // Evidence HTML
+    let evImgHtml = '', evPdfHtml = '';
+    if (Array.isArray(c.evidence) && c.evidence.length > 0) {
+      c.evidence.forEach((ev, i) => {
         const url = typeof ev === 'object' ? ev.url : ev;
-        const isPdf = typeof ev === 'object' ? ev.type === 'pdf' : (url.includes('.pdf') || url.includes('pdf'));
-
+        const isPdf = typeof ev === 'object' ? ev.type === 'pdf' : /\.pdf|pdf/i.test(url);
         if (isPdf) {
-          pdfsHtml += `
-            <div class="col-6 col-md-4">
-              <a href="${url}" target="_blank" class="card h-100 text-decoration-none p-3 text-center bg-light border shadow-sm rounded-3">
-                <i class="fa-solid fa-file-pdf fs-1 text-danger mb-2"></i>
-                <span class="small fw-bold text-dark text-truncate">PDF Evidence #${idx + 1}</span>
-                <span class="badge bg-primary mt-2 small">Open Cloudinary PDF</span>
-              </a>
-            </div>
-          `;
+          evPdfHtml += `<div class="col-6">
+            <a href="${url}" target="_blank" class="card p-3 text-center text-decoration-none bg-light border rounded-3 h-100">
+              <i class="fa-solid fa-file-pdf fs-2 text-danger mb-2"></i>
+              <div class="small fw-bold text-dark">PDF #${i+1}</div>
+              <span class="badge bg-danger small mt-1">Open PDF</span>
+            </a></div>`;
         } else {
-          imagesHtml += `
-            <div class="col-6 col-md-4">
-              <a href="${url}" target="_blank" class="d-block card border-0 shadow-sm rounded-3 overflow-hidden">
-                <img src="${url}" class="img-fluid" style="height: 140px; object-fit: cover;" alt="Evidence #${idx + 1}">
-                <div class="p-1 bg-light text-center small text-muted">Cloudinary Image #${idx + 1}</div>
-              </a>
-            </div>
-          `;
+          evImgHtml += `<div class="col-6 col-md-4">
+            <div class="evidence-img-thumb" data-url="${url}">
+              <img src="${url}" class="img-fluid rounded-3 w-100" style="height:120px;object-fit:cover;" alt="Evidence ${i+1}">
+              <div class="small text-center text-muted mt-1">Image #${i+1}</div>
+            </div></div>`;
         }
       });
     }
 
-    const submittedTimeStr = targetCase.createdAt ? new Date(targetCase.createdAt).toLocaleString() : 'N/A';
+    // Duplicate detection
+    const duplicates = allCases.filter(x => x.caseId !== c.caseId && x.fakeProfileUrl && c.fakeProfileUrl && x.fakeProfileUrl === c.fakeProfileUrl);
+    const dupHtml = duplicates.length > 0 ? `
+      <div class="alert alert-warning rounded-3 py-2 px-3 mb-3 small">
+        ⚠️ <strong>${duplicates.length} duplicate report(s)</strong> found for this profile URL.
+        ${duplicates.map(d => `<span class="badge bg-warning text-dark ms-1">${d.caseId}</span>`).join('')}
+        ${duplicates.length === 1 ? `<button class="btn btn-sm btn-outline-warning rounded-pill ms-2 px-2" onclick="triggerMerge('${c.caseId}','${duplicates[0].caseId}')">Merge</button>` : ''}
+      </div>` : '';
 
-    modalContent.innerHTML = `
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">Case ID</label>
-          <div class="fw-bold font-monospace text-primary fs-5">${targetCase.caseId}</div>
+    document.getElementById('offcanvasBody').innerHTML = `
+      ${dupHtml}
+      <!-- Section: Fake Account -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing:.06em;">🎭 Impersonating Account</h6>
+        <div class="row g-3">
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">Platform</div><span class="badge bg-light text-dark border fs-6">${escHtml(c.platform || 'N/A')}</span></div>
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">Fake Username</div><div class="fw-bold text-dark">${escHtml(c.fakeUsername || 'N/A')}</div></div>
+          <div class="col-12"><div class="small text-muted fw-semibold mb-1">Fake Profile URL</div><a href="${escHtml(c.fakeProfileUrl || '#')}" target="_blank" class="fw-bold text-danger text-break small">${escHtml(c.fakeProfileUrl || 'N/A')}</a></div>
+          ${c.realProfileUrl ? `<div class="col-12"><div class="small text-muted fw-semibold mb-1">Real Profile URL</div><a href="${escHtml(c.realProfileUrl)}" target="_blank" class="fw-bold text-success text-break small">${escHtml(c.realProfileUrl)}</a></div>` : ''}
         </div>
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">Current Status</label>
-          <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill">${targetCase.status}</span>
+      </div>
+      <hr class="my-3">
+      <!-- Section: Report Info -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing:.06em;">📋 Report Information</h6>
+        <div class="row g-3">
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">Reason</div><span class="badge bg-light text-dark border">${escHtml(c.reason || 'N/A')}</span></div>
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">College</div><div class="small text-dark fw-semibold">${escHtml(c.college || 'Not specified')}</div></div>
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">Anonymous</div><div class="small">${c.anonymous ? '🕵️ Yes' : '👤 No'}</div></div>
+          <div class="col-6"><div class="small text-muted fw-semibold mb-1">Support Count</div><span class="badge bg-primary">${c.supportCount || 0} supporters</span></div>
+          <div class="col-12"><div class="small text-muted fw-semibold mb-1">Description</div><div class="p-3 bg-light rounded-3 small text-dark border">${escHtml(c.description || '—')}</div></div>
+          ${c.rejectionReason ? `<div class="col-12"><div class="small text-muted fw-semibold mb-1">Rejection Reason</div><div class="alert alert-danger py-2 px-3 small rounded-3 mb-0">${escHtml(c.rejectionReason)}</div></div>` : ''}
+          ${c.moderatorNote ? `<div class="col-12"><div class="small text-muted fw-semibold mb-1">Moderator Note</div><div class="alert alert-info py-2 px-3 small rounded-3 mb-0">${escHtml(c.moderatorNote)}</div></div>` : ''}
         </div>
-
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">Platform & Fake Username</label>
-          <div class="fw-bold text-dark">${targetCase.platform} — ${targetCase.fakeUsername}</div>
-        </div>
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">Reporter Details</label>
-          <div class="small text-muted font-monospace">${targetCase.anonymous ? '🕵️ Anonymous Student' : targetCase.userId}</div>
-        </div>
-
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">College / University</label>
-          <div class="small text-dark fw-semibold">${targetCase.college || 'Not specified'}</div>
-        </div>
-
-        <div class="col-md-6">
-          <label class="small text-muted fw-bold text-uppercase d-block">Submission Time</label>
-          <div class="small text-muted">${submittedTimeStr}</div>
-        </div>
-
-        <div class="col-md-12">
-          <label class="small text-muted fw-bold text-uppercase d-block">Fake Profile Link</label>
-          <a href="${targetCase.fakeProfileUrl}" target="_blank" class="fw-bold text-danger text-break">${targetCase.fakeProfileUrl}</a>
-        </div>
-
-        ${targetCase.realProfileUrl ? `
-          <div class="col-md-12">
-            <label class="small text-muted fw-bold text-uppercase d-block">Real Profile Link</label>
-            <a href="${targetCase.realProfileUrl}" target="_blank" class="fw-bold text-success text-break">${targetCase.realProfileUrl}</a>
-          </div>
-        ` : ''}
-
-        <div class="col-md-12">
-          <label class="small text-muted fw-bold text-uppercase d-block">Reason</label>
-          <div class="badge bg-light text-dark border fs-6">${targetCase.reason}</div>
-        </div>
-
-        <div class="col-md-12">
-          <label class="small text-muted fw-bold text-uppercase d-block">Issue Description</label>
-          <div class="p-3 bg-light rounded-3 text-dark small border">${targetCase.description}</div>
-        </div>
-
-        <!-- Evidence Section -->
-        <div class="col-md-12">
-          <label class="small text-muted fw-bold text-uppercase d-block mb-2">Evidence Images</label>
-          <div class="row g-2 mb-3">
-            ${imagesHtml || '<p class="text-muted small">No evidence images attached.</p>'}
-          </div>
-        </div>
-
-        <div class="col-md-12">
-          <label class="small text-muted fw-bold text-uppercase d-block mb-2">Evidence PDFs</label>
-          <div class="row g-2">
-            ${pdfsHtml || '<p class="text-muted small">No evidence PDFs attached.</p>'}
+      </div>
+      <hr class="my-3">
+      <!-- Section: Evidence -->
+      <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing:.06em;">🖼️ Evidence</h6>
+        ${evImgHtml ? `<div class="row g-2 mb-3">${evImgHtml}</div>` : '<p class="small text-muted">No image evidence attached.</p>'}
+        ${evPdfHtml ? `<div class="row g-2">${evPdfHtml}</div>` : ''}
+        ${!evImgHtml && !evPdfHtml ? '' : ''}
+      </div>
+      <hr class="my-3">
+      <!-- Section: Reporter Info (Admin Only) -->
+      <div class="mb-2">
+        <h6 class="fw-bold text-uppercase small text-muted mb-2" style="letter-spacing:.06em;">🔐 Reporter Information <span class="badge bg-danger small ms-1">Admin Only</span></h6>
+        <div class="reporter-admin-section">
+          <div class="row g-2 small">
+            <div class="col-12"><span class="text-muted fw-semibold">UID:</span> <code class="text-danger">${escHtml(c.userId || 'N/A')}</code></div>
+            ${c.reporterEmail ? `<div class="col-12"><span class="text-muted fw-semibold">Email:</span> <code>${escHtml(c.reporterEmail)}</code></div>` : ''}
+            <div class="col-12"><span class="text-muted fw-semibold">Submitted:</span> ${c.createdAt ? new Date(c.createdAt).toLocaleString('en-IN') : 'N/A'}</div>
+            ${c.verifiedBy ? `<div class="col-12"><span class="text-muted fw-semibold">Verified by:</span> <code>${escHtml(c.verifiedByName || c.verifiedBy)}</code> at ${c.verifiedAt ? new Date(c.verifiedAt).toLocaleString('en-IN') : ''}</div>` : ''}
+            ${c.resolvedBy ? `<div class="col-12"><span class="text-muted fw-semibold">Resolved by:</span> <code>${escHtml(c.resolvedBy)}</code> at ${c.resolvedAt ? new Date(c.resolvedAt).toLocaleString('en-IN') : ''}</div>` : ''}
           </div>
         </div>
       </div>
     `;
 
-    // 6 Moderator Action Buttons
-    modalFooter.innerHTML = `
-      <button type="button" class="btn btn-success fw-bold rounded-pill px-3 action-mod-btn" data-action="approve" data-case-id="${targetCase.caseId}">
-        ✅ Approve & Publish
-      </button>
-      <button type="button" class="btn btn-danger fw-bold rounded-pill px-3 action-mod-btn" data-action="reject" data-case-id="${targetCase.caseId}">
-        ❌ Reject Report
-      </button>
-      <button type="button" class="btn btn-info text-dark fw-bold rounded-pill px-3 action-mod-btn" data-action="request_evidence" data-case-id="${targetCase.caseId}">
-        📩 Request More Evidence
-      </button>
-      <button type="button" class="btn btn-primary fw-bold rounded-pill px-3 action-mod-btn" data-action="resolve" data-case-id="${targetCase.caseId}">
-        ✔ Mark Resolved
-      </button>
-      <button type="button" class="btn btn-warning fw-bold rounded-pill px-3 action-mod-btn" data-action="reopen" data-case-id="${targetCase.caseId}">
-        🔄 Reopen Case
-      </button>
-      <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-3 action-mod-btn" data-action="delete" data-case-id="${targetCase.caseId}">
-        🗑 Delete Case
-      </button>
+    // Footer action buttons
+    document.getElementById('offcanvasFooter').innerHTML = `
+      <button class="btn btn-success fw-bold rounded-pill px-3 action-btn" data-action="approve" title="Approve [A]">✅ Approve</button>
+      <button class="btn btn-danger fw-bold rounded-pill px-3 action-btn" data-action="reject" title="Reject [R]">❌ Reject</button>
+      <button class="btn btn-info text-dark fw-bold rounded-pill px-3 action-btn" data-action="request_evidence" title="Request Evidence [E]">📩 Evidence</button>
+      <button class="btn btn-primary fw-bold rounded-pill px-3 action-btn" data-action="resolve" title="Resolve [S]">✔ Resolve</button>
+      <button class="btn btn-warning fw-bold rounded-pill px-3 action-btn" data-action="reopen">🔄 Reopen</button>
+      <button class="btn btn-outline-danger fw-bold rounded-pill px-3 action-btn" data-action="delete">🗑 Delete</button>
     `;
 
-    const modalEl = new bootstrap.Modal(document.getElementById('inspectCaseModal'));
-    modalEl.show();
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      btn.addEventListener('click', () => openActionModal(btn.getAttribute('data-action'), c.caseId));
+    });
 
-    document.querySelectorAll('.action-mod-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const action = btn.getAttribute('data-action');
-        const cId = btn.getAttribute('data-case-id');
-        const passcode = document.getElementById('adminPasscode').value;
+    // Lightbox for evidence images
+    document.querySelectorAll('.evidence-img-thumb').forEach(el => {
+      el.addEventListener('click', () => openLightbox(el.getAttribute('data-url')));
+    });
 
-        let note = '';
-        if (action === 'reject') {
-          note = prompt('Reason for rejection:');
-          if (note === null) return;
-        }
-        if (action === 'request_evidence') {
-          note = prompt('Moderator note / Evidence required:');
-          if (note === null) return;
-        }
-        if (action === 'delete') {
-          if (!confirm('Are you sure you want to permanently delete this case?')) return;
-        }
+    bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('caseOffcanvas')).show();
+  }
 
-        try {
-          const res = await fetch('/api/student-safety/admin/moderate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              caseId: cId,
-              action: action,
-              passcode: passcode,
-              note: note,
-              moderatorUid: 'ADMIN-MODERATOR'
-            })
-          });
+  // expose for duplicate merge button
+  window.triggerMerge = function(targetId, sourceId) {
+    openActionModal('merge', targetId, sourceId);
+  };
 
-          const result = await res.json();
-          if (!res.ok || !result.success) {
-            alert(result.message || 'Moderation action failed.');
-            return;
-          }
+  // ── Open Action Modal ──
+  function openActionModal(action, caseId, prefillSourceId = '') {
+    pendingAction = { action, caseId };
+    const modal = document.getElementById('actionConfirmModal');
+    const titleEl = document.getElementById('actionModalTitle');
+    const descEl = document.getElementById('actionModalDesc');
+    const noteSection = document.getElementById('actionNoteSection');
+    const noteLabelEl = document.getElementById('actionNoteLabel');
+    const noteInput = document.getElementById('actionNoteInput');
+    const deleteWarning = document.getElementById('actionDeleteWarning');
+    const mergeSection = document.getElementById('actionMergeSection');
+    const confirmBtn = document.getElementById('actionConfirmBtn');
+    const header = document.getElementById('actionModalHeader');
 
-          // Write audit log & notification to Firestore if connected
-          if (db) {
-            try {
-              let newStatusVal = result.status || 'Updated';
-              await addDoc(collection(db, "studentSafetyModerationLogs"), {
-                caseId: cId,
-                moderatorUid: 'ADMIN-MODERATOR',
-                action: action,
-                reason: note || (action + ' executed'),
-                createdAt: serverTimestamp()
-              });
+    noteSection.classList.add('d-none');
+    deleteWarning.classList.add('d-none');
+    mergeSection.classList.add('d-none');
+    noteInput.value = '';
+    noteInput.classList.remove('is-invalid');
+    document.getElementById('mergeCaseIdInput').value = prefillSourceId;
 
-              if (targetCase.userId) {
-                await addDoc(collection(db, "studentSafetyNotifications"), {
-                  userId: targetCase.userId,
-                  caseId: cId,
-                  type: action,
-                  message: `Status update on Case ${cId}: ${newStatusVal}`,
-                  read: false,
-                  createdAt: serverTimestamp()
-                });
-              }
-            } catch (fsErr) {
-              console.warn("Firestore moderation log warning:", fsErr);
-            }
-          }
+    const configs = {
+      approve: { title: '✅ Approve & Publish Case', desc: `Approve case <strong>${caseId}</strong> — it will be marked <strong>Verified</strong> and visible to the community.`, btnClass: 'btn-success', btnText: 'Approve', headerBg: '#f0fdf4' },
+      reject: { title: '❌ Reject Report', desc: `Reject case <strong>${caseId}</strong>. The reporter will be notified with your reason.`, btnClass: 'btn-danger', btnText: 'Reject', headerBg: '#fff1f2', needsNote: true, noteLabel: 'Rejection Reason *' },
+      request_evidence: { title: '📩 Request More Evidence', desc: `Ask for more evidence on case <strong>${caseId}</strong>. Status will change to <em>Needs Evidence</em>.`, btnClass: 'btn-info', btnText: 'Send Request', headerBg: '#eff6ff', needsNote: true, noteLabel: 'Evidence Required (Moderator Note) *' },
+      resolve: { title: '✔ Mark as Resolved', desc: `Mark case <strong>${caseId}</strong> as <strong>Resolved</strong>. Use this when the fake account has been removed.`, btnClass: 'btn-primary', btnText: 'Mark Resolved', headerBg: '#f5f3ff' },
+      reopen: { title: '🔄 Reopen Case', desc: `Reopen case <strong>${caseId}</strong> — status returns to <em>Pending Review</em>.`, btnClass: 'btn-warning text-dark', btnText: 'Reopen', headerBg: '#fffbeb' },
+      delete: { title: '🗑 Delete Case', desc: `Permanently delete case <strong>${caseId}</strong>.`, btnClass: 'btn-danger', btnText: 'Delete Permanently', headerBg: '#fff1f2', showDeleteWarning: true },
+      merge: { title: '🔗 Merge Cases', desc: `Merge a duplicate case into <strong>${caseId}</strong>. Evidence and support count will be combined.`, btnClass: 'btn-secondary', btnText: 'Merge Cases', headerBg: '#f8fafc', showMerge: true }
+    };
+    const cfg = configs[action] || { title: 'Confirm', desc: '', btnClass: 'btn-primary', btnText: 'Confirm' };
 
-          modalEl.hide();
-          alert(`Case ${cId} updated cleanly.`);
-          fetchCases();
+    titleEl.textContent = cfg.title;
+    descEl.innerHTML = cfg.desc;
+    confirmBtn.className = `btn rounded-pill px-5 fw-bold ${cfg.btnClass}`;
+    confirmBtn.textContent = cfg.btnText;
+    header.style.background = cfg.headerBg || '#fff';
 
-        } catch (err) {
-          console.error("Moderation request failed:", err);
-          alert('Failed to process moderation request.');
-        }
+    if (cfg.needsNote) { noteSection.classList.remove('d-none'); noteLabelEl.innerHTML = cfg.noteLabel; }
+    if (cfg.showDeleteWarning) deleteWarning.classList.remove('d-none');
+    if (cfg.showMerge) mergeSection.classList.remove('d-none');
+
+    confirmBtn.onclick = () => executeAction();
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+  }
+
+  // ── Execute Action ──
+  async function executeAction() {
+    if (!pendingAction) return;
+    const { action, caseId } = pendingAction;
+    const noteInput = document.getElementById('actionNoteInput');
+    const note = noteInput.value.trim();
+
+    if ((action === 'reject' || action === 'request_evidence') && !note) {
+      noteInput.classList.add('is-invalid');
+      return;
+    }
+    noteInput.classList.remove('is-invalid');
+
+    let body = { caseId, action, note, moderatorUid, moderatorName };
+    if (action === 'merge') {
+      body.sourceCaseId = document.getElementById('mergeCaseIdInput').value.trim();
+      if (!body.sourceCaseId) { alert('Please enter a source Case ID.'); return; }
+    }
+
+    const confirmBtn = document.getElementById('actionConfirmBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+
+    try {
+      const res = await fetch('/api/student-safety/admin/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        alert(result.message || 'Action failed.');
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm';
+        return;
+      }
+
+      // Firestore audit log
+      try {
+        await addDoc(collection(db, 'studentSafetyModerationLogs'), {
+          caseId, moderatorUid, moderatorName, action,
+          reason: note || (action + ' action'),
+          createdAt: serverTimestamp()
+        });
+      } catch (_) {}
+
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('actionConfirmModal')).hide();
+      bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('caseOffcanvas')).hide();
+      pendingAction = null;
+
+      // Animated toast
+      showToast(`✅ Case ${caseId} updated: ${result.status}`, 'success');
+      await loadCases();
+      loadAuditLogs();
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Please try again.');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm';
+    }
+  }
+
+  // ── Bulk Actions ──
+  function setupBulkActions() {
+    document.getElementById('bulkApproveBtn').addEventListener('click', () => executeBulk('approve'));
+    document.getElementById('bulkRejectBtn').addEventListener('click', () => {
+      const reason = prompt('Rejection reason for all selected cases:');
+      if (!reason || !reason.trim()) return;
+      executeBulk('reject', reason.trim());
+    });
+    document.getElementById('bulkDeleteBtn').addEventListener('click', () => {
+      if (!confirm(`Delete ${selectedCaseIds.size} selected cases permanently?`)) return;
+      executeBulk('delete');
+    });
+    document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+      selectedCaseIds.clear();
+      updateBulkBar();
+      renderTable();
+    });
+  }
+
+  async function executeBulk(action, note = '') {
+    if (selectedCaseIds.size === 0) return;
+    const body = { caseIds: Array.from(selectedCaseIds), action, note, moderatorUid, moderatorName };
+    try {
+      const res = await fetch('/api/student-safety/admin/moderate/bulk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      const result = await res.json();
+      if (!result.success) { alert(result.message || 'Bulk action failed.'); return; }
+      showToast(`✅ Bulk ${action}: ${result.processed} cases updated`, 'success');
+      selectedCaseIds.clear();
+      updateBulkBar();
+      await loadCases();
+      loadAuditLogs();
+    } catch (err) { alert('Network error.'); }
+  }
+
+  function updateBulkBar() {
+    const bar = document.getElementById('bulkActionsBar');
+    const count = document.getElementById('bulkSelectedCount');
+    if (selectedCaseIds.size > 0) {
+      bar.classList.remove('d-none');
+      count.textContent = `${selectedCaseIds.size} selected`;
+    } else {
+      bar.classList.add('d-none');
+    }
+  }
+
+  // ── Select All ──
+  function setupSelectAll() {
+    document.getElementById('selectAllCheckbox').addEventListener('change', function() {
+      const pageItems = filteredCases.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+      if (this.checked) pageItems.forEach(c => selectedCaseIds.add(c.caseId));
+      else pageItems.forEach(c => selectedCaseIds.delete(c.caseId));
+      updateBulkBar();
+      renderTable();
+    });
+  }
+
+  function updateSelectAllCheckbox() {
+    const cb = document.getElementById('selectAllCheckbox');
+    const pageItems = filteredCases.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+    cb.checked = pageItems.length > 0 && pageItems.every(c => selectedCaseIds.has(c.caseId));
+    cb.indeterminate = !cb.checked && pageItems.some(c => selectedCaseIds.has(c.caseId));
+  }
+
+  // ── Audit Logs ──
+  async function loadAuditLogs() {
+    const tbody = document.getElementById('auditLogBody');
+    try {
+      const res = await fetch('/api/student-safety/moderation-logs');
+      const data = await res.json();
+      const logs = data.logs || [];
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No audit logs yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = logs.slice(0, 100).map(l => `
+        <tr>
+          <td><code class="small text-muted">${escHtml(l.logId||'—')}</code></td>
+          <td><code class="small text-primary">${escHtml(l.caseId||'—')}</code></td>
+          <td><span class="small">${escHtml(l.moderatorName||l.moderatorUid||'—')}</span></td>
+          <td>${actionBadge(l.action)}</td>
+          <td><span class="small text-muted">${escHtml(l.previousStatus||'—')}</span></td>
+          <td><span class="small">${escHtml(l.newStatus||'—')}</span></td>
+          <td><span class="small text-muted" style="max-width:200px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(l.reason||'—')}</span></td>
+          <td><span class="small text-muted">${l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN') : '—'}</span></td>
+        </tr>
+      `).join('');
+    } catch(err) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Failed to load logs.</td></tr>`;
+    }
+  }
+
+  // ── Tabs ──
+  function setupTabs() {
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.getAttribute('data-tab');
+        document.getElementById('tab-queue').classList.toggle('d-none', tab !== 'queue');
+        document.getElementById('tab-logs').classList.toggle('d-none', tab !== 'logs');
       });
     });
+  }
+
+  // ── Keyboard Shortcuts ──
+  function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      if (!activeInspectCase) return;
+      const map = { a: 'approve', r: 'reject', e: 'request_evidence', s: 'resolve' };
+      if (map[e.key.toLowerCase()]) openActionModal(map[e.key.toLowerCase()], activeInspectCase.caseId);
+      if (e.key === 'Escape') bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('caseOffcanvas')).hide();
+    });
+  }
+
+  // ── Lightbox ──
+  function setupLightbox() {
+    const lb = document.getElementById('imgLightbox');
+    document.getElementById('imgLightboxClose').addEventListener('click', () => lb.classList.remove('show'));
+    lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('show'); });
+  }
+  function openLightbox(url) {
+    document.getElementById('imgLightboxImg').src = url;
+    document.getElementById('imgLightbox').classList.add('show');
+  }
+
+  // ── Toast ──
+  function showToast(message, type = 'success') {
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center border-0 text-white bg-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toastEl.style.cssText = 'bottom:24px;right:24px;z-index:99999;min-width:280px;border-radius:1rem;';
+    toastEl.innerHTML = `<div class="d-flex"><div class="toast-body fw-semibold">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    document.body.appendChild(toastEl);
+    const t = new bootstrap.Toast(toastEl, { delay: 4000 });
+    t.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  }
+
+  // ── Helpers ──
+  function escHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function statusBadge(status) {
+    const map = {
+      'Pending Review': 'background:#fef3c7;color:#92400e;',
+      'Needs Evidence': 'background:#dbeafe;color:#1e40af;',
+      'Verified': 'background:#d1fae5;color:#065f46;',
+      'Rejected': 'background:#fee2e2;color:#991b1b;',
+      'Resolved': 'background:#ede9fe;color:#4c1d95;'
+    };
+    const style = map[status] || 'background:#f1f5f9;color:#475569;';
+    return `<span class="status-badge" style="${style}">${escHtml(status)}</span>`;
+  }
+  function statusText(status) { return status || 'Unknown'; }
+  function actionBadge(action) {
+    const map = { approve:'success', reject:'danger', request_evidence:'info', resolve:'primary', reopen:'warning', delete:'dark', merge:'secondary' };
+    return `<span class="badge bg-${map[action]||'secondary'} small">${escHtml(action||'—')}</span>`;
   }
 </script>
 

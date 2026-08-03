@@ -2254,10 +2254,21 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Intercept all forms on the site to route them through Firebase
+    // Intercept generic forms on the site to route them through Firebase
     const forms = document.querySelectorAll("form");
 
     forms.forEach(form => {
+      // Skip forms that have custom submit handlers or specific IDs
+      if (
+        form.getAttribute('data-custom-submit') === 'true' ||
+        form.getAttribute('data-no-firebase') === 'true' ||
+        form.classList.contains('no-firebase') ||
+        form.classList.contains('sendMailForm') ||
+        ['reportFakeProfileForm', 'shopperFeedbackForm', 'loginForm', 'signupForm'].includes(form.id)
+      ) {
+        return;
+      }
+
       form.addEventListener("submit", async (e) => {
         // Prevent normal backend POST or page reload
         e.preventDefault();
@@ -2274,9 +2285,17 @@
         const oldAlert = form.querySelector('.firebase-alert');
         if (oldAlert) oldAlert.remove();
 
-        // Prepare document data
+        // Prepare document data and sanitize File objects
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
+        const rawData = Object.fromEntries(formData.entries());
+        const data = {};
+        for (const [key, val] of Object.entries(rawData)) {
+          if (val instanceof File) {
+            if (val.name) data[key + '_filename'] = val.name;
+          } else {
+            data[key] = val;
+          }
+        }
         data.submittedAt = new Date().toISOString();
         data.formName = form.getAttribute('data-form-name') || form.id || 'unidentified_form';
 
