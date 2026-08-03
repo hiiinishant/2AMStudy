@@ -1,0 +1,544 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <!-- Breadcrumb back link -->
+    <div class="mb-3">
+      <a href="/student-safety" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1">
+        <i class="fa-solid fa-arrow-left"></i> Back to Student Safety
+      </a>
+    </div>
+
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger bg-opacity-10 text-danger mb-3 fw-semibold small">
+          🛡️ Student Identity Shield
+        </div>
+        <h1 class="display-5 fw-extrabold text-dark mb-2">Report Fake Profile</h1>
+        <p class="lead text-muted mb-0" style="max-width: 680px;">
+          Protect our student community. Submit details and evidence of impersonation, fake accounts, or scams for swift moderation review.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="/student-safety/how-it-works" class="btn btn-outline-secondary rounded-pill px-4 py-2 small fw-semibold">
+          ℹ️ How Moderation Works
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container py-5">
+  <div class="row g-4">
+    
+    <!-- Main Form Column (Left - col-lg-8) -->
+    <div class="col-lg-8">
+      
+      <!-- Login Requirement Banner (Visible if user not logged in) -->
+      <div id="login-required-alert" class="alert alert-warning border-0 shadow-sm rounded-4 p-4 mb-4 d-none">
+        <div class="d-flex align-items-start gap-3">
+          <div class="fs-3 text-warning">🔒</div>
+          <div>
+            <h5 class="fw-bold mb-1">Registration / Login Required</h5>
+            <p class="mb-2 small">You must be registered and logged in to submit an impersonation report.</p>
+            <button type="button" id="trigger-login-btn" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">
+              Register / Login Now
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duplicate Profile Warning Banner -->
+      <div id="duplicate-report-alert" class="alert alert-warning border-0 shadow-sm rounded-4 p-4 mb-4 d-none">
+        <div class="d-flex align-items-start gap-3">
+          <div class="fs-3 text-warning">🔍</div>
+          <div>
+            <h5 class="fw-bold mb-1">Profile Already Reported</h5>
+            <p class="mb-2 small">This profile has already been reported. Would you like to support the existing case instead?</p>
+            <a href="/student-safety/cases" id="support-existing-case-btn" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">
+              📋 View & Support Existing Case
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rate Limit Error Banner -->
+      <div id="rate-limit-alert" class="alert alert-secondary border-0 shadow-sm rounded-4 p-4 mb-4 d-none">
+        <div class="d-flex align-items-start gap-3">
+          <div class="fs-3 text-dark">⌛</div>
+          <div>
+            <h5 class="fw-bold mb-1">Daily Limit Reached</h5>
+            <p class="mb-0 small text-muted">You have reached today's report limit. Please try again tomorrow.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Message Banner -->
+      <div id="report-success-alert" class="alert alert-success border-0 shadow-sm rounded-4 p-4 mb-4 d-none">
+        <div class="d-flex align-items-start gap-3">
+          <div class="fs-2 text-success">✅</div>
+          <div>
+            <h4 class="fw-bold text-success mb-1">Report Submitted Successfully</h4>
+            <p class="mb-2 text-dark small">Our moderation team will review your report within 24–48 hours.</p>
+            <div class="badge bg-success bg-opacity-20 text-success fw-bold px-3 py-2 rounded-pill fs-6 mb-2">
+              Status: Pending Review
+            </div>
+            <div class="text-muted small" id="case-id-display"></div>
+            <div class="mt-3">
+              <a href="/student-safety/my-reports" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
+                📄 Track Report Status
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generic Error Message Banner -->
+      <div id="report-error-alert" class="alert alert-danger border-0 shadow-sm rounded-4 p-4 mb-4 d-none">
+        <div class="d-flex align-items-start gap-3">
+          <div class="fs-3 text-danger">⚠️</div>
+          <div>
+            <h5 class="fw-bold mb-1" id="error-title">Submission Error</h5>
+            <p class="mb-0 small" id="error-message"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Container Card -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
+        <form id="reportFakeProfileForm" action="/student-safety/report" method="POST" enctype="multipart/form-data" data-custom-submit="true" novalidate>
+          
+          <!-- Section 1: Target Profile Information -->
+          <div class="border-bottom pb-4 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">1</span>
+              <h2 class="h5 fw-bold text-dark mb-0">Impersonating Account Details</h2>
+            </div>
+
+            <div class="row g-3">
+              <!-- Platform Dropdown * -->
+              <div class="col-md-6">
+                <label for="platform" class="form-label fw-bold text-dark small">Platform <span class="text-danger">*</span></label>
+                <select class="form-select rounded-3 py-2" id="platform" name="platform" required>
+                  <option value="" selected disabled>Select Social Media Platform</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="X (Twitter)">X (Twitter)</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Telegram">Telegram</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Other">Other</option>
+                </select>
+                <div class="invalid-feedback">Please select a platform.</div>
+              </div>
+
+              <!-- Fake Profile Username * -->
+              <div class="col-md-6">
+                <label for="fakeUsername" class="form-label fw-bold text-dark small">Fake Account Username <span class="text-danger">*</span></label>
+                <input type="text" class="form-control rounded-3 py-2" id="fakeUsername" name="fakeUsername" placeholder="e.g. @fake_student_id" required>
+                <div class="invalid-feedback">Please provide the fake username.</div>
+              </div>
+
+              <!-- Fake Profile Link * -->
+              <div class="col-md-12">
+                <label for="fakeProfileUrl" class="form-label fw-bold text-dark small">Fake Profile Link / URL <span class="text-danger">*</span></label>
+                <input type="url" class="form-control rounded-3 py-2" id="fakeProfileUrl" name="fakeProfileUrl" placeholder="https://instagram.com/fake_account" required>
+                <div class="invalid-feedback">Please provide a valid URL for the fake profile.</div>
+              </div>
+
+              <!-- Real Profile Link (Optional) -->
+              <div class="col-md-12">
+                <label for="realProfileUrl" class="form-label fw-bold text-dark small">Genuine Profile Link <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="url" class="form-control rounded-3 py-2" id="realProfileUrl" name="realProfileUrl" placeholder="https://instagram.com/real_student">
+                <div class="form-text small">Providing the genuine student profile URL helps moderators verify the report faster.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Issue & Incident Details -->
+          <div class="border-bottom pb-4 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">2</span>
+              <h2 class="h5 fw-bold text-dark mb-0">Reason & Incident Description</h2>
+            </div>
+
+            <div class="row g-3">
+              <!-- Reason * -->
+              <div class="col-md-6">
+                <label for="reason" class="form-label fw-bold text-dark small">Reason for Report <span class="text-danger">*</span></label>
+                <select class="form-select rounded-3 py-2" id="reason" name="reason" required>
+                  <option value="" selected disabled>Select Reason</option>
+                  <option value="Impersonating me">Impersonating me</option>
+                  <option value="Impersonating another student">Impersonating another student</option>
+                  <option value="Fake educational account">Fake educational account</option>
+                  <option value="Scam">Scam</option>
+                  <option value="Harassment">Harassment</option>
+                  <option value="Other">Other</option>
+                </select>
+                <div class="invalid-feedback">Please select a reason.</div>
+              </div>
+
+              <!-- College / University (Optional) -->
+              <div class="col-md-6">
+                <label for="college" class="form-label fw-bold text-dark small">College / Institution <span class="text-muted fw-normal">(Optional)</span></label>
+                <input type="text" class="form-control rounded-3 py-2" id="college" name="college" placeholder="e.g. Delhi University, IIT Bombay">
+              </div>
+
+              <!-- Describe the Issue * -->
+              <div class="col-md-12">
+                <label for="description" class="form-label fw-bold text-dark small">Describe the Issue <span class="text-danger">*</span></label>
+                <textarea class="form-control rounded-3 p-3" id="description" name="description" rows="4" placeholder="Describe how this fake account is operating, who it is targeting, or any harmful activities..." required></textarea>
+                <div class="invalid-feedback">Please describe the issue in detail.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Evidence & Confirmations -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">3</span>
+              <h2 class="h5 fw-bold text-dark mb-0">Evidence Attachments & Privacy</h2>
+            </div>
+
+            <div class="row g-3">
+              <!-- Upload Evidence * -->
+              <div class="col-md-12">
+                <label for="evidence" class="form-label fw-bold text-dark small">
+                  Upload Supporting Evidence <span class="text-danger">*</span>
+                  <span class="text-muted fw-normal ms-1">(JPG, PNG, PDF | Max 5 files, 10MB each)</span>
+                </label>
+                <div class="file-upload-dropzone p-4 text-center rounded-3 border-2 border-dashed bg-light position-relative" id="dropzone">
+                  <i class="fa-solid fa-shield-halved fs-2 text-danger mb-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">Click to browse files or drag & drop evidence here</h6>
+                  <p class="text-muted small mb-0">Screenshots, profile pages, or conversation logs supporting your report</p>
+                  <input type="file" class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" id="evidence" name="evidence" accept=".jpg,.jpeg,.png,.webp,.pdf" multiple required>
+                </div>
+                <div class="invalid-feedback" id="evidence-invalid-feedback">Please attach at least one evidence file.</div>
+                <!-- Selected files preview list -->
+                <div id="file-preview-list" class="d-flex flex-wrap gap-2 mt-3"></div>
+              </div>
+
+              <!-- Anonymous Report Checkbox -->
+              <div class="col-md-12 mt-3">
+                <div class="form-check p-3 bg-light rounded-3 border">
+                  <input class="form-check-input ms-0 me-2" type="checkbox" value="true" id="anonymous" name="anonymous">
+                  <label class="form-check-label fw-semibold text-dark small" for="anonymous">
+                    🕵️ Anonymous Report (Hide my identity from public case listings)
+                  </label>
+                </div>
+              </div>
+
+              <!-- Truth Confirmation Checkbox * -->
+              <div class="col-md-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="true" id="truthConfirmed" name="truthConfirmed" required>
+                  <label class="form-check-label text-dark small lh-sm" for="truthConfirmed">
+                    I confirm that all information and evidence provided in this report are truthful to the best of my knowledge. I understand false or malicious reports may result in account restriction. <span class="text-danger">*</span>
+                  </label>
+                  <div class="invalid-feedback">You must confirm that this report is truthful.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-4 pt-2">
+            <button type="submit" id="submitReportBtn" class="btn btn-danger btn-lg w-100 py-3 rounded-pill fw-bold shadow-sm">
+              🚨 Submit Report
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Right Sidebar Column (col-lg-4) -->
+    <div class="col-lg-4">
+      
+      <!-- Card 1: Evidence Checklist -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3 text-danger fw-bold">
+          <i class="fa-solid fa-list-check fs-5"></i>
+          <span>Evidence Checklist</span>
+        </div>
+        <p class="text-muted small mb-3">To speed up human moderation, ensure your uploaded evidence includes:</p>
+        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+          <li class="d-flex align-items-start gap-2 small">
+            <span class="text-success fw-bold">✓</span>
+            <span class="text-dark">Clear screenshot showing the fake account handle & profile picture</span>
+          </li>
+          <li class="d-flex align-items-start gap-2 small">
+            <span class="text-success fw-bold">✓</span>
+            <span class="text-dark">Proof of impersonation (e.g. bio, posts, or messages)</span>
+          </li>
+          <li class="d-flex align-items-start gap-2 small">
+            <span class="text-success fw-bold">✓</span>
+            <span class="text-dark">Genuine profile link to cross-verify student identity</span>
+          </li>
+          <li class="d-flex align-items-start gap-2 small">
+            <span class="text-success fw-bold">✓</span>
+            <span class="text-dark">Up to 5 files (JPG, PNG, PDF | Max 10MB per file)</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card 2: Human Moderation & Privacy -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3 text-primary fw-bold">
+          <i class="fa-solid fa-user-shield fs-5"></i>
+          <span>Human Moderation & Privacy</span>
+        </div>
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex align-items-start gap-3">
+            <div class="fs-4">👥</div>
+            <div>
+              <div class="fw-bold text-dark small">Human Moderator Review</div>
+              <div class="text-muted" style="font-size: 12px;">Every report is inspected by authorized human moderators within 24–48 hours.</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3">
+            <div class="fs-4">🔒</div>
+            <div>
+              <div class="fw-bold text-dark small">Privacy Shield</div>
+              <div class="text-muted" style="font-size: 12px;">Reporter names and emails are never exposed on public community case cards.</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3">
+            <div class="fs-4">🔔</div>
+            <div>
+              <div class="fw-bold text-dark small">Real-Time Status Alerts</div>
+              <div class="text-muted" style="font-size: 12px;">Receive notifications when your report status updates to Verified or Resolved.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Notice & Guidelines -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <div class="d-flex align-items-center gap-2 mb-2 text-warning fw-bold">
+          <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+          <span>Important Notice</span>
+        </div>
+        <p class="text-muted small mb-0 lh-base">
+          Only genuine impersonation reports are permitted. False or malicious submissions violate 2AM Study community guidelines and may result in account restrictions.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Client Script for Form Handling, Validation, Login Protection, and Firestore Write -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (err) {
+    console.error("Firebase init error:", err);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('reportFakeProfileForm');
+    const fileInput = document.getElementById('evidence');
+    const filePreviewList = document.getElementById('file-preview-list');
+    const loginAlert = document.getElementById('login-required-alert');
+    const duplicateAlert = document.getElementById('duplicate-report-alert');
+    const rateLimitAlert = document.getElementById('rate-limit-alert');
+    const successAlert = document.getElementById('report-success-alert');
+    const errorAlert = document.getElementById('report-error-alert');
+    const errorMsgEl = document.getElementById('error-message');
+    const caseIdDisplay = document.getElementById('case-id-display');
+    const submitBtn = document.getElementById('submitReportBtn');
+    const triggerLoginBtn = document.getElementById('trigger-login-btn');
+
+    // Check login state helper
+    const checkUserLoggedIn = () => {
+      if (typeof window.isLoggedIn === 'function') {
+        return window.isLoggedIn();
+      }
+      return localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+    };
+
+    // If not logged in, show login warning
+    if (!checkUserLoggedIn()) {
+      loginAlert.classList.remove('d-none');
+    }
+
+    if (triggerLoginBtn) {
+      triggerLoginBtn.addEventListener('click', () => {
+        if (typeof window.triggerRegisterFlow === 'function') {
+          window.triggerRegisterFlow();
+        } else {
+          window.location.href = '/?openRegister=1';
+        }
+      });
+    }
+
+    // File selection & preview handler
+    fileInput.addEventListener('change', () => {
+      filePreviewList.innerHTML = '';
+      const files = Array.from(fileInput.files);
+
+      if (files.length > 5) {
+        alert('Maximum 5 files allowed.');
+        fileInput.value = '';
+        return;
+      }
+
+      files.forEach(file => {
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`File ${file.name} exceeds 10 MB limit.`);
+          fileInput.value = '';
+          filePreviewList.innerHTML = '';
+          return;
+        }
+
+        const chip = document.createElement('div');
+        chip.className = 'badge bg-light text-dark border p-2 d-flex align-items-center gap-2 rounded-3';
+        const icon = file.type.includes('pdf') ? '📄' : '🖼️';
+        chip.innerHTML = `<span>${icon} ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
+        filePreviewList.appendChild(chip);
+      });
+    });
+
+    // Form Submit Handler
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Reset alert states
+      successAlert.classList.add('d-none');
+      errorAlert.classList.add('d-none');
+      duplicateAlert.classList.add('d-none');
+      rateLimitAlert.classList.add('d-none');
+
+      // 1. Check Login
+      if (!checkUserLoggedIn()) {
+        loginAlert.classList.remove('d-none');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (typeof window.showWindow === 'function') {
+          window.showWindow({
+            title: 'Login Required',
+            message: 'You must be logged in to submit a report.',
+            type: 'warning'
+          });
+        }
+        return;
+      }
+
+      // 2. Validate Form HTML5
+      form.classList.add('was-validated');
+      if (!form.checkValidity()) {
+        errorAlert.classList.remove('d-none');
+        errorMsgEl.innerText = 'Please complete all required fields correctly before submitting.';
+        return;
+      }
+
+      // Validate files
+      if (!fileInput.files || fileInput.files.length === 0) {
+        errorAlert.classList.remove('d-none');
+        errorMsgEl.innerText = 'Please attach at least one evidence file (JPG, PNG, or PDF).';
+        return;
+      }
+
+      // Disable button
+      submitBtn.disabled = true;
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing & Verifying Report...`;
+
+      try {
+        const formData = new FormData(form);
+        
+        // Pass user ID
+        const userId = localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || ('USER-' + Math.random().toString(36).substring(2, 9));
+        formData.append('userId', userId);
+
+        // POST to backend server
+        const response = await fetch('/student-safety/report', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (response.status === 409 || result.isDuplicate) {
+          duplicateAlert.classList.remove('d-none');
+          window.scrollTo({ top: duplicateAlert.offsetTop - 100, behavior: 'smooth' });
+          return;
+        }
+
+        if (response.status === 429 || result.isRateLimited) {
+          rateLimitAlert.classList.remove('d-none');
+          window.scrollTo({ top: rateLimitAlert.offsetTop - 100, behavior: 'smooth' });
+          return;
+        }
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Failed to submit report.');
+        }
+
+        // Write to Firestore collection "studentSafetyCases"
+        if (db) {
+          try {
+            await addDoc(collection(db, "studentSafetyCases"), {
+              caseId: result.caseId,
+              userId: userId,
+              platform: formData.get('platform'),
+              fakeUsername: formData.get('fakeUsername'),
+              fakeProfileUrl: formData.get('fakeProfileUrl'),
+              realProfileUrl: formData.get('realProfileUrl') || '',
+              reason: formData.get('reason'),
+              description: formData.get('description'),
+              college: formData.get('college') || '',
+              evidence: result.case?.evidence || [],
+              anonymous: formData.get('anonymous') === 'true',
+              status: "Pending Review",
+              supportCount: 0,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (fsErr) {
+            console.warn("Firestore write error (backup saved on backend server):", fsErr);
+          }
+        }
+
+        // Display Success State
+        form.reset();
+        form.classList.remove('was-validated');
+        filePreviewList.innerHTML = '';
+
+        successAlert.classList.remove('d-none');
+        caseIdDisplay.innerHTML = `<strong>Case ID:</strong> <span class="badge bg-secondary">${result.caseId}</span>`;
+
+        window.scrollTo({ top: successAlert.offsetTop - 100, behavior: 'smooth' });
+
+      } catch (err) {
+        console.error("Submission Error:", err);
+        errorAlert.classList.remove('d-none');
+        errorMsgEl.innerText = err.message || 'An error occurred while submitting your report. Please try again.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

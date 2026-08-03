@@ -2,89 +2,6 @@
 
   <main>
 
-    <!--Enquiry Modal -->
-    <div class="modal fade" id="enModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">--Enquire Now</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form class="bannerForm p-3 sendMailForm" data-form-name="Enquiry Modal Form" method="post"
-              action="/send-email">
-              <h3>We Stand With You</h3>
-              <p>You’re not alone on this journey — we’re with you at every step. Through challenges, growth, and
-                success,
-                we stand by you. Believe in yourself, and we’ll help you move forward </p>
-
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" name="name" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" name="email" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <div class="input-group ">
-                  <span class="input-group-text" id="basic-addon1">+91</span>
-                  <input type="text" class="form-control" name="phone" placeholder="Phone" required pattern="[0-9]{10}"
-                    oninvalid="this.setCustomValidity('Oops! Please enter a valid phone number.')"
-                    oninput="this.setCustomValidity('')" />
-                </div>
-              </div>
-              <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Register Now</button>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal fade" id="Start">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">--Enquire Now</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form class="bannerForm p-3 sendMailForm" data-form-name="Start Modal Form" method="post"
-              action="/send-email">
-              <h3>Book your free class</h3>
-              <p> 2 Days left </p>
-
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" name="name" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <div class="input-group ">
-                  <span class="input-group-text" id="basic-addon1">+91</span>
-                  <input type="text" class="form-control" name="phone" placeholder="Phone" required pattern="[0-9]{10}"
-                    oninvalid="this.setCustomValidity('Oops! Please enter a valid phone number.')"
-                    oninput="this.setCustomValidity('')" />
-                </div>
-              </div>
-              <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Register Now</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-
-
     <div class="carousel slid" data-bs-ride="carousel" id="slider1">
       <div class="carousel-indicators">
         <button type="button" data-bs-target="#slider1" data-bs-slide-to="0" class="active" aria-current="true"
@@ -133,105 +50,234 @@
       </button>
     </div>
 
+    <style>
+      .quick-access-card {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+      .quick-access-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
+        border-color: rgba(79, 70, 229, 0.35) !important;
+      }
+      .quick-access-card:active {
+        transform: translateY(-1px) scale(0.985) !important;
+        box-shadow: 0 4px 8px -2px rgba(15, 23, 42, 0.05) !important;
+      }
+      .btn-hero-cta {
+        position: relative;
+        font-weight: 600 !important;
+        font-size: 0.84rem !important;
+        padding: 0.42rem 1.05rem !important;
+        border-radius: 9999px !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none !important;
+      }
+      .btn-hero-cta .cta-icon-badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+      }
+      .btn-hero-cta:hover .cta-icon-badge {
+        transform: scale(1.1);
+      }
+      .btn-hero-cta .cta-arrow {
+        transition: transform 0.2s ease;
+        font-size: 0.75rem;
+      }
+      .btn-hero-cta:hover .cta-arrow {
+        transform: translateX(3px);
+      }
+
+      .btn-whatsapp-pro {
+        background-color: #ecfdf5 !important;
+        color: #047857 !important;
+        border: 1px solid #a7f3d0 !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+      }
+      .btn-whatsapp-pro .cta-icon-badge {
+        background: #10b981 !important;
+        color: #ffffff !important;
+      }
+      .btn-whatsapp-pro:hover {
+        background-color: #d1fae5 !important;
+        border-color: #6ee7b7 !important;
+        color: #065f46 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.22) !important;
+      }
+      .btn-whatsapp-pro:active {
+        transform: translateY(0) scale(0.98) !important;
+      }
+
+      .btn-youtube-pro {
+        background-color: #fff1f2 !important;
+        color: #be123c !important;
+        border: 1px solid #fecdd3 !important;
+        box-shadow: 0 2px 8px rgba(225, 29, 72, 0.12) !important;
+      }
+      .btn-youtube-pro .cta-icon-badge {
+        background: #e11d48 !important;
+        color: #ffffff !important;
+      }
+      .btn-youtube-pro:hover {
+        background-color: #ffe4e6 !important;
+        border-color: #fda4af !important;
+        color: #9f1239 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(225, 29, 72, 0.22) !important;
+      }
+      .btn-youtube-pro:active {
+        transform: translateY(0) scale(0.98) !important;
+      }
+    </style>
+
     <section class="container-fluid py-lg-5 py-sm-4 py-3">
       <div class="container">
-        <div class="row justify-content-between gy-4 align-items-center">
-          <div class="col-lg-6">
+        <div class="row align-items-center gy-4">
+          <!-- Left Column: Title, Subtitle, Bullet List -->
+          <div class="col-lg-7 col-12 text-center text-lg-start">
             <div class="bannerContent">
+              <div class="d-inline-flex align-items-center gap-2 px-3.5 py-1.5 rounded-pill mb-3 border shadow-sm" style="background: #eef2ff; border-color: #c7d2fe !important;">
+                <span class="badge rounded-pill px-2.5 py-1 text-white fw-bold shadow-sm" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); font-size: 0.72rem; letter-spacing: 0.4px;">🏆 #1 RANKED</span>
+                <span class="fw-bold small" style="color: #3730a3; font-size: 0.86rem;">Student Productivity & Safety Platform</span>
+              </div>
               <h1 class="display-4 fw-bold mb-3">Transformation Bridge - <span class="theme-text">Expert Study Tips &
                   Student Productivity</span></h1>
               <p class="lead mb-4">Bridging the gap from college life to a <span class="fw-bold">successful
                   future.</span>
               </p>
 
-              <ul class="m-0 p-0">
-                <li class="mb-2"> <i class="fa-solid fa-circle-check"></i> Inspiring Minds </li>
-                <li class="mb-2"><i class="fa-solid fa-circle-check"></i> Empowering Dreams </li>
-                <li class="mb-2"><i class="fa-solid fa-circle-check"></i> Shaping Leaders </li>
+              <ul class="list-unstyled m-0 p-0 fs-6">
+                <li class="mb-2 d-flex align-items-center gap-2 justify-content-center justify-content-lg-start">
+                  <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                  <span class="fw-semibold">Inspiring Minds</span>
+                </li>
+                <li class="mb-2 d-flex align-items-center gap-2 justify-content-center justify-content-lg-start">
+                  <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                  <span class="fw-semibold">Empowering Dreams</span>
+                </li>
+                <li class="mb-2 d-flex align-items-center gap-2 justify-content-center justify-content-lg-start">
+                  <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                  <span class="fw-semibold">Shaping Leaders</span>
+                </li>
               </ul>
 
-              <div class="bannerContentBtn d-flex gap-3 flex-wrap">
-                <button data-bs-toggle="modal" data-bs-target="#Start" class="btn btn-outline-primary">
-                  Join the Movement </button>
-                <button data-bs-toggle="modal" data-bs-target="#enModal" class="btn btn-outline-secondary"> <i
-                    class="fa-solid fa-download"></i> Support the Change </button>
-              </div>
-              <div class="study-guide-links mt-4 d-flex flex-wrap gap-2">
-                <a href="/blog/mistakes-before-exams" class="btn btn-outline-danger">Mistakes Students Make</a>
-                <a href="/blog/focus-tips" class="btn btn-outline-success">Focus Study Tips</a>
-                <a href="/blog/study-routine-guide" class="btn btn-outline-info">Study Routine Guide</a>
-                <a href="/blog/study-at-night" class="btn btn-outline-primary">Study at Night Tips</a>
-              </div>
-
-            </div>
-          </div>
-          <div class="col-lg-5" id="hero-register-section">
-            <form id="hero-register-form" class="bannerForm shadow-lg sendMailForm" data-form-name="Hero Contact Form" method="post"
-              action="/send-email">
-              <h3>🌟 Join 2 AM Study Today!</h3>
-              <p> Success is built by daily habits, not overnight effort... <br /> <span> Unlock your true
-                  potential</span>
-                <br /> <span> Learning</span><br />Improving <span></span>
-              </p>
-              <div class="mb-3">
-                <label class="form-label"> Full Name</label>
-                <input type="text" class="form-control" name="name" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input type="email" class="form-control" name="email" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Phone Number</label>
-                <div class="input-group ">
-                  <span class="input-group-text" id="basic-addon1">+91</span>
-                  <input type="text" class="form-control" name="phone" placeholder="Phone" required pattern="[0-9]{10}"
-                    oninvalid="this.setCustomValidity('Oops! Please enter a valid phone number.')"
-                    oninput="this.setCustomValidity('')" />
+              <!-- Hero CTA Buttons: WhatsApp & YouTube -->
+              <div class="mt-4 pt-1">
+                <div class="d-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-lg-start">
+                  <a href="https://chat.whatsapp.com/" target="_blank" rel="noopener noreferrer" class="btn btn-hero-cta btn-whatsapp-pro shadow-sm">
+                    <span class="cta-icon-badge">
+                      <i class="fa-brands fa-whatsapp fs-6"></i>
+                    </span>
+                    <span>Join WhatsApp Group</span>
+                    <i class="fa-solid fa-arrow-right cta-arrow opacity-75 ms-1"></i>
+                  </a>
+                  <a href="https://www.youtube.com/@2AMStudyWithMe" target="_blank" rel="noopener noreferrer" class="btn btn-hero-cta btn-youtube-pro shadow-sm">
+                    <span class="cta-icon-badge">
+                      <i class="fa-brands fa-youtube fs-6"></i>
+                    </span>
+                    <span>Visit YouTube Channel</span>
+                    <i class="fa-solid fa-arrow-right cta-arrow opacity-75 ms-1"></i>
+                  </a>
                 </div>
               </div>
-              <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Register Now</button>
+            </div>
+          </div>
+
+          <!-- Right Column: Quick Access Tools Hub Card -->
+          <div class="col-lg-5 col-12">
+            <div class="card border-0 shadow-lg rounded-4 p-4 bg-white position-relative overflow-hidden">
+              <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-4">⚡</span>
+                  <div>
+                    <h2 class="h6 fw-bold mb-0 text-dark">Quick Access Hub</h2>
+                    <small class="text-muted">Instant tools for students</small>
+                  </div>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-semibold small">Free</span>
               </div>
-            </form>
+
+              <div class="row g-2">
+                <!-- Pomodoro Timer -->
+                <div class="col-6">
+                  <a href="/timer" class="card quick-access-card border border-primary border-opacity-25 rounded-3 p-3 text-decoration-none text-dark h-100 bg-light-subtle shadow-sm d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="fs-3 mb-1"><span class="card-emoji">⏱️</span></div>
+                      <div class="fw-bold small mb-1">Pomodoro Timer</div>
+                      <div class="text-muted" style="font-size: 11px;">Focus & Break Session</div>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mt-2 w-auto me-auto" style="font-size: 10px;">Free Focus Tool</span>
+                  </a>
+                </div>
+
+                <!-- PDF Tools -->
+                <div class="col-6">
+                  <a href="#pdf-features-section" class="card quick-access-card border border-danger border-opacity-25 rounded-3 p-3 text-decoration-none text-dark h-100 bg-light-subtle shadow-sm d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="fs-3 mb-1"><span class="card-emoji">📄</span></div>
+                      <div class="fw-bold small mb-1">PDF Tools</div>
+                      <div class="text-muted" style="font-size: 11px;">Merge, Split & Convert</div>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mt-2 w-auto me-auto" style="font-size: 10px;">5+ Free PDF Tools</span>
+                  </a>
+                </div>
+
+                <!-- Study Tool Hub -->
+                <div class="col-6">
+                  <a href="/study-tools" class="card quick-access-card border border-success border-opacity-25 rounded-3 p-3 text-decoration-none text-dark h-100 bg-light-subtle shadow-sm d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="fs-3 mb-1"><span class="card-emoji">🎓</span></div>
+                      <div class="fw-bold small mb-1">Study Tool Hub</div>
+                      <div class="text-muted" style="font-size: 11px;">Syllabus & Timetable</div>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 mt-2 w-auto me-auto" style="font-size: 10px;">8+ Free Study Tools</span>
+                  </a>
+                </div>
+
+                <!-- Student Store -->
+                <div class="col-6">
+                  <a href="/store" class="card quick-access-card border border-warning border-opacity-25 rounded-3 p-3 text-decoration-none text-dark h-100 bg-light-subtle shadow-sm d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="fs-3 mb-1"><span class="card-emoji">🛒</span></div>
+                      <div class="fw-bold small mb-1">Student Store</div>
+                      <div class="text-muted" style="font-size: 11px;">Notebooks & Supplies</div>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-50 mt-2 w-auto me-auto" style="font-size: 10px;">Student Essentials</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Below All Four Boxes: Total Free Tools Badge -->
+              <div class="mt-3 pt-2 border-top text-center">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5 fw-semibold small">
+                  ✨ 20+ Free Digital Tools & Resources Included
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="container shadow-lg mt-5 counterSection">
-
-        <div class="row  row-cols-lg-5 row-cols-md-2 row-cols-2 p-4 ">
-          <div class="col">
-            <h2> 150+</h2>
-            <p> Students Interested in "2 AM Study" Notebook</p>
-          </div>
-          <div class="col">
-            <h2> 100+</h2>
-            <p>Students Using Digital Study Tools </p>
-          </div>
-          <div class="col">
-            <h2> 100+ </h2>
-            <p>Students Improved Focus & Daily Consistency</p>
-          </div>
-          <div class="col">
-            <h2> 90+ </h2>
-            <p>Students Following Exam Preparation Strategies</p>
-          </div>
-          <div class="col">
-            <h2>20+ </h2>
-            <p>Students Interested in "2 AM Study" Bottles</p>
-          </div>
-        </div>
-
-      </div>
-
-
-
-      <section id="features-section" class="container-fluid py-5 bg-light">
+    <section id="features-section" class="container-fluid py-5 bg-light">
         <div class="container">
           <div class="text-center mb-4">
             <h2 class="fw-bold">Student Productivity Tools & Features</h2>
-            <p>Quick access to timers, notes, chat, flashcards, focus music, and more.</p>
+            <p>Quick access to timers, notes, student safety, flashcards, focus music, and more.</p>
           </div>
           <div class="row g-3">
             <div class="col-lg-6 col-md-8 col-sm-12">
@@ -275,11 +321,11 @@
               </a>
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
-              <a href="/chat"
+              <a href="/student-safety"
                 class="feature-card text-decoration-none text-dark h-100 d-flex flex-column justify-content-between p-4">
-                <div class="feature-icon">💬</div>
-                <h3 class="h5">Student Chat</h3>
-                <p>Join the group if you’re registered.</p>
+                <div class="feature-icon">🛡️</div>
+                <h3 class="h5">Student Safety</h3>
+                <p>Report fake profiles & stay protected online.</p>
               </a>
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
@@ -308,9 +354,9 @@
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
               <a href="/utilities"
-                class="feature-card text-decoration-none text-dark h-100 d-flex flex-column justify-content-between p-4 border border-info border-opacity-25 bg-info bg-opacity-5">
-                <div class="feature-icon text-info">🛠️</div>
-                <h3 class="h5 fw-bold">Utilities Hub</h3>
+                class="feature-card text-decoration-none text-dark h-100 d-flex flex-column justify-content-between p-4">
+                <div class="feature-icon">🛠️</div>
+                <h3 class="h5">Utilities Hub</h3>
                 <p>AQI Tracker, Grammar Checker, and more.</p>
               </a>
             </div>
@@ -363,11 +409,11 @@
               </a>
             </div>
             <div class="col-lg-3 col-md-4 col-sm-6">
-              <a href="/grammar-checker"
+              <a href="/resources"
                 class="feature-card text-decoration-none text-dark h-100 d-flex flex-column justify-content-between p-4">
-                <div class="feature-icon">✍️</div>
-                <h3 class="h5">Grammar Checker</h3>
-                <p>Fix spelling and grammar with AI.</p>
+                <div class="feature-icon">🎓</div>
+                <h3 class="h5">Exam Resource Center</h3>
+                <p>Official PYQs, Syllabus, Answer Keys &amp; Notifications.</p>
               </a>
             </div>
           </div>
@@ -435,266 +481,242 @@
         </div>
       </section>
 
-      <section id="store-highlights" class="container-fluid py-5"
-        style="background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.35), transparent 52%), radial-gradient(circle at bottom left, rgba(234, 179, 8, 0.25), transparent 48%), #0f172a;">
+      <section id="store-highlights" class="container-fluid py-3"
+        style="background: linear-gradient(135deg, #fffdf5 0%, #fefce8 50%, #fffbeb 100%); position: relative; overflow: hidden;">
         <style>
-          #store-highlights .store-glow-card {
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(4px);
-          }
-
-          #store-highlights .store-glow-card::before {
+          /* Ambient warm background glow */
+          #store-highlights::before {
             content: '';
             position: absolute;
-            top: -40%;
-            left: -20%;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, rgba(250, 204, 21, 0.25), transparent 70%);
-            filter: blur(8px);
-            animation: storeGlowPulse 4s ease-in-out infinite;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(ellipse, rgba(245, 158, 11, 0.14) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
           }
 
-          #store-highlights .store-cta-btn {
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 24px rgba(250, 204, 21, 0.25);
-          }
-
-          #store-highlights .store-cta-btn:hover {
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 16px 30px rgba(250, 204, 21, 0.35);
-          }
-
-          #store-highlights .proof-ticker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 1rem;
-          }
-
-          #store-highlights .proof-pill {
+          #store-highlights .store-badge {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            border: 1px solid rgba(245, 158, 11, 0.3);
             font-size: 0.78rem;
-            color: #fde68a;
-            border: 1px solid rgba(250, 204, 21, 0.35);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.45rem 1.1rem;
+            border-radius: 100px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+          }
+
+          #store-highlights .cat-pill {
+            background: #ffffff;
+            color: #78350f;
+            border: 1px solid #fde68a;
+            border-radius: 100px;
+            padding: 0.38rem 0.95rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(245, 158, 11, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+          }
+
+          #store-highlights .cat-pill:hover {
+            border-color: #f59e0b;
+            transform: translateY(-1px);
+          }
+
+          #store-highlights .proof-pill-amber {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #92400e;
+            border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 999px;
-            padding: 0.3rem 0.75rem;
-            background: rgba(250, 204, 21, 0.08);
+            padding: 0.35rem 0.95rem;
+            background: rgba(254, 243, 199, 0.75);
+            letter-spacing: 0.01em;
+          }
+
+          #store-highlights .store-showcase-card {
+            background: #ffffff;
+            border: 1.5px solid #fde68a;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -15px rgba(245, 158, 11, 0.15), 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 2.8rem 2.2rem 2rem;
+            position: relative;
+            max-width: 820px;
+            margin: 0 auto;
           }
 
           #storeReviewSlider .carousel-item {
-            transition: opacity 0.7s ease-in-out;
+            transition: opacity 0.5s ease-in-out;
           }
 
           #storeReviewSlider .review-slide-content {
             opacity: 0;
-            transform: translateY(10px) scale(0.98);
-            transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: translateY(12px);
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
           }
 
           #storeReviewSlider .carousel-item.active .review-slide-content {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
 
           #storeReviewSlider .review-stars i {
-            color: #facc15;
-            margin-right: 2px;
+            color: #f59e0b;
+            font-size: 1rem;
+            margin: 0 1px;
           }
 
-          @keyframes storeGlowPulse {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.9; transform: scale(1.15); }
+          #store-highlights .store-cta-btn {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.85rem 2.2rem;
+            border-radius: 100px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(217, 119, 6, 0.28);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+          }
+
+          #store-highlights .store-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(217, 119, 6, 0.38);
+            color: #ffffff;
+          }
+
+          #store-highlights .store-arrow-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid #fde68a;
+            background: #ffffff;
+            color: #92400e;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+          }
+
+          #store-highlights .store-arrow-btn:hover {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
           }
         </style>
-        <div class="container py-2">
-          <div class="row g-4 align-items-center">
-            <div class="col-lg-6">
-              <div class="p-4 p-md-5 rounded-4 h-100 store-glow-card"
-                style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.09);">
-                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">2 AM Store</span>
-                <h2 class="fw-bold text-white mb-3">Bring Home 2 AM Study Brand Products</h2>
-                <p class="text-light opacity-75 mb-4">
-                  Choose products built for serious students: quality notebooks, durable bags, smart bottles, and daily
-                  essentials trusted by our 2 AM Study community.
-                </p>
-                <div class="d-flex flex-wrap gap-2 mb-4">
-                  <span class="badge rounded-pill text-bg-light px-3 py-2">Notebooks</span>
-                  <span class="badge rounded-pill text-bg-light px-3 py-2">Bottles</span>
-                  <span class="badge rounded-pill text-bg-light px-3 py-2">Bags</span>
-                  <span class="badge rounded-pill text-bg-light px-3 py-2">Study Essentials</span>
-          </div>
-                <a href="/store" class="btn btn-warning btn-lg fw-bold rounded-pill px-4 store-cta-btn">
-                  Explore 2 AM Store <i class="fa-solid fa-arrow-right ms-2"></i>
-                </a>
-                <div class="proof-ticker">
-                  <span class="proof-pill">Trusted by Students</span>
-                  <span class="proof-pill">Budget Friendly Picks</span>
-                  <span class="proof-pill">Premium Build Quality</span>
-                      </div>
-                      </div>
-                        </div>
 
-            <div class="col-lg-6">
-              <div class="p-4 p-md-5 rounded-4 h-100"
-                style="background: rgba(30, 41, 59, 0.45); border: 1px solid rgba(255,255,255,0.1);">
-                <p class="small text-uppercase fw-bold text-warning mb-3">Loved by Students</p>
-                <div id="storeReviewSlider" class="carousel slide carousel-fade" data-bs-ride="carousel"
-                  data-bs-interval="2400" data-bs-pause="false" data-bs-touch="true">
-                  <div class="carousel-inner">
-                    <div class="carousel-item active">
-                      <div class="d-flex gap-3 align-items-start review-slide-content">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=90&h=90&q=40&fm=webp"
-                          alt="Nishu" class="rounded-circle border border-warning border-2"
-                          style="width:56px;height:56px;object-fit:cover;" loading="lazy">
+        <div class="container py-1">
+
+          <!-- Centered Header -->
+          <div class="text-center max-w-700 mx-auto mb-2">
+            <span class="store-badge mb-3">
+              🛒 2 AM Study - Student Store
+            </span>
+            <h2 class="fw-bold mb-2" style="color: #0f172a; font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.02em;">
+              Bring Home 2 AM Study Brand Products
+            </h2>
+            <p class="text-muted mx-auto mb-3" style="font-size: 0.92rem; max-width: 580px; line-height: 1.55;">
+              Quality notebooks, durable bags, smart bottles &amp; daily essentials designed for serious students.
+            </p>
+
+            <!-- Trust Metrics -->
+            <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+              <span class="proof-pill-amber">✅ Trusted by 10K+ Students</span>
+              <span class="proof-pill-amber">💰 Student Friendly Pricing</span>
+              <span class="proof-pill-amber">⭐ Premium Build Quality</span>
+            </div>
+          </div>
+
+          <!-- Centered Shopper Feedback Slider Card -->
+          <div class="store-showcase-card text-center" style="padding: 1.8rem 1.6rem 1.4rem; max-width: 700px;">
+
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <p class="small text-uppercase fw-bold mb-0" style="color: #d97706; letter-spacing: 0.1em; font-size: 0.72rem;">
+                ❤️ Shopper Feedback
+              </p>
+              <button type="button" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2" style="font-size: 0.75rem; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#giveFeedbackModal">
+                ✍️ Share Feedback
+              </button>
+            </div>
+
+            <div id="storeReviewSlider" class="carousel slide carousel-fade" data-bs-ride="carousel"
+              data-bs-interval="3800" data-bs-pause="hover" data-bs-touch="true">
+              <div class="carousel-inner" id="carouselInnerFeedbacks">
+
+                <% const feedbacksList = (typeof shopperFeedbacks !== 'undefined' && shopperFeedbacks.length) ? shopperFeedbacks : [
+                  { name: 'Meera P.', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&q=80&fm=webp', rating: 5, comment: 'My smart bottle keeps water ice-cold for 18 hours during long library sessions. Highly recommended!', product: 'Smart Thermal Bottle' },
+                  { name: 'Nishu Sharma', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&q=80&fm=webp', rating: 5, comment: "Notebook paper quality is top-notch. Thick pages that don't bleed through even with fountain pens.", product: 'Premium Grid Notebook' },
+                  { name: 'Tanvi R.', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&q=80&fm=webp', rating: 5, comment: 'Spacious and super comfortable to carry. Easily holds my laptop, chargers, and heavy books every day.', product: 'Ergonomic Study Bag' }
+                ]; %>
+
+                <% feedbacksList.forEach((fb, idx) => { %>
+                  <div class="carousel-item <%= idx === 0 ? 'active' : '' %>">
+                    <div class="review-slide-content px-md-3">
+                      <div class="review-stars mb-2" style="font-size: 0.82rem;">
+                        <% for(let i=0; i < (fb.rating || 5); i++) { %>
+                          <i class="fa-solid fa-star text-warning"></i>
+                        <% } %>
+                      </div>
+                      <p class="mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.65; font-style: italic; color: #1e293b;">
+                        "<%= fb.comment %>"
+                      </p>
+                      <div class="d-flex flex-column align-items-center justify-content-center gap-1">
+                        <img src="<%= fb.avatar %>"
+                          alt="<%= fb.name %>" class="rounded-circle border border-2" style="border-color: #f59e0b !important; width: 44px; height: 44px; object-fit: cover;" loading="lazy">
                         <div>
-                          <div class="review-stars mb-2">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                          <h6 class="fw-bold mb-0" style="color: #0f172a; font-size: 0.88rem;"><%= fb.name %></h6>
+                          <small class="fw-semibold" style="color: #d97706; font-size: 0.75rem;">Verified Buyer • <%= fb.product %></small>
                         </div>
-                          <p class="text-light mb-2">"Notebook quality is excellent. Pages are thick and perfect for long study notes."</p>
-                          <small class="text-warning fw-semibold">Nishu • Verified Buyer</small>
                       </div>
                     </div>
                   </div>
-                    <div class="carousel-item">
-                      <div class="d-flex gap-3 align-items-start review-slide-content">
-                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=90&h=90&q=40&fm=webp"
-                          alt="Meera P." class="rounded-circle border border-warning border-2"
-                          style="width:56px;height:56px;object-fit:cover;" loading="lazy">
-                        <div>
-                          <div class="review-stars mb-2">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                        </div>
-                          <p class="text-light mb-2">"My bottle keeps drinks hot during night sessions. Very useful for late study hours."</p>
-                          <small class="text-warning fw-semibold">Meera P. • Verified Buyer</small>
-                      </div>
-                    </div>
-                  </div>
-                    <div class="carousel-item">
-                      <div class="d-flex gap-3 align-items-start review-slide-content">
-                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=90&h=90&q=40&fm=webp"
-                          alt="Tanvi R." class="rounded-circle border border-warning border-2"
-                          style="width:56px;height:56px;object-fit:cover;" loading="lazy">
-                        <div>
-                          <div class="review-stars mb-2">
-                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                      </div>
-                          <p class="text-light mb-2">"The bag is spacious and comfortable. Easily fits my laptop and books every day."</p>
-                          <small class="text-warning fw-semibold">Tanvi R. • Verified Buyer</small>
-                      </div>
-                        </div>
-                        </div>
-                      </div>
-                    </div>
-                <div class="mt-4 d-flex gap-2 align-items-center">
-                  <button class="btn btn-outline-light btn-sm rounded-pill" type="button" data-bs-target="#storeReviewSlider"
-                    data-bs-slide="prev" aria-label="Previous review">
-                    <i class="fa-solid fa-chevron-left"></i>
-                  </button>
-                  <button class="btn btn-outline-light btn-sm rounded-pill" type="button" data-bs-target="#storeReviewSlider"
-                    data-bs-slide="next" aria-label="Next review">
-                    <i class="fa-solid fa-chevron-right"></i>
-                  </button>
-                  <small class="text-light opacity-75 ms-2">Real feedback from 2 AM Study shoppers</small>
-                </div>
+                <% }); %>
+
               </div>
             </div>
+
+            <!-- Slider Nav Controls -->
+            <div class="mt-4 pt-3 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3 border-top" style="border-color: #fde68a !important;">
+              <div class="d-flex gap-2">
+                <button class="store-arrow-btn" type="button" data-bs-target="#storeReviewSlider" data-bs-slide="prev" aria-label="Previous review">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="store-arrow-btn" type="button" data-bs-target="#storeReviewSlider" data-bs-slide="next" aria-label="Next review">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+              <span class="text-muted small fw-medium">Real feedback from verified 2 AM Study shoppers</span>
+            </div>
+
           </div>
+
+          <!-- Bottom CTA -->
+          <div class="text-center mt-3 pt-1">
+            <a href="/store" class="store-cta-btn">
+              <span>Explore 2 AM Store</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
         </div>
       </section>
 
-      <section id="pricing" class="container-fluid py-5 pricing-section">
 
-        <div class="container">
-          <div class="text-center mb-4">
-            <h2 class="fw-bold">Pricing Plan</h2>
-            <p class="text-muted mb-0">Join thousands of students improving daily with a smart study plan built for
-              focus
-              and progress.</p>
-          </div>
-          <div class="row justify-content-center g-4 mt-2">
-            <div class="col-lg-4 col-md-6">
-              <div
-                class="pricing-card h-100 d-flex flex-column text-center p-4 shadow-sm rounded-4 border border-success border-2"
-                style="position: relative; overflow: hidden; background: linear-gradient(180deg, #f0fff4, #ffffff);">
-                <div class="position-absolute top-0 end-0 p-2"><span class="badge bg-danger shadow-sm">New</span></div>
-                <span class="badge bg-success text-white mx-auto mb-3">Elite Package</span>
-                <h3 class="h4 mb-2 fw-bold">UPSC Exam Notes</h3>
-                <p class="text-muted mb-4" style="min-height: 48px;">Complete GS & Prelims revision sets curated by top
-                  IAS mentors.</p>
 
-                <h4 class="mb-4 text-dark fw-bold">₹399 <span
-                    class="fs-6 text-muted fw-normal text-decoration-line-through ms-1">₹1499</span></h4>
-
-                <ul class="list-unstyled text-start mb-4 pricing-features flex-grow-1">
-                  <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Comprehensive GS Notes (1-4)</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Monthly Current Affairs</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Prelims Mind Maps</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Answer Writing Frameworks</li>
-                </ul>
-                <div class="mt-auto">
-                  <button class="btn btn-success w-100 fw-bold shadow-sm notes-buy-btn" data-note="UPSC Exam Notes"
-                    data-bs-toggle="modal" data-bs-target="#notesModal">Get UPSC Notes</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-              <div
-                class="pricing-card h-100 d-flex flex-column text-center p-4 shadow-sm rounded-4 border border-info border-2"
-                style="position: relative; overflow: hidden; background: linear-gradient(180deg, #f0f8ff, #ffffff);">
-                <div class="position-absolute top-0 end-0 p-2"><span class="badge bg-danger shadow-sm">Hot</span></div>
-                <span class="badge bg-info text-dark mx-auto mb-3">Premium Notes</span>
-                <h3 class="h4 mb-2 fw-bold">GATE Exam Notes</h3>
-                <p class="text-muted mb-4" style="min-height: 48px;">Comprehensive hand-written notes, practice sets,
-                  and
-                  mock tools for GATE aspirants.</p>
-
-                <h4 class="mb-4 text-dark fw-bold">₹299 <span
-                    class="fs-6 text-muted fw-normal text-decoration-line-through ms-1">₹999</span></h4>
-
-                <ul class="list-unstyled text-start mb-4 pricing-features flex-grow-1">
-                  <li class="mb-2"><i class="fa-solid fa-check text-info me-2"></i>100% Core Syllabus Coverage</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-info me-2"></i>Solved Previous Year Questions</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-info me-2"></i>High-yield formula handbook</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-info me-2"></i>Lifetime Access & Downloads</li>
-                </ul>
-                <div class="mt-auto">
-                  <button class="btn btn-info text-white w-100 fw-bold shadow-sm notes-buy-btn"
-                    data-note="GATE Exam Notes" data-bs-toggle="modal" data-bs-target="#notesModal">Get GATE
-                    Notes</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-              <div
-                class="pricing-card h-100 d-flex flex-column text-center p-4 shadow-sm rounded-4 border border-warning border-2"
-                style="position: relative; overflow: hidden; background: linear-gradient(180deg, #fffbeb, #ffffff);">
-                <span class="badge bg-warning text-dark mx-auto mb-3">Best Seller</span>
-                <h3 class="h4 mb-2 fw-bold">NEET Exam Notes</h3>
-                <p class="text-muted mb-4" style="min-height: 48px;">Complete revision sets curated by NEET state
-                  toppers.
-                </p>
-
-                <h4 class="mb-4 text-dark fw-bold">₹199 <span
-                    class="fs-6 text-muted fw-normal text-decoration-line-through ms-1">₹599</span></h4>
-
-                <ul class="list-unstyled text-start mb-4 pricing-features flex-grow-1">
-                  <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i>NCERT Based Mind Maps</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i>Short Tricks & Mnemonics</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i>Topper's Handwritten Material</li>
-                  <li class="mb-2"><i class="fa-solid fa-check text-warning me-2"></i>Regular Updates & Support</li>
-                </ul>
-                <div class="mt-auto">
-                  <button class="btn btn-warning w-100 fw-bold shadow-sm notes-buy-btn" data-note="NEET Exam Notes"
-                    data-bs-toggle="modal" data-bs-target="#notesModal">Get NEET Notes</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- Digital Notes Purchase Modal -->
       <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
@@ -895,202 +917,7 @@
         });
       </script>
 
-      <section id="student-reviews" class="container-fluid py-5"
-        style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
-        <div class="container py-4">
-          <div class="text-center mb-5">
-            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Success
-              Stories</span>
-            <h2 class="fw-bold display-5 mb-3">What Our Students Say</h2>
-            <p class="text-muted mx-auto" style="max-width: 600px;">Join thousands of successful students who have
-              transformed their academic journey with 2AM Study tools and resources.</p>
-          </div>
 
-          <div id="reviewCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-              <div class="carousel-item active">
-                <div class="row justify-content-center">
-                  <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"The UPSC notes are incredibly detailed. They saved me hours of
-                        research
-                        and helped me focus on what actually matters for the exam."</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img src="#" alt="" class="rounded-circle"
-                            style="width: 50px; height: 50px; object-fit: cover;" loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Priya</h6>
-                          <small class="text-muted">UPSC Aspirant</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-4 d-none d-md-block">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"2AM Study is my go-to for late-night productivity. The focus music is
-                        a
-                        game changer, especially when I'm pulling an all-nighter."</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img src="" alt="" class="rounded-circle"
-                            style="width: 50px; height: 50px; object-fit: cover;" loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Ankit Kumar</h6>
-                          <small class="text-muted">Engineering Student</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-4 d-none d-lg-block">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star-half-stroke text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"The Premium Study Bag is actually water-resistant! Perfect for my
-                        campus commute during the monsoon season. Extremely durable."</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&q=40&fm=webp"
-                            alt="Rohan S." class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;"
-                            loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Rohan S.</h6>
-                          <small class="text-muted">Medical Aspirant</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <div class="row justify-content-center">
-                  <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"I love the Pomodoro timer. It helps me stay disciplined during long
-                        study blocks without feeling burnt out. The UI is so aesthetic!"</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img src="#" alt="" class="rounded-circle"
-                            style="width: 50px; height: 50px; object-fit: cover;" loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Sneha J.</h6>
-                          <small class="text-muted">Graduate Student</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Duplicate for carousel balance if needed or add more real ones -->
-                  <div class="col-lg-4 col-md-6 mb-4 d-none d-md-block">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"The syllabus tracker is a lifesaver. I can finally see my progress
-                        clearly instead of just guessing. Highly recommend for any student."</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&q=40&fm=webp"
-                            alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;"
-                            loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Rahul V.</h6>
-                          <small class="text-muted">NEET Aspirant</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6 mb-4 d-none d-lg-block">
-                    <div class="review-card p-4 rounded-4 shadow-sm h-100 bg-white border-0 position-relative">
-                      <div class="quote-icon position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="fa-solid fa-quote-right fa-3x"></i>
-                      </div>
-                      <div class="rating mb-3">
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                        <i class="fa-solid fa-star text-warning"></i>
-                      </div>
-                      <p class="review-text mb-4">"Finally a place that understands the student struggle. The resources
-                        here are top-notch and the community is so supportive."</p>
-                      <div class="reviewer d-flex align-items-center">
-                        <div class="avatar-wrapper me-3">
-                          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&q=40&fm=webp"
-                            alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;"
-                            loading="lazy">
-                        </div>
-                        <div>
-                          <h6 class="fw-bold mb-0">Kavya P.</h6>
-                          <small class="text-muted">Design Student</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="carousel-indicators position-relative mt-4">
-              <button type="button" data-bs-target="#reviewCarousel" data-bs-slide-to="0" class="active bg-primary"
-                aria-current="true" aria-label="Slide 1"
-                style="width: 12px; height: 12px; border-radius: 50%;"></button>
-              <button type="button" data-bs-target="#reviewCarousel" data-bs-slide-to="1" class="bg-primary"
-                aria-label="Slide 2" style="width: 12px; height: 12px; border-radius: 50%;"></button>
-            </div>
-          </div>
-        </div>
-      </section>
 
 
 
@@ -1334,6 +1161,130 @@
               </div>
             </div>
           </div>
-      </section>
+      <!-- Give Feedback Modal -->
+      <div class="modal fade" id="giveFeedbackModal" tabindex="-1" aria-labelledby="giveFeedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0 rounded-4 bg-dark text-white" style="border: 1px solid rgba(255,255,255,0.1) !important;">
+            <div class="modal-header border-0 pb-0">
+              <h5 class="modal-title fw-bold text-warning" id="giveFeedbackModalLabel">
+                ❤️ Share Shopper Feedback
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="shopperFeedbackForm">
+              <div class="modal-body py-4">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-warning">Your Name</label>
+                  <input type="text" class="form-control bg-secondary text-white border-0 rounded-3" id="fbName" placeholder="e.g. Meera P." required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-warning">Product Purchased</label>
+                  <select class="form-select bg-secondary text-white border-0 rounded-3" id="fbProduct">
+                    <option value="Smart Thermal Bottle">Smart Thermal Bottle</option>
+                    <option value="Ergonomic Study Bag">Ergonomic Study Bag</option>
+                    <option value="Premium Grid Notebook">Premium Grid Notebook</option>
+                    <option value="2 AM Signature Diary">2 AM Signature Diary</option>
+                    <option value="2 AM Coffee Mug">2 AM Coffee Mug</option>
+                    <option value="2 AM Study Essentials">2 AM Study Essentials</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-warning">Rating</label>
+                  <select class="form-select bg-secondary text-white border-0 rounded-3" id="fbRating">
+                    <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                    <option value="3">⭐⭐⭐ (3/5)</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-warning">Your Feedback / Review</label>
+                  <textarea class="form-control bg-secondary text-white border-0 rounded-3" id="fbComment" rows="3" placeholder="Tell us how the product helped your study sessions..." required></textarea>
+                </div>
+              </div>
+              <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4 text-dark" id="submitFbBtn">Submit Feedback</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const fbForm = document.getElementById('shopperFeedbackForm');
+          if (!fbForm) return;
+
+          fbForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitFbBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const name = document.getElementById('fbName').value;
+            const product = document.getElementById('fbProduct').value;
+            const rating = document.getElementById('fbRating').value;
+            const comment = document.getElementById('fbComment').value;
+
+            try {
+              const res = await fetch('/store/api/store/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, product, rating, comment })
+              });
+              const data = await res.json();
+              if (data.success && data.feedback) {
+                const fb = data.feedback;
+                const container = document.getElementById('carouselInnerFeedbacks');
+                if (container) {
+                  const activeItems = container.querySelectorAll('.carousel-item.active');
+                  activeItems.forEach(el => el.classList.remove('active'));
+
+                  let starsHtml = '';
+                  for (let i = 0; i < (fb.rating || 5); i++) {
+                    starsHtml += '<i class="fa-solid fa-star text-warning"></i>';
+                  }
+
+                  const newSlide = document.createElement('div');
+                  newSlide.className = 'carousel-item active';
+                  newSlide.innerHTML = `
+                    <div class="review-slide-content px-md-3">
+                      <div class="review-stars mb-2" style="font-size: 0.82rem;">
+                        ${starsHtml}
+                      </div>
+                      <p class="mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.65; font-style: italic; color: #1e293b;">
+                        "${fb.comment}"
+                      </p>
+                      <div class="d-flex flex-column align-items-center justify-content-center gap-1">
+                        <img src="${fb.avatar}" alt="${fb.name}" class="rounded-circle border border-2" style="border-color: #f59e0b !important; width: 44px; height: 44px; object-fit: cover;" loading="lazy">
+                        <div>
+                          <h6 class="fw-bold mb-0" style="color: #0f172a; font-size: 0.88rem;">${fb.name}</h6>
+                          <small class="fw-semibold" style="color: #d97706; font-size: 0.75rem;">Verified Buyer • ${fb.product}</small>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                  container.insertBefore(newSlide, container.firstChild);
+                }
+
+                const modalEl = document.getElementById('giveFeedbackModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                fbForm.reset();
+                alert('🎉 Thank you! Your feedback has been published live on 2 AM Study.');
+              } else {
+                alert(data.error || 'Could not submit feedback.');
+              }
+            } catch(err) {
+              console.error('Feedback submit error:', err);
+              alert('Network error. Please try again.');
+            } finally {
+              btn.disabled = false;
+              btn.textContent = 'Submit Feedback';
+            }
+          });
+        });
+      </script>
+
   </main>
   <%- include('partials/footer') %>

@@ -1,0 +1,469 @@
+<%- include('partials/header') %>
+
+<%
+/* Category display config (server-side EJS) */
+const CAT_CONFIG_EJS = {
+  PYQ:           { label:'Previous Year Papers', icon:'📄', color:'4f46e5' },
+  SYLLABUS:      { label:'Syllabus',             icon:'📘', color:'059669' },
+  NOTIFICATION:  { label:'Notification',         icon:'📢', color:'d97706' },
+  ANSWER_KEY:    { label:'Answer Key',           icon:'📝', color:'0891b2' },
+  EXAM_CALENDAR: { label:'Exam Calendar',        icon:'📅', color:'7c3aed' },
+  CUTOFF:        { label:'Cut-off Scores',       icon:'📊', color:'dc2626' },
+  BROCHURE:      { label:'Brochure',             icon:'📋', color:'64748b' },
+  ADMIT_CARD:    { label:'Admit Card',           icon:'🎫', color:'db2777' },
+  RESULT:        { label:'Results',              icon:'📈', color:'059669' },
+};
+
+/* Group resources by category */
+const grouped = {};
+resources.forEach(r => {
+  if (!grouped[r.category]) grouped[r.category] = [];
+  grouped[r.category].push(r);
+});
+
+/* Format date helper */
+function fmtDateEJS(d) {
+  try { return new Date(d).toLocaleDateString('en-IN',{month:'short',year:'numeric'}); }
+  catch(e) { return d; }
+}
+%>
+
+<style>
+  /* ─── Exam Landing Page Styles ─── */
+  .elp-hero {
+    background: linear-gradient(135deg, #eef2ff 0%, #fafbff 60%, #ecfdf5 100%);
+    border-bottom: 1px solid #e0e7ff;
+    padding: 2.5rem 0 2rem;
+  }
+
+  .elp-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 1.25rem;
+  }
+
+  .elp-breadcrumb a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .elp-breadcrumb a:hover { text-decoration: underline; }
+
+  .elp-exam-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(79,70,229,0.08);
+    color: #4f46e5;
+    border: 1px solid rgba(79,70,229,0.18);
+    padding: 0.45rem 1.15rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+  }
+
+  .elp-stats {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+  }
+
+  .elp-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .elp-stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+  }
+
+  .elp-stat-lbl {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Other exams sidebar / nav ── */
+  .elp-other-exams {
+    background: #fff;
+    border: 1px solid #e0e7ff;
+    border-radius: 16px;
+    padding: 1.2rem;
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+  }
+
+  .elp-other-exams h6 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .elp-exam-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #475569;
+    font-size: 0.83rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 0.1rem;
+  }
+
+  .elp-exam-link:hover { background: #eef2ff; color: #4f46e5; }
+  .elp-exam-link.current { background: #4f46e5; color: #fff; font-weight: 700; }
+
+  .elp-exam-link .badge-count {
+    background: rgba(255,255,255,0.2);
+    color: inherit;
+    border-radius: 100px;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .elp-exam-link:not(.current) .badge-count {
+    background: #eef2ff;
+    color: #6366f1;
+  }
+
+  /* ── Category section ── */
+  .cat-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .cat-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .cat-section-icon {
+    font-size: 1.2rem;
+  }
+
+  .cat-section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .cat-count-pill {
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 100px;
+    padding: 0.12rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  /* ── Resource cards (exam page variant) ── */
+  .elp-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.2rem 1.35rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    margin-bottom: 0.75rem;
+  }
+
+  .elp-card:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 18px rgba(79,70,229,0.1);
+    border-color: #c7d2fe;
+  }
+
+  .elp-card-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .elp-card-body { flex: 1; min-width: 0; }
+
+  .elp-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.3rem;
+    line-height: 1.3;
+  }
+
+  .elp-card-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin: 0 0 0.6rem;
+    line-height: 1.5;
+  }
+
+  .elp-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    flex-wrap: wrap;
+  }
+
+  .official-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #059669;
+    font-weight: 700;
+  }
+
+  .elp-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  @media (max-width: 576px) {
+    .elp-card { flex-direction: column; }
+    .elp-card-actions { flex-direction: row; min-width: auto; width: 100%; }
+  }
+
+  .btn-visit-sm {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: opacity 0.18s, transform 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-visit-sm:hover { opacity:.9; color:#fff; transform:translateY(-1px); }
+
+  .btn-copy-sm {
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.73rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+
+  .btn-copy-sm:hover { background:#eef2ff; border-color:#c7d2fe; color:#4f46e5; }
+  .btn-copy-sm.copied { background:#dcfce7; border-color:#86efac; color:#15803d; }
+</style>
+
+<!-- ── Hero ── -->
+<section class="elp-hero">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <div class="elp-breadcrumb">
+      <a href="/resources"><i class="fa-solid fa-graduation-cap me-1"></i>Exam Resource Center</a>
+      <i class="fa-solid fa-chevron-right" style="font-size:.65rem"></i>
+      <span><%= examName %></span>
+    </div>
+
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <div class="elp-exam-badge">
+          <i class="fa-solid fa-book-open-reader"></i>
+          Official Resources
+        </div>
+        <h1 class="fw-bold mb-2" style="font-size:clamp(1.6rem,4vw,2.2rem);color:#0f172a;">
+          <%= examName %> — Official Resource Hub
+        </h1>
+        <p class="text-muted mb-0" style="font-size:.95rem;max-width:560px;">
+          All official <%= examName %> study materials in one place. Every link goes directly to the official
+          exam authority website.
+        </p>
+
+        <div class="elp-stats mt-3">
+          <div class="elp-stat">
+            <span class="elp-stat-val"><%= resources.length %></span>
+            <span class="elp-stat-lbl">Resources</span>
+          </div>
+          <div class="elp-stat">
+            <span class="elp-stat-val"><%= Object.keys(grouped).length %></span>
+            <span class="elp-stat-lbl">Categories</span>
+          </div>
+          <div class="elp-stat">
+            <span class="elp-stat-val">100%</span>
+            <span class="elp-stat-lbl">Official Links</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <a href="/resources" class="btn btn-outline-primary rounded-pill px-4 fw-semibold small">
+          <i class="fa-solid fa-arrow-left me-2"></i>All Exams
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Main layout ── -->
+<main style="background:#f8fafc;min-height:60vh;padding:2rem 0;">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- ── Sidebar — other exams ── -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <div class="elp-other-exams">
+          <h6>All Exams</h6>
+          <% allSlugs.forEach(function(e) { %>
+            <a href="/resources/<%= e.slug %>"
+               class="elp-exam-link <%= examSlug === e.slug ? 'current' : '' %>">
+              <%= e.name %>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- ── Content ── -->
+      <div class="col-lg-9">
+
+        <% Object.keys(CAT_CONFIG_EJS).forEach(function(catKey) { %>
+          <% if (!grouped[catKey]) return; %>
+          <% const cat = CAT_CONFIG_EJS[catKey]; %>
+
+          <section class="cat-section">
+            <div class="cat-section-header">
+              <span class="cat-section-icon"><%= cat.icon %></span>
+              <h2 class="cat-section-title"><%= cat.label %></h2>
+              <span class="cat-count-pill"><%= grouped[catKey].length %></span>
+            </div>
+
+            <% grouped[catKey].forEach(function(r) { %>
+              <div class="elp-card">
+                <span class="elp-card-icon"><%= cat.icon %></span>
+                <div class="elp-card-body">
+                  <h3 class="elp-card-title"><%= r.title %></h3>
+                  <p class="elp-card-desc"><%= r.description %></p>
+                  <div class="elp-card-meta">
+                    <span class="official-dot">
+                      <i class="fa-solid fa-circle-check" style="font-size:.6rem"></i> Official Source
+                    </span>
+                    <% if (r.lastUpdated) { %>
+                      <span>Updated <%= fmtDateEJS(r.lastUpdated) %></span>
+                    <% } %>
+                    <% if (r.latestYear) { %>
+                      <span>· <%= r.latestYear %></span>
+                    <% } %>
+                  </div>
+                </div>
+                <div class="elp-card-actions">
+                  <a href="<%= r.officialUrl %>" target="_blank" rel="noopener noreferrer"
+                     class="btn-visit-sm">
+                    🌐 Visit Official Website
+                  </a>
+                  <button class="btn-copy-sm" onclick="copyLink(this,'<%= r.officialUrl %>')">
+                    🔗 Copy Official Link
+                  </button>
+                </div>
+              </div>
+            <% }); %>
+          </section>
+
+        <% }); %>
+
+        <!-- Mobile — other exams -->
+        <div class="d-lg-none mt-3">
+          <h6 class="text-muted fw-bold text-uppercase small mb-2" style="letter-spacing:.05em">Other Exams</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <% allSlugs.forEach(function(e) { %>
+              <a href="/resources/<%= e.slug %>"
+                 class="exam-chip <%= examSlug === e.slug ? 'active' : '' %>"
+                 style="background:<%=examSlug===e.slug?'#4f46e5':'#fff'%>;
+                        color:<%=examSlug===e.slug?'#fff':'#4f46e5'%>;
+                        border:1.5px solid #c7d2fe;border-radius:100px;
+                        padding:.3rem .85rem;font-size:.73rem;font-weight:700;
+                        text-decoration:none;white-space:nowrap;">
+                <%= e.name %>
+              </a>
+            <% }); %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Trust bar ── -->
+<div style="background:#fff;border-top:1px solid #e0e7ff;padding:.75rem 0;font-size:.78rem;color:#94a3b8;text-align:center;">
+  <i class="fa-solid fa-shield-halved me-1 text-success"></i>
+  All links verified &amp; official — no third-party mirrors.
+  &nbsp;|&nbsp;
+  <a href="/resources" class="text-decoration-none text-primary fw-semibold">← Back to All Resources</a>
+</div>
+
+<script>
+  function copyLink(btn, url) {
+    const reset = () => setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '🔗 Copy Official Link';
+    }, 2000);
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        btn.classList.add('copied'); btn.innerHTML='✅ Link Copied!'; reset();
+      }).catch(() => fallbackCopy(btn, url, reset));
+    } else { fallbackCopy(btn, url, reset); }
+  }
+
+  function fallbackCopy(btn, url, reset) {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch{}
+    document.body.removeChild(ta);
+    btn.classList.add('copied'); btn.innerHTML='✅ Link Copied!'; reset();
+  }
+</script>
+
+<%- include('partials/footer') %>

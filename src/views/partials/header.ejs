@@ -93,10 +93,10 @@
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                    Pricing & Store
+                    Store & Resources
                   </a>
                   <ul class="dropdown-menu mobile-dropdown border-0 shadow-sm">
-                    <li><a class="dropdown-item" href="/#pricing"><i class="fa-solid fa-indian-rupee-sign me-2 opacity-75 text-primary"></i>Pricing Plans</a></li>
+                    <li><a class="dropdown-item" href="/resources"><i class="fa-solid fa-graduation-cap me-2 opacity-75 text-primary"></i>Exam Resource Center</a></li>
                     <li><a class="dropdown-item" href="/store"><i class="fa-solid fa-store me-2 opacity-75 text-primary"></i>Student Store</a></li>
                   </ul>
                 </li>
@@ -136,7 +136,7 @@
                       <h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3">Learning Tools</h6>
                     </li>
                     <li><a class="dropdown-item" href="/timer">Timer</a></li>
-                    <li><a class="dropdown-item" href="/notes">Notes</a></li>
+                    <li><a class="dropdown-item" href="/resources">Exam Resource Center</a></li>
                     <li><a class="dropdown-item" href="/streak">Goals / Streak</a></li>
                     <li><a class="dropdown-item" href="/music">Music</a></li>
                     <li><a class="dropdown-item" href="/quotes">Quotes</a></li>
@@ -148,22 +148,62 @@
                     <li><a class="dropdown-item" href="/utilities">Utilities Hub (AQI, Grammar)</a></li>
                   </ul>
                 </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/student-safety" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Student Safety
+                  </a>
+                  <ul class="dropdown-menu mobile-dropdown border-0 shadow-sm" style="min-width: 210px;">
+                    <li><a class="dropdown-item" href="/student-safety/report"><span class="me-2">🛡️</span>Report Fake Profile</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/cases"><span class="me-2">📋</span>Active Cases</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/my-reports"><span class="me-2">📄</span>My Reports</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/how-it-works"><span class="me-2">ℹ️</span>How It Works</a></li>
+                  </ul>
+                </li>
               </ul>
 
               <div
-                class="mobile-action-buttons d-flex flex-column flex-lg-row gap-3 align-items-stretch align-items-lg-center mt-4 mt-lg-0">
-                <a class="btn btn-outline-success d-flex align-items-center justify-content-center premium-btn-outline"
-                  href="https://wa.me/+916202225179" target="_blank" rel="noopener noreferrer"
-                  data-login-protected="whatsapp" data-bs-toggle="tooltip" data-bs-placement="top"
-                  data-bs-custom-class="custom-tooltip" data-bs-title="Chat with us on WhatsApp">
-                  <i class="fa-brands fa-whatsapp me-2"></i> Chat with Us
+                class="mobile-action-buttons d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center mt-4 mt-lg-0">
+
+                <!-- Step 5: Notification Bell (only shown when logged in) -->
+                <a id="notifBellWrapper" href="/student-safety/notifications"
+                  class="btn btn-light border position-relative d-flex align-items-center justify-content-center rounded-circle notif-bell-btn d-none"
+                  style="width: 42px; height: 42px; flex-shrink: 0;"
+                  data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Notifications">
+                  <i class="fa-solid fa-bell text-dark fs-6"></i>
+                  <span id="notifBellCount"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-bell-count d-none"
+                    style="font-size: 10px; min-width: 18px; height: 18px; line-height: 18px;">0</span>
                 </a>
-                <a class="btn btn-primary d-flex align-items-center justify-content-center premium-btn-primary"
-                  href="tel:+916202225179" data-login-protected="call" data-bs-toggle="tooltip"
-                  data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                  data-bs-title="Register first to call us">
-                  <i class="fa-brands fa-whatsapp me-2"></i> Call Us
-                </a>
+
+                <!-- Guest Auth Buttons (Logged Out) -->
+                <div id="guestAuthButtons" class="d-flex align-items-center gap-2">
+                  <a href="/login" class="btn btn-outline-primary rounded-pill px-3.5 py-2 small fw-bold">Log In</a>
+                  <a href="/signup" class="btn btn-primary rounded-pill px-3.5 py-2 small fw-bold">Sign Up</a>
+                </div>
+
+                <!-- User Account Dropdown (Logged In) -->
+                <div class="dropdown d-none" id="userMenuDropdown">
+                  <button class="btn btn-outline-dark rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 12px;" id="headerUserAvatar">
+                      👤
+                    </div>
+                    <span id="headerUserName" class="small">My Account</span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-4" style="min-width: 220px;">
+                    <li><h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3 pt-2">👤 My Account</h6></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i class="fa-solid fa-gauge me-2 text-primary"></i>Dashboard</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/profile"><i class="fa-solid fa-user me-2 text-primary"></i>My Profile</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i class="fa-solid fa-file-lines me-2 text-primary"></i>My Reports</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/notifications"><i class="fa-solid fa-bell me-2 text-primary"></i>Notifications</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety"><i class="fa-solid fa-shield-halved me-2 text-primary"></i>Student Safety</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/store"><i class="fa-solid fa-bag-shopping me-2 text-primary"></i>My Orders</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/settings"><i class="fa-solid fa-gear me-2 text-primary"></i>Settings</a></li>
+                    <li><hr class="dropdown-divider my-2"></li>
+                    <li><button type="button" id="headerLogoutBtn" class="dropdown-item rounded-3 py-2 text-danger fw-semibold small"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button></li>
+                  </ul>
+                </div>
+
               </div>
             </div>
           </div>
@@ -172,51 +212,122 @@
     </div>
   </header>
 
-  <!-- Auto-close mobile offcanvas when a link is clicked -->
-  <script>
+  <!-- Auto-close mobile offcanvas & Firebase Auth Listener -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+      authDomain: "am-study-7ea87.firebaseapp.com",
+      projectId: "am-study-7ea87",
+      storageBucket: "am-study-7ea87.firebasestorage.app",
+      messagingSenderId: "270924691236",
+      appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+    };
+
+    let app, auth;
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+    } catch(e) {}
+
     document.addEventListener('DOMContentLoaded', function () {
       const offcanvasEl = document.getElementById('mobileMenuOffcanvas');
       if (offcanvasEl) {
         const links = offcanvasEl.querySelectorAll('a.nav-link, a.dropdown-item');
-
         links.forEach(link => {
           link.addEventListener('click', function (e) {
-            // Ignore dropdown toggles (like Company, Pricing, Study Tools) so they can expand without closing the menu
-            if (this.classList.contains('dropdown-toggle')) {
-              return;
-            }
-
+            if (this.classList.contains('dropdown-toggle')) return;
             if (offcanvasEl.classList.contains('show')) {
               const href = this.getAttribute('href');
               const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
-
               if (bsOffcanvas) {
-                // Check if it's an anchor link and we are on the same page
                 if (href && href.includes('#')) {
                   const url = new URL(this.href, window.location.origin);
                   const isSamePage = (url.pathname === window.location.pathname || url.pathname === window.location.pathname + '/');
-
                   if (isSamePage) {
-                    e.preventDefault(); // Stop immediate jump
-                    bsOffcanvas.hide(); // Close menu
-
-                    // Wait for the menu to finish closing and restoring focus
+                    e.preventDefault();
+                    bsOffcanvas.hide();
                     setTimeout(() => {
-                      window.location.hash = url.hash; // Manually update hash
+                      window.location.hash = url.hash;
                       const target = document.querySelector(url.hash);
-                      if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' }); // Scroll to the target section
-                      }
+                      if (target) target.scrollIntoView({ behavior: 'smooth' });
                     }, 350);
                   }
                 } else {
-                  // For normal links (not dropdown toggles), just close the menu and let it navigate naturally
                   bsOffcanvas.hide();
                 }
               }
             }
           });
         });
+      }
+
+      // Real-time Firebase Auth Source-of-Truth Listener
+      const guestAuthButtons = document.getElementById('guestAuthButtons');
+      const userMenuDropdown = document.getElementById('userMenuDropdown');
+      const headerUserAvatar = document.getElementById('headerUserAvatar');
+      const headerUserName = document.getElementById('headerUserName');
+      const bellWrapper = document.getElementById('notifBellWrapper');
+      const bellCount = document.getElementById('notifBellCount');
+      const logoutBtn = document.getElementById('headerLogoutBtn');
+
+      if (auth) {
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            // Logged in state
+            const name = user.displayName || user.email.split('@')[0];
+            if (guestAuthButtons) guestAuthButtons.classList.add('d-none');
+            if (userMenuDropdown) userMenuDropdown.classList.remove('d-none');
+            if (headerUserName) headerUserName.textContent = name.length > 12 ? name.substring(0, 12) + '...' : name;
+            if (headerUserAvatar) headerUserAvatar.textContent = name.charAt(0).toUpperCase();
+
+            if (bellWrapper) {
+              bellWrapper.classList.remove('d-none');
+              fetch(`/api/student-safety/notifications/${encodeURIComponent(user.uid)}`)
+                .then(r => r.json())
+                .then(data => {
+                  const unread = data.unreadCount || 0;
+                  if (unread > 0 && bellCount) {
+                    bellCount.textContent = unread > 9 ? '9+' : unread;
+                    bellCount.classList.remove('d-none');
+                    bellWrapper.classList.add('notif-bell-active');
+                  }
+                })
+                .catch(() => {});
+            }
+
+            // Sync to local storage
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('user_id', user.uid);
+            localStorage.setItem('studentEmail', user.email || '');
+            localStorage.setItem('studentName', name);
+
+          } else {
+            // Logged out state
+            if (guestAuthButtons) guestAuthButtons.classList.remove('d-none');
+            if (userMenuDropdown) userMenuDropdown.classList.add('d-none');
+            if (bellWrapper) bellWrapper.classList.add('d-none');
+
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+          }
+        });
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async () => {
+            try {
+              await signOut(auth);
+              localStorage.clear();
+              window.location.href = '/login';
+            } catch (e) {
+              console.error("Logout error:", e);
+            }
+          });
+        }
       }
     });
   </script>

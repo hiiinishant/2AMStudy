@@ -1,0 +1,192 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary mb-2 fw-semibold small">
+          🔔 Notifications Center
+        </div>
+        <h1 class="display-6 fw-extrabold text-dark mb-1">Your Notifications</h1>
+        <p class="text-muted small mb-0">Stay updated on your report verifications, case changes, and community activity.</p>
+      </div>
+      <button id="markAllReadBtn" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+        ✅ Mark All Read
+      </button>
+    </div>
+  </div>
+</section>
+
+<main class="container py-5">
+  <!-- Unread Count Summary -->
+  <div id="unreadSummary" class="mb-4 d-none">
+    <div class="alert alert-primary border-0 rounded-4 d-flex align-items-center gap-3 shadow-sm">
+      <i class="fa-solid fa-bell-ring fs-4 text-primary"></i>
+      <div>
+        <strong id="unreadCountLabel">0</strong> unread notifications
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div id="notificationsList" class="d-flex flex-column gap-3">
+    <!-- Dynamically injected -->
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="text-center py-5 d-none">
+    <div class="p-5 bg-white rounded-4 shadow-sm mx-auto" style="max-width: 480px;">
+      <div class="fs-1 mb-3">🔔</div>
+      <h3 class="fw-bold text-dark">No notifications yet</h3>
+      <p class="text-muted small">You'll receive notifications here when your report status changes, or when cases you support are updated.</p>
+      <a href="/student-safety" class="btn btn-primary rounded-pill px-4 mt-2 fw-bold">Go to Student Safety</a>
+    </div>
+  </div>
+
+  <!-- Login Required State -->
+  <div id="loginRequired" class="text-center py-5 d-none">
+    <div class="p-5 bg-white rounded-4 shadow-sm mx-auto" style="max-width: 480px;">
+      <div class="fs-1 mb-3">🔒</div>
+      <h3 class="fw-bold text-dark">Login Required</h3>
+      <p class="text-muted small">Please register or login to view your notifications.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const checkUserLoggedIn = () => {
+      return localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+    };
+    const getUserId = () => {
+      return localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null;
+    };
+
+    const listEl = document.getElementById('notificationsList');
+    const emptyEl = document.getElementById('emptyState');
+    const loginEl = document.getElementById('loginRequired');
+    const summaryEl = document.getElementById('unreadSummary');
+    const unreadCountLabel = document.getElementById('unreadCountLabel');
+
+    if (!checkUserLoggedIn()) {
+      loginEl.classList.remove('d-none');
+      return;
+    }
+
+    const userId = getUserId();
+    if (!userId) {
+      loginEl.classList.remove('d-none');
+      return;
+    }
+
+    let notifications = [];
+
+    try {
+      const res = await fetch(`/api/student-safety/notifications/${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      notifications = data.notifications || [];
+      const unread = data.unreadCount || 0;
+
+      if (unread > 0) {
+        summaryEl.classList.remove('d-none');
+        unreadCountLabel.textContent = unread;
+      }
+    } catch (e) {
+      console.error('Notification fetch error:', e);
+    }
+
+    if (notifications.length === 0) {
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+
+    const typeConfig = {
+      success: { border: 'border-success', icon: '✅', iconClass: 'text-success', bg: 'bg-success bg-opacity-10' },
+      error:   { border: 'border-danger',  icon: '❌', iconClass: 'text-danger',  bg: 'bg-danger bg-opacity-10'  },
+      warning: { border: 'border-warning', icon: '📩', iconClass: 'text-warning', bg: 'bg-warning bg-opacity-10' },
+      info:    { border: 'border-primary', icon: '🔵', iconClass: 'text-primary', bg: 'bg-primary bg-opacity-10' }
+    };
+
+    const timeAgo = (isoStr) => {
+      const diff = Date.now() - new Date(isoStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      const days = Math.floor(hours / 24);
+      return `${days} day${days !== 1 ? 's' : ''} ago`;
+    };
+
+    notifications.forEach(notif => {
+      const type = notif.type || 'info';
+      const cfg = typeConfig[type] || typeConfig.info;
+      const isRead = notif.isRead || notif.read;
+
+      const card = document.createElement('div');
+      card.className = `card border-0 rounded-4 shadow-sm notif-card ${!isRead ? 'notif-unread' : ''} ${cfg.border} border-start border-4`;
+      card.dataset.notifId = notif.notificationId;
+      card.innerHTML = `
+        <div class="card-body p-4 d-flex gap-3 align-items-start">
+          <div class="notif-icon-wrap rounded-circle ${cfg.bg} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; font-size: 20px;">
+            ${cfg.icon}
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-1 gap-2 flex-wrap">
+              <h3 class="h6 fw-bold text-dark mb-0">${notif.title || 'Case Update'}</h3>
+              <span class="text-muted small flex-shrink-0">${timeAgo(notif.createdAt)}</span>
+            </div>
+            <p class="text-muted small mb-2 lh-base">${notif.message}</p>
+            <div class="d-flex gap-2 flex-wrap">
+              ${notif.caseId ? `<a href="/student-safety/cases/${notif.caseId}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 small fw-semibold">View Case</a>` : ''}
+              ${!isRead ? `<button class="btn btn-sm btn-light rounded-pill px-3 py-1 small fw-semibold mark-single-read-btn" data-notif-id="${notif.notificationId}">Mark Read</button>` : `<span class="badge bg-light text-muted border px-2 py-1 rounded-pill small">Read</span>`}
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+
+    // Mark single read
+    document.querySelectorAll('.mark-single-read-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const nId = btn.dataset.notifId;
+        try {
+          await fetch(`/student-safety/notifications/${nId}/read`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId })
+          });
+          const card = btn.closest('.notif-card');
+          card.classList.remove('notif-unread');
+          btn.outerHTML = `<span class="badge bg-light text-muted border px-2 py-1 rounded-pill small">Read</span>`;
+        } catch (e) {
+          console.error('Mark read error:', e);
+        }
+      });
+    });
+
+    // Mark all read
+    document.getElementById('markAllReadBtn').addEventListener('click', async () => {
+      try {
+        await fetch('/student-safety/notifications/read-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        document.querySelectorAll('.notif-unread').forEach(c => c.classList.remove('notif-unread'));
+        document.querySelectorAll('.mark-single-read-btn').forEach(b => {
+          b.outerHTML = `<span class="badge bg-light text-muted border px-2 py-1 rounded-pill small">Read</span>`;
+        });
+        summaryEl.classList.add('d-none');
+        // Update bell count
+        const bell = document.getElementById('notifBellCount');
+        if (bell) bell.classList.add('d-none');
+      } catch (e) {
+        console.error('Mark all read error:', e);
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,488 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-dark text-white" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <div class="badge bg-danger px-3 py-1 rounded-pill mb-2 fw-semibold">
+          🛡️ Student Identity Shield
+        </div>
+        <h1 class="display-6 fw-extrabold mb-1">Admin Moderation Dashboard</h1>
+        <p class="text-white-50 mb-0 small">
+          Review reported fake profiles, verify Cloudinary evidence, approve genuine cases, or request additional details.
+        </p>
+      </div>
+      <div>
+        <a href="/student-safety" class="btn btn-outline-light btn-sm rounded-pill px-3">
+          ← Back to Safety Portal
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container py-5">
+  <!-- 6 Key Metrics Counters Row -->
+  <div class="row g-3 mb-4 text-center">
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Total Reports</div>
+        <div class="fs-3 fw-extrabold text-dark mt-1" id="stat-total">0</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Pending</div>
+        <div class="fs-3 fw-extrabold text-warning mt-1" id="stat-pending">0</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Needs Evidence</div>
+        <div class="fs-3 fw-extrabold text-info mt-1" id="stat-needs-evidence">0</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Verified</div>
+        <div class="fs-3 fw-extrabold text-success mt-1" id="stat-verified">0</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Rejected</div>
+        <div class="fs-3 fw-extrabold text-danger mt-1" id="stat-rejected">0</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.75rem;">Resolved</div>
+        <div class="fs-3 fw-extrabold text-primary mt-1" id="stat-resolved">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Passcode Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-light">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-5">🔐</span>
+        <span class="fw-bold small text-dark">Firebase Admin Role Authorization</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <input type="password" id="adminPasscode" class="form-control form-control-sm rounded-pill px-3" placeholder="Enter Moderator Passcode" style="max-width: 220px;" value="2AM-ADMIN-2026">
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill small">Admin Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue Filter Tabs -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+      <h2 class="h5 fw-bold text-dark mb-0">Moderation Queue</h2>
+      <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filter status">
+        <button type="button" class="btn btn-outline-secondary active filter-btn" data-status="ALL">All</button>
+        <button type="button" class="btn btn-outline-warning filter-btn" data-status="Pending Review">Pending Review</button>
+        <button type="button" class="btn btn-outline-info filter-btn" data-status="Needs Evidence">Needs Evidence</button>
+        <button type="button" class="btn btn-outline-success filter-btn" data-status="Verified">Verified</button>
+        <button type="button" class="btn btn-outline-danger filter-btn" data-status="Rejected">Rejected</button>
+        <button type="button" class="btn btn-outline-primary filter-btn" data-status="Resolved">Resolved</button>
+      </div>
+    </div>
+
+    <!-- Table of Cases -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="moderationTable">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="small fw-bold text-uppercase">Case ID</th>
+            <th scope="col" class="small fw-bold text-uppercase">Platform</th>
+            <th scope="col" class="small fw-bold text-uppercase">Fake Account</th>
+            <th scope="col" class="small fw-bold text-uppercase">College</th>
+            <th scope="col" class="small fw-bold text-uppercase">Reporter</th>
+            <th scope="col" class="small fw-bold text-uppercase">Submitted</th>
+            <th scope="col" class="small fw-bold text-uppercase">Status</th>
+            <th scope="col" class="small fw-bold text-uppercase text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody id="casesTableBody">
+          <!-- Dynamic JS Injection -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Case Inspection Modal -->
+<div class="modal fade" id="inspectCaseModal" tabindex="-1" aria-labelledby="inspectCaseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="inspectCaseModalLabel">🔍 Case Details & Evidence Inspection</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="modalCaseContent">
+        <!-- Content dynamically injected via JS -->
+      </div>
+      <div class="modal-footer border-0 pt-0 flex-wrap gap-2 justify-content-end" id="modalCaseFooter">
+        <!-- Actions dynamically injected via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (err) {
+    console.error("Firebase init error:", err);
+  }
+
+  let allCases = [];
+  let currentFilter = 'ALL';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchCases();
+
+    // Filter Buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-status');
+        renderTable();
+      });
+    });
+  });
+
+  async function fetchCases() {
+    try {
+      const res = await fetch('/api/student-safety/cases');
+      const data = await res.json();
+      if (data.cases) {
+        allCases = data.cases;
+      }
+
+      if (db) {
+        try {
+          const querySnapshot = await getDocs(collection(db, "studentSafetyCases"));
+          const fsCases = [];
+          querySnapshot.forEach((docSnap) => {
+            fsCases.push({ docId: docSnap.id, ...docSnap.data() });
+          });
+          if (fsCases.length > 0) {
+            const caseMap = new Map();
+            allCases.forEach(c => caseMap.set(c.caseId, c));
+            fsCases.forEach(c => caseMap.set(c.caseId, c));
+            allCases = Array.from(caseMap.values());
+          }
+        } catch (fsErr) {
+          console.warn("Firestore fetch warning:", fsErr);
+        }
+      }
+
+      updateMetrics();
+      renderTable();
+
+    } catch (err) {
+      console.error("Error fetching cases:", err);
+    }
+  }
+
+  function updateMetrics() {
+    document.getElementById('stat-total').innerText = allCases.length;
+    document.getElementById('stat-pending').innerText = allCases.filter(c => c.status === 'Pending Review').length;
+    document.getElementById('stat-needs-evidence').innerText = allCases.filter(c => c.status === 'Needs Evidence').length;
+    document.getElementById('stat-verified').innerText = allCases.filter(c => c.status === 'Verified').length;
+    document.getElementById('stat-rejected').innerText = allCases.filter(c => c.status === 'Rejected').length;
+    document.getElementById('stat-resolved').innerText = allCases.filter(c => c.status === 'Resolved').length;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('casesTableBody');
+    tbody.innerHTML = '';
+
+    const filtered = currentFilter === 'ALL' 
+      ? allCases 
+      : allCases.filter(c => c.status === currentFilter);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <i class="fa-solid fa-inbox fs-2 mb-2 d-block opacity-50"></i>
+            No reports found matching status "${currentFilter}".
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      
+      let badgeClass = 'bg-warning text-dark';
+      if (item.status === 'Verified') badgeClass = 'bg-success text-white';
+      if (item.status === 'Rejected') badgeClass = 'bg-danger text-white';
+      if (item.status === 'Needs Evidence') badgeClass = 'bg-info text-dark';
+      if (item.status === 'Resolved') badgeClass = 'bg-primary text-white';
+
+      const submittedDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A';
+
+      tr.innerHTML = `
+        <td><span class="fw-bold font-monospace small">${item.caseId}</span></td>
+        <td><span class="badge bg-light text-dark border">${item.platform || 'Other'}</span></td>
+        <td>
+          <div class="fw-bold text-dark">${item.fakeUsername || 'N/A'}</div>
+          <a href="${item.fakeProfileUrl}" target="_blank" class="text-muted small text-truncate d-inline-block" style="max-width: 150px;">${item.fakeProfileUrl}</a>
+        </td>
+        <td><span class="small text-muted">${item.college || 'N/A'}</span></td>
+        <td><span class="small text-dark font-monospace">${item.anonymous ? '🕵️ Anonymous' : (item.userId || 'Student')}</span></td>
+        <td><span class="small text-muted">${submittedDate}</span></td>
+        <td><span class="badge ${badgeClass} rounded-pill px-3 py-1 small">${item.status}</span></td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 inspect-btn" data-case-id="${item.caseId}">
+            View Details
+          </button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.inspect-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cId = btn.getAttribute('data-case-id');
+        openInspectModal(cId);
+      });
+    });
+  }
+
+  function openInspectModal(cId) {
+    const targetCase = allCases.find(c => c.caseId === cId);
+    if (!targetCase) return;
+
+    const modalContent = document.getElementById('modalCaseContent');
+    const modalFooter = document.getElementById('modalCaseFooter');
+
+    // Render Cloudinary Images & PDFs
+    let imagesHtml = '';
+    let pdfsHtml = '';
+
+    if (Array.isArray(targetCase.evidence) && targetCase.evidence.length > 0) {
+      targetCase.evidence.forEach((ev, idx) => {
+        const url = typeof ev === 'object' ? ev.url : ev;
+        const isPdf = typeof ev === 'object' ? ev.type === 'pdf' : (url.includes('.pdf') || url.includes('pdf'));
+
+        if (isPdf) {
+          pdfsHtml += `
+            <div class="col-6 col-md-4">
+              <a href="${url}" target="_blank" class="card h-100 text-decoration-none p-3 text-center bg-light border shadow-sm rounded-3">
+                <i class="fa-solid fa-file-pdf fs-1 text-danger mb-2"></i>
+                <span class="small fw-bold text-dark text-truncate">PDF Evidence #${idx + 1}</span>
+                <span class="badge bg-primary mt-2 small">Open Cloudinary PDF</span>
+              </a>
+            </div>
+          `;
+        } else {
+          imagesHtml += `
+            <div class="col-6 col-md-4">
+              <a href="${url}" target="_blank" class="d-block card border-0 shadow-sm rounded-3 overflow-hidden">
+                <img src="${url}" class="img-fluid" style="height: 140px; object-fit: cover;" alt="Evidence #${idx + 1}">
+                <div class="p-1 bg-light text-center small text-muted">Cloudinary Image #${idx + 1}</div>
+              </a>
+            </div>
+          `;
+        }
+      });
+    }
+
+    const submittedTimeStr = targetCase.createdAt ? new Date(targetCase.createdAt).toLocaleString() : 'N/A';
+
+    modalContent.innerHTML = `
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">Case ID</label>
+          <div class="fw-bold font-monospace text-primary fs-5">${targetCase.caseId}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">Current Status</label>
+          <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill">${targetCase.status}</span>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">Platform & Fake Username</label>
+          <div class="fw-bold text-dark">${targetCase.platform} — ${targetCase.fakeUsername}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">Reporter Details</label>
+          <div class="small text-muted font-monospace">${targetCase.anonymous ? '🕵️ Anonymous Student' : targetCase.userId}</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">College / University</label>
+          <div class="small text-dark fw-semibold">${targetCase.college || 'Not specified'}</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="small text-muted fw-bold text-uppercase d-block">Submission Time</label>
+          <div class="small text-muted">${submittedTimeStr}</div>
+        </div>
+
+        <div class="col-md-12">
+          <label class="small text-muted fw-bold text-uppercase d-block">Fake Profile Link</label>
+          <a href="${targetCase.fakeProfileUrl}" target="_blank" class="fw-bold text-danger text-break">${targetCase.fakeProfileUrl}</a>
+        </div>
+
+        ${targetCase.realProfileUrl ? `
+          <div class="col-md-12">
+            <label class="small text-muted fw-bold text-uppercase d-block">Real Profile Link</label>
+            <a href="${targetCase.realProfileUrl}" target="_blank" class="fw-bold text-success text-break">${targetCase.realProfileUrl}</a>
+          </div>
+        ` : ''}
+
+        <div class="col-md-12">
+          <label class="small text-muted fw-bold text-uppercase d-block">Reason</label>
+          <div class="badge bg-light text-dark border fs-6">${targetCase.reason}</div>
+        </div>
+
+        <div class="col-md-12">
+          <label class="small text-muted fw-bold text-uppercase d-block">Issue Description</label>
+          <div class="p-3 bg-light rounded-3 text-dark small border">${targetCase.description}</div>
+        </div>
+
+        <!-- Evidence Section -->
+        <div class="col-md-12">
+          <label class="small text-muted fw-bold text-uppercase d-block mb-2">Evidence Images</label>
+          <div class="row g-2 mb-3">
+            ${imagesHtml || '<p class="text-muted small">No evidence images attached.</p>'}
+          </div>
+        </div>
+
+        <div class="col-md-12">
+          <label class="small text-muted fw-bold text-uppercase d-block mb-2">Evidence PDFs</label>
+          <div class="row g-2">
+            ${pdfsHtml || '<p class="text-muted small">No evidence PDFs attached.</p>'}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 6 Moderator Action Buttons
+    modalFooter.innerHTML = `
+      <button type="button" class="btn btn-success fw-bold rounded-pill px-3 action-mod-btn" data-action="approve" data-case-id="${targetCase.caseId}">
+        ✅ Approve & Publish
+      </button>
+      <button type="button" class="btn btn-danger fw-bold rounded-pill px-3 action-mod-btn" data-action="reject" data-case-id="${targetCase.caseId}">
+        ❌ Reject Report
+      </button>
+      <button type="button" class="btn btn-info text-dark fw-bold rounded-pill px-3 action-mod-btn" data-action="request_evidence" data-case-id="${targetCase.caseId}">
+        📩 Request More Evidence
+      </button>
+      <button type="button" class="btn btn-primary fw-bold rounded-pill px-3 action-mod-btn" data-action="resolve" data-case-id="${targetCase.caseId}">
+        ✔ Mark Resolved
+      </button>
+      <button type="button" class="btn btn-warning fw-bold rounded-pill px-3 action-mod-btn" data-action="reopen" data-case-id="${targetCase.caseId}">
+        🔄 Reopen Case
+      </button>
+      <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-3 action-mod-btn" data-action="delete" data-case-id="${targetCase.caseId}">
+        🗑 Delete Case
+      </button>
+    `;
+
+    const modalEl = new bootstrap.Modal(document.getElementById('inspectCaseModal'));
+    modalEl.show();
+
+    document.querySelectorAll('.action-mod-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.getAttribute('data-action');
+        const cId = btn.getAttribute('data-case-id');
+        const passcode = document.getElementById('adminPasscode').value;
+
+        let note = '';
+        if (action === 'reject') {
+          note = prompt('Reason for rejection:');
+          if (note === null) return;
+        }
+        if (action === 'request_evidence') {
+          note = prompt('Moderator note / Evidence required:');
+          if (note === null) return;
+        }
+        if (action === 'delete') {
+          if (!confirm('Are you sure you want to permanently delete this case?')) return;
+        }
+
+        try {
+          const res = await fetch('/api/student-safety/admin/moderate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              caseId: cId,
+              action: action,
+              passcode: passcode,
+              note: note,
+              moderatorUid: 'ADMIN-MODERATOR'
+            })
+          });
+
+          const result = await res.json();
+          if (!res.ok || !result.success) {
+            alert(result.message || 'Moderation action failed.');
+            return;
+          }
+
+          // Write audit log & notification to Firestore if connected
+          if (db) {
+            try {
+              let newStatusVal = result.status || 'Updated';
+              await addDoc(collection(db, "studentSafetyModerationLogs"), {
+                caseId: cId,
+                moderatorUid: 'ADMIN-MODERATOR',
+                action: action,
+                reason: note || (action + ' executed'),
+                createdAt: serverTimestamp()
+              });
+
+              if (targetCase.userId) {
+                await addDoc(collection(db, "studentSafetyNotifications"), {
+                  userId: targetCase.userId,
+                  caseId: cId,
+                  type: action,
+                  message: `Status update on Case ${cId}: ${newStatusVal}`,
+                  read: false,
+                  createdAt: serverTimestamp()
+                });
+              }
+            } catch (fsErr) {
+              console.warn("Firestore moderation log warning:", fsErr);
+            }
+          }
+
+          modalEl.hide();
+          alert(`Case ${cId} updated cleanly.`);
+          fetchCases();
+
+        } catch (err) {
+          console.error("Moderation request failed:", err);
+          alert('Failed to process moderation request.');
+        }
+      });
+    });
+  }
+</script>
+
+<%- include('partials/footer') %>

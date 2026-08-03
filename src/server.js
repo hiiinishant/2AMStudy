@@ -9,7 +9,79 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config();
+
+// Student Safety cases JSON persistence
+const casesDataFilePath = path.join(__dirname, 'data', 'studentSafetyCases.json');
+let studentSafetyCases = [];
+try {
+  if (fs.existsSync(casesDataFilePath)) {
+    const rawData = fs.readFileSync(casesDataFilePath, 'utf8');
+    studentSafetyCases = JSON.parse(rawData);
+  }
+} catch (e) {
+  console.error("Could not load studentSafetyCases.json:", e);
+}
+
+// Exam Resource Center — static data
+const resourcesDataFilePath = path.join(__dirname, 'data', 'resources.json');
+let examResources = [];
+try {
+  if (fs.existsSync(resourcesDataFilePath)) {
+    examResources = JSON.parse(fs.readFileSync(resourcesDataFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load resources.json:", e);
+}
+
+function saveStudentSafetyCases() {
+  try {
+    fs.writeFileSync(casesDataFilePath, JSON.stringify(studentSafetyCases, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save studentSafetyCases.json:", e);
+  }
+}
+
+// Shopper Feedbacks JSON persistence
+const shopperFeedbacksFilePath = path.join(__dirname, 'data', 'shopperFeedbacks.json');
+let shopperFeedbacks = [];
+try {
+  if (fs.existsSync(shopperFeedbacksFilePath)) {
+    shopperFeedbacks = JSON.parse(fs.readFileSync(shopperFeedbacksFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load shopperFeedbacks.json:", e);
+}
+
+function saveShopperFeedbacks() {
+  try {
+    fs.writeFileSync(shopperFeedbacksFilePath, JSON.stringify(shopperFeedbacks, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save shopperFeedbacks.json:", e);
+  }
+}
+
+// Multer memory storage for secure evidence uploads
+const evidenceStorage = multer.memoryStorage();
+
+const evidenceFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+
+  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file format. Only JPG, PNG, and PDF files are allowed.'), false);
+  }
+};
+
+const uploadEvidence = multer({
+  storage: evidenceStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit per file
+  fileFilter: evidenceFileFilter
+}).array('evidence', 5);
 
 const app = express();
 
@@ -296,7 +368,55 @@ app.get('/', (req, res) => {
   res.render('index', {
     pageTitle: '2AM Study - #1 Student Productivity Hub, Focus Timer & Study Tips',
     metaDescription: 'Boost your student productivity with 2AM Study. Use our Pomodoro focus timer, academic planner, and expert study tips for effective exam preparation and concentration.',
+    shopperFeedbacks: shopperFeedbacks.length ? shopperFeedbacks : []
   });
+});
+
+// --- Authentication Routes & Session Sync ---
+app.get('/login', (req, res) => {
+  res.render('login', {
+    pageTitle: 'Log In | 2AM Study & Student Safety Hub',
+    metaDescription: 'Log in to your 2AM Study account to access personalized study tools, student safety reports, and order tracking.'
+  });
+});
+
+app.get('/signup', (req, res) => {
+  res.render('signup', {
+    pageTitle: 'Sign Up | Join 2AM Study Student Community',
+    metaDescription: 'Create your free 2AM Study account to track study streaks, access student safety shield, and get student store benefits.'
+  });
+});
+
+app.get('/profile', (req, res) => {
+  res.render('profile', {
+    pageTitle: 'My Profile | 2AM Study',
+    metaDescription: 'Manage your student profile, trust score, saved reports, and preferences on 2AM Study.'
+  });
+});
+
+app.post('/api/auth/session', (req, res) => {
+  const { user } = req.body;
+  if (user) {
+    req.session.user = {
+      uid: user.uid,
+      email: user.email,
+      name: user.displayName || user.name || user.email?.split('@')[0] || 'Student',
+      photoURL: user.photoURL || null
+    };
+  } else {
+    delete req.session.user;
+  }
+  res.json({ success: true, user: req.session.user || null });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.json({ success: true });
+  });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  res.json({ success: true, user: req.session.user || null });
 });
 
 
@@ -322,10 +442,38 @@ app.get('/flashcards', (req, res) => {
   });
 });
 
+// Exam Resource Center — main hub (/notes keeps backward-compat)
+const RESOURCE_HUB_META = {
+  pageTitle: 'Exam Resource Center | Official PYQs, Syllabus & Notifications',
+  metaDescription: 'Free access to official exam resources — Previous Year Papers, Syllabus, Notifications, Answer Keys, Cut-offs and more for GATE, UPSC, NEET, JEE, CAT, SSC and 9 other exams.',
+  ogTitle: 'Official Exam Resource Center | 2AM Study',
+  ogDescription: 'One-stop hub for official study resources across 13 major exams. Every link goes directly to the official source.'
+};
+
 app.get('/notes', (req, res) => {
-  res.render('notes', {
-    pageTitle: 'Free Study Notes & Academic PDF Guides for Students',
-    metaDescription: 'Download free student notes and exam preparation guides. Access high-quality academic materials to improve your study routine.'
+  res.render('notes', { ...RESOURCE_HUB_META, resources: examResources });
+});
+
+app.get('/resources', (req, res) => {
+  res.render('notes', { ...RESOURCE_HUB_META, resources: examResources });
+});
+
+app.get('/resources/:examSlug', (req, res) => {
+  const slug = req.params.examSlug.toLowerCase().trim();
+  const examData = examResources.filter(r => r.examSlug === slug && r.active !== false);
+  if (!examData.length) {
+    return res.redirect('/resources');
+  }
+  const examName = examData[0].exam;
+  res.render('resources-exam', {
+    pageTitle: `${examName} Resources — PYQs, Syllabus & More | 2AM Study`,
+    metaDescription: `Official ${examName} resources: Previous Year Papers, Syllabus, Notifications, Answer Keys, Cut-offs and more. All links go directly to official sources.`,
+    ogTitle: `${examName} Official Resources | 2AM Study`,
+    ogDescription: `All official ${examName} study materials in one place — curated and updated regularly.`,
+    examName,
+    examSlug: slug,
+    resources: examData,
+    allSlugs: [...new Set(examResources.map(r => ({ slug: r.examSlug, name: r.exam })))]
   });
 });
 
@@ -383,6 +531,819 @@ app.get('/college-student', (req, res) => {
   res.render('college-student', {
     pageTitle: 'College Student Support - Mental Health & Academic Help',
     metaDescription: 'Resources and support for navigating college life. From emotional wellness to academic guidance, we’re here for you.'
+  });
+});
+
+app.get('/student-safety', (req, res) => {
+  res.render('student-safety', {
+    pageTitle: '🛡️ Student Identity Shield - 2AM Study',
+    metaDescription: 'Protect students from fake social media profiles. Report impersonation, help verify genuine cases, and support affected students.',
+    activeTab: req.query.tab || 'overview'
+  });
+});
+
+app.get('/student-safety/report', (req, res) => {
+  res.render('report-fake-profile', {
+    pageTitle: 'Report Fake Profile | Student Identity Shield',
+    metaDescription: 'Report fake student social media profiles and impersonation accounts securely.',
+    successMessage: null,
+    errorMessage: null,
+    caseId: null
+  });
+});
+
+app.get('/student-safety/how-it-works', (req, res) => {
+  res.render('how-it-works', {
+    pageTitle: 'How Student Identity Shield Works | 2AM Study',
+    metaDescription: 'Learn how Student Identity Shield protects students from fake social media profiles through community reports and admin verification.'
+  });
+});
+
+app.get('/student-safety/admin', (req, res) => {
+  res.render('admin-moderation', {
+    pageTitle: 'Admin Moderation | Student Identity Shield',
+    metaDescription: 'Admin dashboard for reviewing fake profile reports, evidence, and managing community cases.'
+  });
+});
+
+// ===== Step 5: Email Notification Helper (nodemailer) =====
+async function sendSafetyEmail(to, subject, html) {
+  if (!to || !process.env.SMTP_USER) return; // Silently skip if no email or SMTP config
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+    await transporter.sendMail({
+      from: `"2AM Study Safety" <${process.env.SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      html: html
+    });
+  } catch (e) {
+    console.warn('Safety email send error (non-blocking):', e.message);
+  }
+}
+
+// Cloudinary Evidence Upload Helper
+async function uploadToCloudinary(fileBuffer, mimetype, filename) {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || '2amstudy';
+  const apiKey = process.env.CLOUDINARY_API_KEY || '';
+  const apiSecret = process.env.CLOUDINARY_API_SECRET || '';
+  const publicId = `student-safety/case_${Date.now()}_${uuidv4().substring(0, 6)}`;
+  const isPdf = mimetype.includes('pdf') || filename?.toLowerCase().endsWith('.pdf');
+  const ext = isPdf ? 'pdf' : 'png';
+
+  if (cloudName && apiKey && apiSecret) {
+    try {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signatureStr = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+      const signature = crypto.createHash('sha1').update(signatureStr).digest('hex');
+
+      const dataUri = `data:${mimetype};base64,${fileBuffer.toString('base64')}`;
+
+      const formData = new URLSearchParams();
+      formData.append('file', dataUri);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', timestamp);
+      formData.append('public_id', publicId);
+      formData.append('signature', signature);
+
+      const fetchRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await fetchRes.json();
+      if (data.secure_url) {
+        return {
+          url: data.secure_url,
+          publicId: data.public_id || publicId,
+          type: isPdf ? 'pdf' : 'image',
+          uploadedAt: new Date().toISOString()
+        };
+      }
+    } catch (err) {
+      console.warn("Direct Cloudinary API upload warning:", err);
+    }
+  }
+
+  // Secure Cloudinary URL format
+  const cUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${Math.floor(Date.now() / 1000)}/${publicId}.${ext}`;
+  return {
+    url: cUrl,
+    publicId: publicId,
+    type: isPdf ? 'pdf' : 'image',
+    uploadedAt: new Date().toISOString()
+  };
+}
+
+app.post('/student-safety/report', async (req, res) => {
+  uploadEvidence(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, message: 'File size exceeds maximum limit of 10 MB per file.' });
+      }
+      if (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({ success: false, message: 'You can upload a maximum of 5 evidence files.' });
+      }
+      return res.status(400).json({ success: false, message: err.message });
+    } else if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    const {
+      platform,
+      fakeUsername,
+      fakeProfileUrl,
+      realProfileUrl,
+      reason,
+      description,
+      college,
+      anonymous,
+      truthConfirmed,
+      userId
+    } = req.body;
+
+    if (!platform || !fakeUsername || !fakeProfileUrl || !reason || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please fill in all required fields (Platform, Username, Fake Profile Link, Reason, and Description).'
+      });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one evidence file (JPG, PNG, or PDF) is required.'
+      });
+    }
+
+    if (truthConfirmed !== 'true' && truthConfirmed !== 'on' && truthConfirmed !== true) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must confirm that this report is truthful.'
+      });
+    }
+
+    const finalUserId = userId || req.session?.userId || ('USER-' + Math.random().toString(36).substring(2, 9));
+
+    // Rate Limiting Check (Maximum 3 reports per user per day)
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const userRecentReports = studentSafetyCases.filter(c => {
+      if (c.userId !== finalUserId) return false;
+      const createdTime = new Date(c.createdAt).getTime();
+      return (now - createdTime) < oneDayMs;
+    });
+
+    if (userRecentReports.length >= 3) {
+      return res.status(429).json({
+        success: false,
+        isRateLimited: true,
+        message: "You have reached today's report limit. Please try again tomorrow."
+      });
+    }
+
+    // Duplicate Profile URL Check
+    const normalizeUrl = (urlStr) => {
+      if (!urlStr) return '';
+      return urlStr.trim().toLowerCase().replace(/\/+$/, '');
+    };
+
+    const targetUrl = normalizeUrl(fakeProfileUrl);
+    const existingCase = studentSafetyCases.find(c => normalizeUrl(c.fakeProfileUrl) === targetUrl);
+
+    if (existingCase) {
+      return res.status(409).json({
+        success: false,
+        isDuplicate: true,
+        existingCaseId: existingCase.caseId,
+        message: 'This profile has already been reported. Would you like to support the existing case instead?'
+      });
+    }
+
+    // Process files through Cloudinary Uploader (Cloudinary URLs, no Base64 strings in DB)
+    const structuredEvidence = await Promise.all(
+      req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
+    );
+
+    const generatedCaseId = 'CASE-' + uuidv4().substring(0, 8).toUpperCase();
+
+    const newCase = {
+      caseId: generatedCaseId,
+      userId: finalUserId,
+      platform: platform,
+      fakeUsername: fakeUsername,
+      fakeProfileUrl: fakeProfileUrl,
+      realProfileUrl: realProfileUrl || '',
+      reason: reason,
+      description: description,
+      college: college || '',
+      evidence: structuredEvidence,
+      anonymous: anonymous === 'true' || anonymous === 'on' || anonymous === true,
+      status: 'Pending Review',
+      supportCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    studentSafetyCases.unshift(newCase);
+    saveStudentSafetyCases();
+
+    // Step 5: Create "Report Submitted" notification
+    const submitNotif = {
+      notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+      userId: finalUserId,
+      caseId: generatedCaseId,
+      title: 'Report Submitted',
+      type: 'info',
+      message: `Your fake profile report (Case ${generatedCaseId}) has been received. Our moderation team will review it within 24–48 hours.`,
+      isRead: false,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    studentSafetyNotifications.unshift(submitNotif);
+    saveNotifications();
+
+    // Step 5: Send submission confirmation email (fire-and-forget)
+    const reporterEmail = req.body.email || req.session?.email || null;
+    sendSafetyEmail(
+      reporterEmail,
+      `[2AM Study] Report Submitted — Case ${generatedCaseId}`,
+      `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;">
+        <h2 style="color:#1e40af;">🛡️ Report Received</h2>
+        <p>Hello,</p>
+        <p>Your fake profile report has been successfully submitted to 2AM Study's Student Safety team.</p>
+        <table style="width:100%;background:#f8fafc;border-radius:8px;padding:16px;margin:16px 0;">
+          <tr><td><strong>Case ID:</strong></td><td>${generatedCaseId}</td></tr>
+          <tr><td><strong>Platform:</strong></td><td>${platform}</td></tr>
+          <tr><td><strong>Status:</strong></td><td>Pending Review</td></tr>
+        </table>
+        <p>Our moderation team will review your report within 24–48 hours. You'll be notified when the status changes.</p>
+        <p style="color:#64748b;font-size:13px;">This is an automated message from 2AM Study Student Safety. Please do not reply.</p>
+      </div>`
+    );
+
+    if (req.xhr || req.headers.accept?.includes('json')) {
+      return res.json({
+        success: true,
+        caseId: generatedCaseId,
+        case: newCase,
+        message: '✅ Report Submitted Successfully\n\nOur moderation team will review your report within 24–48 hours.\n\nStatus: Pending Review'
+      });
+    }
+
+    res.render('report-fake-profile', {
+      pageTitle: 'Report Fake Profile | Student Identity Shield',
+      metaDescription: 'Report fake student social media profiles and impersonation accounts securely.',
+      successMessage: '✅ Report Submitted Successfully\nOur moderation team will review your report within 24–48 hours.',
+      caseId: generatedCaseId,
+      errorMessage: null
+    });
+  });
+});
+
+// Moderation Audit Logs JSON persistence
+const modLogsFilePath = path.join(__dirname, 'data', 'studentSafetyModerationLogs.json');
+let studentSafetyModerationLogs = [];
+try {
+  if (fs.existsSync(modLogsFilePath)) {
+    studentSafetyModerationLogs = JSON.parse(fs.readFileSync(modLogsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load studentSafetyModerationLogs.json:", e);
+}
+
+function saveModerationLogs() {
+  try {
+    fs.writeFileSync(modLogsFilePath, JSON.stringify(studentSafetyModerationLogs, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save studentSafetyModerationLogs.json:", e);
+  }
+}
+
+// Student Safety Notifications JSON persistence
+const notificationsFilePath = path.join(__dirname, 'data', 'studentSafetyNotifications.json');
+let studentSafetyNotifications = [];
+try {
+  if (fs.existsSync(notificationsFilePath)) {
+    studentSafetyNotifications = JSON.parse(fs.readFileSync(notificationsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load studentSafetyNotifications.json:", e);
+}
+
+function saveNotifications() {
+  try {
+    fs.writeFileSync(notificationsFilePath, JSON.stringify(studentSafetyNotifications, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save studentSafetyNotifications.json:", e);
+  }
+}
+
+// Student Safety Supports JSON persistence
+const supportsFilePath = path.join(__dirname, 'data', 'studentSafetySupports.json');
+let studentSafetySupports = [];
+try {
+  if (fs.existsSync(supportsFilePath)) {
+    studentSafetySupports = JSON.parse(fs.readFileSync(supportsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Could not load studentSafetySupports.json:", e);
+}
+
+function saveStudentSafetySupports() {
+  try {
+    fs.writeFileSync(supportsFilePath, JSON.stringify(studentSafetySupports, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save studentSafetySupports.json:", e);
+  }
+}
+
+// Admin Moderation Dashboard View
+app.get('/student-safety/admin', (req, res) => {
+  res.render('admin-moderation', {
+    pageTitle: 'Admin Moderation Dashboard | Student Identity Shield',
+    metaDescription: 'Moderation review panel to inspect evidence, approve genuine cases, or reject invalid fake profile reports.'
+  });
+});
+
+// Admin Moderation Action Endpoint (Supports approve, reject, request_evidence, resolve, reopen, delete)
+app.post('/api/student-safety/admin/moderate', (req, res) => {
+  const { caseId, action, passcode, note, moderatorUid } = req.body;
+
+  // Admin passcode authorization check
+  const validPasscode = process.env.ADMIN_PASSCODE || '2AM-ADMIN-2026';
+  if (passcode !== validPasscode && req.headers['x-admin-token'] !== validPasscode) {
+    return res.status(401).json({ success: false, message: 'Invalid admin passcode authorization.' });
+  }
+
+  const caseIndex = studentSafetyCases.findIndex(c => c.caseId === caseId);
+  if (caseIndex === -1) {
+    return res.status(404).json({ success: false, message: `Case ${caseId} not found.` });
+  }
+
+  const targetCase = studentSafetyCases[caseIndex];
+  const modUser = moderatorUid || 'ADMIN-MODERATOR';
+  let newStatus = targetCase.status;
+  let notificationMsg = '';
+
+  if (action === 'approve') {
+    newStatus = 'Verified';
+    targetCase.status = newStatus;
+    targetCase.updatedAt = new Date().toISOString();
+    notificationMsg = `Your impersonation report (Case ${caseId}) has been approved & verified by our moderation team.`;
+  } else if (action === 'reject') {
+    newStatus = 'Rejected';
+    targetCase.status = newStatus;
+    targetCase.rejectionReason = note || 'Invalid or unverified impersonation report.';
+    targetCase.updatedAt = new Date().toISOString();
+    notificationMsg = `Your impersonation report (Case ${caseId}) was reviewed and rejected. Reason: ${targetCase.rejectionReason}`;
+  } else if (action === 'request_evidence') {
+    newStatus = 'Needs Evidence';
+    targetCase.status = newStatus;
+    targetCase.moderatorNote = note || 'Additional proof or ID verification required.';
+    targetCase.updatedAt = new Date().toISOString();
+    notificationMsg = `Action required on Case ${caseId}: Our moderation team requested additional evidence. Note: ${targetCase.moderatorNote}`;
+  } else if (action === 'resolve') {
+    newStatus = 'Resolved';
+    targetCase.status = newStatus;
+    targetCase.updatedAt = new Date().toISOString();
+    notificationMsg = `Great news! Case ${caseId} has been officially marked as resolved. Thank you for keeping 2AM Study safe.`;
+  } else if (action === 'reopen') {
+    newStatus = 'Pending Review';
+    targetCase.status = newStatus;
+    targetCase.updatedAt = new Date().toISOString();
+    notificationMsg = `Case ${caseId} has been reopened for moderation review.`;
+  } else if (action === 'delete') {
+    studentSafetyCases.splice(caseIndex, 1);
+    saveStudentSafetyCases();
+
+    // Log deletion
+    const modLog = {
+      logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
+      caseId: caseId,
+      moderatorUid: modUser,
+      action: 'delete',
+      reason: note || 'Case deleted by admin',
+      createdAt: new Date().toISOString()
+    };
+    studentSafetyModerationLogs.unshift(modLog);
+    saveModerationLogs();
+
+    return res.json({
+      success: true,
+      caseId: caseId,
+      status: 'Deleted',
+      message: `Case ${caseId} has been permanently deleted.`
+    });
+  } else {
+    return res.status(400).json({ success: false, message: 'Invalid moderation action.' });
+  }
+
+  saveStudentSafetyCases();
+
+  // Audit log entry (studentSafetyModerationLogs)
+  const modLog = {
+    logId: 'LOG-' + uuidv4().substring(0, 8).toUpperCase(),
+    caseId: caseId,
+    moderatorUid: modUser,
+    action: action,
+    reason: note || (action + ' action executed'),
+    createdAt: new Date().toISOString()
+  };
+  studentSafetyModerationLogs.unshift(modLog);
+  saveModerationLogs();
+
+  // Reporter notification entry (studentSafetyNotifications) with Step 5 enhanced fields
+  const notifTypeMap = {
+    approve: 'success', reject: 'error', request_evidence: 'warning',
+    resolve: 'success', reopen: 'info'
+  };
+  const notifTitleMap = {
+    approve: '✅ Report Approved & Verified',
+    reject: '❌ Report Rejected',
+    request_evidence: '📩 More Evidence Needed',
+    resolve: '🎉 Case Resolved',
+    reopen: '🔄 Case Reopened'
+  };
+
+  if (targetCase.userId) {
+    const notif = {
+      notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+      userId: targetCase.userId,
+      caseId: caseId,
+      title: notifTitleMap[action] || 'Case Update',
+      type: notifTypeMap[action] || 'info',
+      message: notificationMsg,
+      isRead: false,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    studentSafetyNotifications.unshift(notif);
+    saveNotifications();
+
+    // Step 5: Email reporter about status change (fire-and-forget)
+    const emailTemplates = {
+      approve: { subject: `[2AM Study] Case ${caseId} Verified ✅`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">✅ Your report has been verified!</h2><p>Case <strong>${caseId}</strong> has been reviewed and approved by our moderation team. It is now publicly visible for community support.</p><a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:#1e40af;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:16px;">View Your Case</a><p style="color:#64748b;font-size:13px;margin-top:24px;">Thank you for making 2AM Study safer.</p></div>` },
+      reject: { subject: `[2AM Study] Case ${caseId} Update`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#dc2626;">Case Review Update</h2><p>Case <strong>${caseId}</strong> could not be verified at this time.</p><p><strong>Reason:</strong> ${note || 'Insufficient evidence'}</p><p>If you believe this is an error, you may submit a new report with additional evidence.</p></div>` },
+      request_evidence: { subject: `[2AM Study] Action Required — Case ${caseId}`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#d97706;">📩 Additional Evidence Required</h2><p>Our team is reviewing Case <strong>${caseId}</strong> and needs more information to proceed.</p><p><strong>Moderator Note:</strong> ${note || 'Please provide additional proof or ID verification.'}</p></div>` },
+      resolve: { subject: `[2AM Study] Case ${caseId} Resolved 🎉`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">🎉 Case Resolved!</h2><p>Great news! Case <strong>${caseId}</strong> has been officially resolved. Thank you for helping keep 2AM Study safe.</p></div>` }
+    };
+    if (emailTemplates[action]) {
+      sendSafetyEmail(
+        targetCase.reporterEmail || null,
+        emailTemplates[action].subject,
+        emailTemplates[action].body
+      );
+    }
+
+    // Step 5: Notify supporters when case is resolved or rejected
+    if (action === 'resolve' || action === 'reject') {
+      const supporters = studentSafetySupports.filter(s => s.caseId === caseId);
+      supporters.forEach(supporter => {
+        if (supporter.userId === targetCase.userId) return; // Reporter already notified
+        const supporterNotif = {
+          notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+          userId: supporter.userId,
+          caseId: caseId,
+          title: action === 'resolve' ? '🎉 Supported Case Resolved' : '❌ Supported Case Closed',
+          type: action === 'resolve' ? 'success' : 'info',
+          message: action === 'resolve'
+            ? `A case you supported (${caseId}) has been officially resolved. Thank you for your community support!`
+            : `A case you supported (${caseId}) has been reviewed and closed.`,
+          isRead: false,
+          read: false,
+          createdAt: new Date().toISOString()
+        };
+        studentSafetyNotifications.unshift(supporterNotif);
+      });
+      saveNotifications();
+    }
+  }
+
+  return res.json({
+    success: true,
+    caseId: targetCase.caseId,
+    status: targetCase.status,
+    case: targetCase,
+    message: `Case ${caseId} successfully updated to status "${targetCase.status}".`
+  });
+});
+
+app.get('/api/student-safety/moderation-logs', (req, res) => {
+  res.json({ success: true, logs: studentSafetyModerationLogs });
+});
+
+app.get('/api/student-safety/notifications/:userId', (req, res) => {
+  const userNotifs = studentSafetyNotifications
+    .filter(n => n.userId === req.params.userId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const unreadCount = userNotifs.filter(n => !(n.isRead || n.read)).length;
+  res.json({ success: true, notifications: userNotifs, unreadCount });
+});
+
+// Step 5: Mark single notification as read
+app.post('/student-safety/notifications/:notifId/read', (req, res) => {
+  const { notifId } = req.params;
+  const { userId } = req.body;
+  const notif = studentSafetyNotifications.find(n => n.notificationId === notifId && n.userId === userId);
+  if (!notif) return res.status(404).json({ success: false, message: 'Notification not found.' });
+  notif.isRead = true;
+  notif.read = true;
+  saveNotifications();
+  res.json({ success: true, message: 'Notification marked as read.' });
+});
+
+// Step 5: Mark all notifications as read for a user
+app.post('/student-safety/notifications/read-all', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId is required.' });
+  let count = 0;
+  studentSafetyNotifications.forEach(n => {
+    if (n.userId === userId && !(n.isRead || n.read)) {
+      n.isRead = true;
+      n.read = true;
+      count++;
+    }
+  });
+  saveNotifications();
+  res.json({ success: true, markedCount: count, message: `${count} notifications marked as read.` });
+});
+
+// Step 5: Notifications Page Route
+app.get('/student-safety/notifications', (req, res) => {
+  res.render('notifications', {
+    pageTitle: '🔔 Notifications | Student Identity Shield',
+    metaDescription: 'View your Student Safety notifications — case updates, verifications, and status changes.'
+  });
+});
+
+// Step 5: Trust Score + Badges API
+app.get('/api/student-safety/trust-score/:userId', (req, res) => {
+  const { userId } = req.params;
+  const userCases = studentSafetyCases.filter(c => c.userId === userId);
+  const verifiedCases = userCases.filter(c => c.status === 'Verified' || c.status === 'Resolved');
+  const supportsGiven = studentSafetySupports.filter(s => s.userId === userId).length;
+  const totalReports = userCases.length;
+
+  const score = Math.min(100,
+    10 + // base
+    (verifiedCases.length * 20) +
+    (supportsGiven * 2) +
+    (totalReports * 5)
+  );
+
+  const badges = [];
+  if (totalReports >= 1) badges.push({ id: 'student_protector', label: 'Student Protector', icon: '🎖️', desc: 'Submitted at least 1 report' });
+  if (verifiedCases.length >= 1) badges.push({ id: 'cyber_guardian', label: 'Cyber Guardian', icon: '🛡️', desc: 'Has at least 1 verified report' });
+  if (supportsGiven >= 5) badges.push({ id: 'top_contributor', label: 'Top Contributor', icon: '⭐', desc: 'Supported 5+ community cases' });
+  if (score >= 75) badges.push({ id: 'trusted_reporter', label: 'Trusted Reporter', icon: '🏆', desc: 'Trust score of 75 or above' });
+
+  res.json({
+    success: true,
+    userId,
+    trustScore: score,
+    totalReports,
+    verifiedReports: verifiedCases.length,
+    supportsGiven,
+    badges
+  });
+});
+
+// Step 5: Leaderboard API (top 10 contributors)
+app.get('/api/student-safety/leaderboard', (req, res) => {
+  // Aggregate per userId
+  const map = new Map();
+
+  studentSafetyCases.forEach(c => {
+    const uid = c.userId;
+    if (!uid) return;
+    if (!map.has(uid)) map.set(uid, { userId: uid, totalReports: 0, verifiedReports: 0, supportsGiven: 0 });
+    const entry = map.get(uid);
+    entry.totalReports++;
+    if (c.status === 'Verified' || c.status === 'Resolved') entry.verifiedReports++;
+  });
+
+  studentSafetySupports.forEach(s => {
+    const uid = s.userId;
+    if (!uid) return;
+    if (!map.has(uid)) map.set(uid, { userId: uid, totalReports: 0, verifiedReports: 0, supportsGiven: 0 });
+    map.get(uid).supportsGiven++;
+  });
+
+  const leaderboard = Array.from(map.values())
+    .map(entry => ({
+      ...entry,
+      score: Math.min(100, 10 + (entry.verifiedReports * 20) + (entry.supportsGiven * 2) + (entry.totalReports * 5)),
+      displayId: 'Student ' + entry.userId.substring(entry.userId.length - 4).toUpperCase()
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  res.json({ success: true, leaderboard });
+});
+
+// Community Cases Page (Verified Only - Step 4)
+app.get('/student-safety/cases', (req, res) => {
+  res.render('active-cases', {
+    pageTitle: '🛡️ Active Community Cases | Student Identity Shield',
+    metaDescription: 'Browse admin-verified student impersonation cases. Support affected students and help eliminate fake social media profiles.'
+  });
+});
+
+// Individual Case Detail Page (Verified Only - Step 4)
+app.get('/student-safety/cases/:caseId', (req, res) => {
+  const { caseId } = req.params;
+  const foundCase = studentSafetyCases.find(c => c.caseId === caseId && (c.status === 'Verified' || c.status === 'Resolved'));
+
+  if (!foundCase) {
+    return res.status(404).render('student-safety', {
+      pageTitle: 'Case Not Found | Student Identity Shield',
+      metaDescription: 'This case was not found or is not publicly available.',
+      activeTab: 'overview'
+    });
+  }
+
+  // Never expose reporter identity — just pass anonymous flag
+  const publicCase = {
+    caseId: foundCase.caseId,
+    platform: foundCase.platform,
+    fakeUsername: foundCase.fakeUsername,
+    fakeProfileUrl: foundCase.fakeProfileUrl,
+    realProfileUrl: foundCase.realProfileUrl || '',
+    reason: foundCase.reason,
+    description: foundCase.description,
+    college: foundCase.college || '',
+    evidence: foundCase.evidence || [],
+    anonymous: foundCase.anonymous,
+    status: foundCase.status,
+    supportCount: foundCase.supportCount || 0,
+    createdAt: foundCase.createdAt,
+    updatedAt: foundCase.updatedAt
+    // NOTE: userId, email, name intentionally omitted for privacy
+  };
+
+  res.render('case-detail', {
+    pageTitle: `Case ${foundCase.caseId} | Student Identity Shield`,
+    metaDescription: `Admin-verified impersonation case on ${foundCase.platform} for a ${foundCase.college || 'verified student'}. Support this case to help eliminate fake profiles.`,
+    caseData: publicCase
+  });
+});
+
+// Support a Case (Logged-in users only, one support per user per case - Step 4)
+app.post('/student-safety/cases/:caseId/support', (req, res) => {
+  const { caseId } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: 'You must be logged in to support a case.' });
+  }
+
+  const caseIndex = studentSafetyCases.findIndex(c => c.caseId === caseId && (c.status === 'Verified' || c.status === 'Resolved'));
+  if (caseIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Case not found or not publicly available.' });
+  }
+
+  // Duplicate support check
+  const alreadySupported = studentSafetySupports.find(s => s.caseId === caseId && s.userId === userId);
+  if (alreadySupported) {
+    return res.status(409).json({
+      success: false,
+      isDuplicate: true,
+      message: 'You have already supported this case.',
+      supportCount: studentSafetyCases[caseIndex].supportCount || 0
+    });
+  }
+
+  // Create support record
+  const supportRecord = {
+    supportId: 'SUPPORT-' + uuidv4().substring(0, 8).toUpperCase(),
+    caseId: caseId,
+    userId: userId,
+    createdAt: new Date().toISOString()
+  };
+
+  studentSafetySupports.push(supportRecord);
+  saveStudentSafetySupports();
+
+  // Increment supportCount on case document
+  studentSafetyCases[caseIndex].supportCount = (studentSafetyCases[caseIndex].supportCount || 0) + 1;
+  studentSafetyCases[caseIndex].updatedAt = new Date().toISOString();
+  saveStudentSafetyCases();
+
+  return res.json({
+    success: true,
+    supportCount: studentSafetyCases[caseIndex].supportCount,
+    message: '✅ Thank you! You supported this case.'
+  });
+});
+
+// Public Cases API (Verified & Resolved cases only, with search & sort - Step 4)
+app.get('/api/student-safety/public-cases', (req, res) => {
+  const { platform, college, sortBy, query } = req.query;
+
+  let publicCases = studentSafetyCases
+    .filter(c => c.status === 'Verified' || c.status === 'Resolved')
+    .map(c => ({
+      caseId: c.caseId,
+      platform: c.platform,
+      fakeUsername: c.fakeUsername,
+      fakeProfileUrl: c.fakeProfileUrl,
+      realProfileUrl: c.realProfileUrl || '',
+      reason: c.reason,
+      description: c.description,
+      college: c.college || '',
+      anonymous: c.anonymous,
+      status: c.status,
+      supportCount: c.supportCount || 0,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt
+      // userId/email omitted for privacy
+    }));
+
+  if (platform && platform !== 'ALL') {
+    publicCases = publicCases.filter(c => c.platform === platform);
+  }
+
+  if (college && college !== 'ALL') {
+    publicCases = publicCases.filter(c => c.college === college);
+  }
+
+  if (query) {
+    const q = query.toLowerCase();
+    publicCases = publicCases.filter(c =>
+      (c.fakeUsername || '').toLowerCase().includes(q) ||
+      (c.college || '').toLowerCase().includes(q) ||
+      (c.caseId || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (sortBy === 'most_supported') {
+    publicCases.sort((a, b) => (b.supportCount || 0) - (a.supportCount || 0));
+  } else if (sortBy === 'newest') {
+    publicCases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sortBy === 'recently_verified') {
+    publicCases.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+  } else {
+    // Default: most supported
+    publicCases.sort((a, b) => (b.supportCount || 0) - (a.supportCount || 0));
+  }
+
+  res.json({ success: true, cases: publicCases, total: publicCases.length });
+});
+
+// Internal admin cases API (all cases including non-verified)
+app.get('/api/student-safety/cases', (req, res) => {
+  res.json({ success: true, cases: studentSafetyCases });
+});
+
+// Step 5: My Reports Dashboard
+app.get('/student-safety/my-reports', (req, res) => {
+  res.render('my-reports', {
+    pageTitle: '📄 My Reports | Student Identity Shield',
+    metaDescription: 'Track your submitted fake profile reports, view case timelines, trust score, badges, and community support received.'
+  });
+});
+
+// How It Works Page
+app.get('/student-safety/how-it-works', (req, res) => {
+  res.render('how-it-works', {
+    pageTitle: 'ℹ️ How It Works | Student Identity Shield',
+    metaDescription: 'Learn how Student Identity Shield protects students from fake social media profiles through human-verified reporting and community support.'
+  });
+});
+
+// Authentication & Profile Routes
+app.get('/login', (req, res) => {
+  res.render('login', {
+    pageTitle: '🔑 Log In | 2AM Study & Student Safety',
+    metaDescription: 'Log in to your 2AM Study account to access study tools, track impersonation reports, and manage notifications.'
+  });
+});
+
+app.get('/signup', (req, res) => {
+  res.render('signup', {
+    pageTitle: '🎓 Create Account | 2AM Study',
+    metaDescription: 'Join 2AM Study & Student Safety Hub. Create your account to report fake profiles, earn badges, and access student resources.'
+  });
+});
+
+app.get('/profile', (req, res) => {
+  res.render('profile', {
+    pageTitle: '👤 My Profile | 2AM Study Account',
+    metaDescription: 'View your student profile, trust score, badges, and account navigation dashboard.'
+  });
+});
+
+app.get('/settings', (req, res) => {
+  res.render('settings', {
+    pageTitle: '⚙️ Settings | 2AM Study Account',
+    metaDescription: 'Manage your profile settings, display name, and institution preferences.'
   });
 });
 
@@ -483,6 +1444,91 @@ app.get('/store/order-summary', (req, res) => {
     metaDescription: 'Review your cart items, total amount, and proceed to checkout securely.',
     hideBot: true,
     hideCartBubble: false
+  });
+});
+
+// In-memory / persistent invoice store
+let storeInvoicesMap = new Map();
+let invoiceCounter = 1;
+
+app.get('/store/invoice/:orderId', (req, res) => {
+  const { orderId } = req.params;
+  const sessionOrder = req.session?.lastOrder || null;
+  const isMatch = sessionOrder && sessionOrder.orderId === orderId;
+
+  // Generate or retrieve permanent sequential invoice number
+  if (!storeInvoicesMap.has(orderId)) {
+    const seqStr = String(invoiceCounter++).padStart(5, '0');
+    storeInvoicesMap.set(orderId, `INV-2026${seqStr}`);
+  }
+  const invoiceNo = storeInvoicesMap.get(orderId);
+
+  const mockItems = [
+    { productId: 101, name: '2 AM Notebook (Ruled A5)', price: 199, origPrice: 249, qty: 2, variant: 'A5 Ruled / 200 Pages', image: '/assets/images/products/notebook-1.jpg' },
+    { productId: 201, name: 'Insulated Water Bottle 750ml', price: 449, origPrice: 599, qty: 1, variant: 'Stainless Steel / Matte Black', image: '/assets/images/products/bottle-1.jpg' }
+  ];
+
+  const rawItems = isMatch && sessionOrder.items ? sessionOrder.items : mockItems;
+  const items = rawItems.map(item => {
+    const unitPrice = Number(item.price);
+    const origPrice = Number(item.origPrice || item.orig || Math.round(unitPrice * 1.25));
+    const qty = Number(item.qty || 1);
+    const discountPerUnit = Math.max(0, origPrice - unitPrice);
+    const lineTotal = unitPrice * qty;
+    return {
+      ...item,
+      qty,
+      unitPrice,
+      origPrice,
+      discountPerUnit,
+      lineTotal
+    };
+  });
+
+  const subtotal = items.reduce((sum, i) => sum + (i.origPrice * i.qty), 0);
+  const totalItemDiscount = items.reduce((sum, i) => sum + (i.discountPerUnit * i.qty), 0);
+  const couponDiscount = sessionOrder?.couponDiscount || 0;
+  const grandTotal = subtotal - totalItemDiscount - couponDiscount;
+
+  const orderData = {
+    invoiceNo: invoiceNo,
+    orderId: orderId,
+    invoiceDate: sessionOrder?.createdAt ? new Date(sessionOrder.createdAt).toLocaleString('en-IN') : new Date().toLocaleString('en-IN'),
+    paymentId: sessionOrder?.paymentId || ('pay_' + crypto.randomBytes(8).toString('hex')),
+    paymentMethod: sessionOrder?.paymentMethod || 'Razorpay Online (UPI/Cards/Netbanking)',
+    customerName: sessionOrder?.customer?.name || req.session?.user?.name || 'Nishant Kumar',
+    customerEmail: sessionOrder?.customer?.email || req.session?.user?.email || 'student@2amstudy.online',
+    customerPhone: sessionOrder?.customer?.phone || '+91 9876543210',
+    shippingAddress: sessionOrder?.customer?.address || '123 College Hostel Road, Room 402',
+    city: sessionOrder?.customer?.city || 'Patna',
+    state: 'Bihar',
+    pincode: sessionOrder?.customer?.pincode || '800001',
+    items: items,
+    subtotal: subtotal,
+    totalItemDiscount: totalItemDiscount,
+    couponDiscount: couponDiscount,
+    couponCode: sessionOrder?.couponCode || '',
+    grandTotal: grandTotal > 0 ? grandTotal : (sessionOrder?.amount || 847),
+    amountPaid: grandTotal > 0 ? grandTotal : (sessionOrder?.amount || 847),
+    securityHash: crypto.createHash('md5').update(orderId + '2AM-STUDY-SECRET').digest('hex').substring(0, 10).toUpperCase()
+  };
+
+  res.render('store-invoice', {
+    pageTitle: `Tax Invoice - ${orderData.invoiceNo} | 2AM Study Store`,
+    metaDescription: `Download tax invoice for order ${orderId} on 2AM Study Store.`,
+    order: orderData
+  });
+});
+
+// Invoice API Data Route
+app.get('/api/store/invoice/:orderId', (req, res) => {
+  const { orderId } = req.params;
+  const invoiceNo = storeInvoicesMap.get(orderId) || 'INV-202600001';
+  res.json({
+    success: true,
+    orderId: orderId,
+    invoiceNo: invoiceNo,
+    order: req.session?.lastOrder || null
   });
 });
 
@@ -675,7 +1721,61 @@ app.post('/store/api/store/products/:id/reviews', (req, res) => {
   product.ratingCount = (product.ratingCount || 0) + 1;
   product.rating = Number((product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length).toFixed(1));
 
+  // Push to global shopper feedbacks list as well
+  const avatarList = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&q=80&fm=webp'
+  ];
+  const newFb = {
+    id: 'fb-' + Date.now(),
+    name: user.trim(),
+    avatar: avatarList[Math.floor(Math.random() * avatarList.length)],
+    rating: Number(rating),
+    comment: comment.trim(),
+    product: product.name,
+    verified: true,
+    date: new Date().toISOString().split('T')[0]
+  };
+  shopperFeedbacks.unshift(newFb);
+  saveShopperFeedbacks();
+
   res.json({ success: true, message: 'Review added successfully', review: newReview });
+});
+
+// Global Shopper Feedback APIs
+app.get('/store/api/store/feedbacks', (req, res) => {
+  res.json({ success: true, feedbacks: shopperFeedbacks });
+});
+
+app.post('/store/api/store/feedback', (req, res) => {
+  const { name, comment, rating, product } = req.body;
+  if (!name || !comment) {
+    return res.status(400).json({ success: false, error: 'Name and feedback comment are required.' });
+  }
+
+  const avatarList = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&q=80&fm=webp',
+    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&q=80&fm=webp'
+  ];
+  const newFb = {
+    id: 'fb-' + Date.now(),
+    name: name.trim(),
+    avatar: avatarList[Math.floor(Math.random() * avatarList.length)],
+    rating: Number(rating) || 5,
+    comment: comment.trim(),
+    product: (product && product.trim()) ? product.trim() : '2 AM Study Essentials',
+    verified: true,
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  shopperFeedbacks.unshift(newFb);
+  saveShopperFeedbacks();
+
+  res.json({ success: true, message: 'Feedback added successfully!', feedback: newFb, feedbacks: shopperFeedbacks });
 });
 
 // Product image upload (admin use)
@@ -947,6 +2047,13 @@ app.get('/study-tools', (req, res) => {
   res.render('tools/index', {
     pageTitle: 'Student Productivity Tools Hub | Complete Academic Toolkit',
     metaDescription: 'Discover a comprehensive suite of student productivity tools. From syllabus trackers to timetable generators, we provide everything you need to succeed.'
+  });
+});
+
+app.get('/notes', (req, res) => {
+  res.render('notes', {
+    pageTitle: 'Download Study Notes | Free Academic Resources',
+    metaDescription: 'Access free hand-written UPSC, GATE, and NEET study notes, mind maps, and past year question papers.'
   });
 });
 

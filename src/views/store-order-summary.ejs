@@ -497,6 +497,43 @@ body {
   </button>
 </div>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user && localStorage.getItem('isLoggedIn') !== 'true' && localStorage.getItem('studentRegistered') !== 'true') {
+        window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
+        return;
+      }
+
+      if (user) {
+        const nameInput = document.getElementById('checkout-name');
+        const emailInput = document.getElementById('checkout-email');
+        if (nameInput && !nameInput.value) {
+          nameInput.value = user.displayName || localStorage.getItem('studentName') || '';
+        }
+        if (emailInput && !emailInput.value) {
+          emailInput.value = user.email || localStorage.getItem('studentEmail') || '';
+        }
+      }
+    });
+  } catch(e) {}
+</script>
+
 <script>
 let cartItems = [];
 let appliedCouponData = null; // { code, discount, freeDelivery, message }
@@ -523,6 +560,16 @@ async function initializeCart() {
             const el = document.getElementById(`checkout-${k}`);
             if (el) el.value = c[k] || '';
           });
+        }
+
+        // Pre-fill from localStorage if available
+        const nameEl = document.getElementById('checkout-name');
+        const emailEl = document.getElementById('checkout-email');
+        if (nameEl && !nameEl.value && localStorage.getItem('studentName')) {
+          nameEl.value = localStorage.getItem('studentName');
+        }
+        if (emailEl && !emailEl.value && localStorage.getItem('studentEmail')) {
+          emailEl.value = localStorage.getItem('studentEmail');
         }
 
         // Restore coupon UI if one was saved

@@ -1,0 +1,136 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-secondary bg-opacity-10 text-dark mb-2 fw-semibold small">
+          ⚙️ Account Settings
+        </div>
+        <h1 class="display-6 fw-extrabold text-dark mb-1">Profile & Preferences</h1>
+        <p class="text-muted small mb-0">Update your display name, institution details, and security preferences.</p>
+      </div>
+      <a href="/profile" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+        👤 View Profile
+      </a>
+    </div>
+  </div>
+</section>
+
+<main class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div id="settingsAlert" class="alert border-0 rounded-3 p-3 small mb-4 d-none"></div>
+
+      <!-- Settings Card -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
+        <h2 class="h5 fw-bold text-dark mb-4">Edit Profile Information</h2>
+
+        <form id="settingsForm">
+          <div class="mb-3">
+            <label for="settingsName" class="form-label fw-semibold text-dark small">Display Name</label>
+            <input type="text" class="form-control py-2" id="settingsName" placeholder="Your name">
+          </div>
+
+          <div class="mb-3">
+            <label for="settingsEmail" class="form-label fw-semibold text-dark small">Email Address</label>
+            <input type="email" class="form-control py-2 bg-light" id="settingsEmail" disabled readonly>
+            <div class="form-text small">Email address cannot be changed directly for security reasons.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="settingsCollege" class="form-label fw-semibold text-dark small">College / Institution</label>
+            <input type="text" class="form-control py-2" id="settingsCollege" placeholder="e.g. Delhi University, IIT Bombay">
+          </div>
+
+          <button type="submit" id="saveSettingsBtn" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+            Save Changes
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const form = document.getElementById('settingsForm');
+  const alertEl = document.getElementById('settingsAlert');
+  const saveBtn = document.getElementById('saveSettingsBtn');
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = '/login?redirect=/settings';
+      return;
+    }
+
+    document.getElementById('settingsEmail').value = user.email;
+    document.getElementById('settingsName').value = user.displayName || user.email.split('@')[0];
+
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists() && snap.data().college) {
+        document.getElementById('settingsCollege').value = snap.data().college;
+      }
+    } catch (e) {
+      console.warn("Settings fetch warning:", e);
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newName = document.getElementById('signupName')?.value || document.getElementById('settingsName').value.trim();
+    const newCollege = document.getElementById('settingsCollege').value.trim();
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Saving...`;
+
+    try {
+      await updateProfile(user, { displayName: newName });
+      
+      await setDoc(doc(db, "users", user.uid), {
+        displayName: newName,
+        college: newCollege,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      localStorage.setItem('studentName', newName);
+      if (newCollege) localStorage.setItem('studentCollege', newCollege);
+
+      alertEl.className = 'alert alert-success border-0 rounded-3 p-3 small mb-4';
+      alertEl.textContent = '✅ Profile settings saved successfully!';
+      alertEl.classList.remove('d-none');
+
+    } catch (err) {
+      alertEl.className = 'alert alert-danger border-0 rounded-3 p-3 small mb-4';
+      alertEl.textContent = err.message || 'Failed to update settings.';
+      alertEl.classList.remove('d-none');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerText = 'Save Changes';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

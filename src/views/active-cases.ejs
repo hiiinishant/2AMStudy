@@ -1,0 +1,438 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4 text-center">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-success bg-opacity-10 text-success mb-3 fw-semibold small">
+      🟢 Verified Community Cases
+    </div>
+    <h1 class="display-5 fw-extrabold mb-2 text-dark">Active Cases Needing Support</h1>
+    <p class="lead text-muted mb-0 mx-auto" style="max-width: 680px;">
+      Explore student impersonation cases verified by our moderation team. Support affected students, raise awareness, and help eliminate fake social media profiles.
+    </p>
+  </div>
+</section>
+
+<main class="container py-5">
+  <!-- Search & Filter Controls -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="row g-3 align-items-center">
+      <!-- Search Input -->
+      <div class="col-lg-4">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input type="text" id="caseSearchInput" class="form-control bg-light border-start-0 rounded-end-pill py-2" placeholder="Search by fake username or college...">
+        </div>
+      </div>
+
+      <!-- Platform Filter -->
+      <div class="col-6 col-lg-3">
+        <select id="platformFilter" class="form-select bg-light rounded-pill py-2">
+          <option value="ALL">All Platforms</option>
+          <option value="Instagram">Instagram</option>
+          <option value="Facebook">Facebook</option>
+          <option value="X (Twitter)">X (Twitter)</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Telegram">Telegram</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- College Filter -->
+      <div class="col-6 col-lg-3">
+        <select id="collegeFilter" class="form-select bg-light rounded-pill py-2">
+          <option value="ALL">All Colleges</option>
+          <!-- Injected dynamically -->
+        </select>
+      </div>
+
+      <!-- Sort By -->
+      <div class="col-12 col-lg-2">
+        <select id="sortByFilter" class="form-select bg-light rounded-pill py-2 fw-semibold">
+          <option value="most_supported">👍 Most Supported</option>
+          <option value="newest">✨ Newest</option>
+          <option value="recently_verified">🟢 Recently Verified</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cases Grid -->
+  <div class="row g-4" id="casesGrid">
+    <!-- Dynamic Cases Injected via JS -->
+  </div>
+</main>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareCaseModal" tabindex="-1" aria-labelledby="shareCaseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg p-3">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="shareCaseModalLabel">📢 Share Case</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <p class="text-muted small mb-4">Help protect students by sharing this verified impersonation case across your networks.</p>
+        
+        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+          <button type="button" id="shareWhatsappBtn" class="btn btn-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+            <i class="fa-brands fa-whatsapp fs-3"></i>
+          </button>
+          <button type="button" id="shareTelegramBtn" class="btn btn-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+            <i class="fa-brands fa-telegram fs-3"></i>
+          </button>
+          <button type="button" id="shareTwitterBtn" class="btn btn-dark rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+            <i class="fa-brands fa-x-twitter fs-3"></i>
+          </button>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="shareLinkInput" class="form-control form-control-sm rounded-start-pill px-3" readonly>
+          <button class="btn btn-outline-secondary btn-sm rounded-end-pill px-3 fw-bold" id="copyShareLinkBtn">
+            📋 Copy Link
+          </button>
+        </div>
+        <div id="copySuccessToast" class="text-success small fw-bold mt-2 d-none">Link copied to clipboard!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (err) {
+    console.error("Firebase init error:", err);
+  }
+
+  let verifiedCases = [];
+  let userSupportedCaseIds = new Set();
+  let selectedShareUrl = '';
+
+  const checkUserLoggedIn = () => {
+    if (typeof window.isLoggedIn === 'function') {
+      return window.isLoggedIn();
+    }
+    return localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+  };
+
+  const getUserId = () => {
+    return localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || ('USER-' + Math.random().toString(36).substring(2, 9));
+  };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await fetchVerifiedCases();
+
+    document.getElementById('caseSearchInput').addEventListener('input', renderGrid);
+    document.getElementById('platformFilter').addEventListener('change', renderGrid);
+    document.getElementById('collegeFilter').addEventListener('change', renderGrid);
+    document.getElementById('sortByFilter').addEventListener('change', renderGrid);
+
+    // Copy Share Link Listener
+    document.getElementById('copyShareLinkBtn').addEventListener('click', () => {
+      const input = document.getElementById('shareLinkInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      const toast = document.getElementById('copySuccessToast');
+      toast.classList.remove('d-none');
+      setTimeout(() => toast.classList.add('d-none'), 3000);
+    });
+
+    document.getElementById('shareWhatsappBtn').addEventListener('click', () => {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent('Help support this student impersonation case: ' + selectedShareUrl)}`, '_blank');
+    });
+
+    document.getElementById('shareTelegramBtn').addEventListener('click', () => {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(selectedShareUrl)}&text=${encodeURIComponent('Help support this student impersonation case on 2AM Study')}`, '_blank');
+    });
+
+    document.getElementById('shareTwitterBtn').addEventListener('click', () => {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(selectedShareUrl)}&text=${encodeURIComponent('Help support this student impersonation case on 2AM Study')}`, '_blank');
+    });
+  });
+
+  async function fetchVerifiedCases() {
+    try {
+      const res = await fetch('/api/student-safety/public-cases');
+      const data = await res.json();
+      if (data.cases) {
+        verifiedCases = data.cases;
+      }
+
+      if (db) {
+        try {
+          const querySnapshot = await getDocs(collection(db, "studentSafetyCases"));
+          const fsCases = [];
+          querySnapshot.forEach((docSnap) => {
+            const caseData = docSnap.data();
+            if (caseData.status === 'Verified' || caseData.status === 'Resolved') {
+              fsCases.push({ docId: docSnap.id, ...caseData });
+            }
+          });
+
+          if (fsCases.length > 0) {
+            const map = new Map();
+            verifiedCases.forEach(c => map.set(c.caseId, c));
+            fsCases.forEach(c => map.set(c.caseId, c));
+            verifiedCases = Array.from(map.values());
+          }
+
+          // Fetch user's existing supports
+          if (checkUserLoggedIn()) {
+            const supportsSnap = await getDocs(collection(db, "studentSafetySupports"));
+            supportsSnap.forEach(s => {
+              const sData = s.data();
+              if (sData.userId === getUserId()) {
+                userSupportedCaseIds.add(sData.caseId);
+              }
+            });
+          }
+
+        } catch (fsErr) {
+          console.warn("Firestore public fetch warning:", fsErr);
+        }
+      }
+
+      populateCollegeFilter();
+      renderGrid();
+
+    } catch (err) {
+      console.error("Error loading public cases:", err);
+    }
+  }
+
+  function populateCollegeFilter() {
+    const collegeSelect = document.getElementById('collegeFilter');
+    const colleges = new Set();
+    verifiedCases.forEach(c => {
+      if (c.college && c.college.trim()) colleges.add(c.college.trim());
+    });
+
+    collegeSelect.innerHTML = '<option value="ALL">All Colleges</option>';
+    colleges.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = col;
+      opt.innerText = col;
+      collegeSelect.appendChild(opt);
+    });
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('casesGrid');
+    grid.innerHTML = '';
+
+    const query = document.getElementById('caseSearchInput').value.trim().toLowerCase();
+    const platform = document.getElementById('platformFilter').value;
+    const college = document.getElementById('collegeFilter').value;
+    const sortBy = document.getElementById('sortByFilter').value;
+
+    let filtered = verifiedCases.filter(c => {
+      // Must be Verified or Resolved
+      if (c.status !== 'Verified' && c.status !== 'Resolved') return false;
+
+      // Platform
+      if (platform !== 'ALL' && c.platform !== platform) return false;
+
+      // College
+      if (college !== 'ALL' && c.college !== college) return false;
+
+      // Search Query
+      if (query) {
+        const uName = (c.fakeUsername || '').toLowerCase();
+        const col = (c.college || '').toLowerCase();
+        const cId = (c.caseId || '').toLowerCase();
+        if (!uName.includes(query) && !col.includes(query) && !cId.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Sorting
+    if (sortBy === 'most_supported') {
+      filtered.sort((a, b) => (b.supportCount || 0) - (a.supportCount || 0));
+    } else if (sortBy === 'newest') {
+      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    } else if (sortBy === 'recently_verified') {
+      filtered.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div class="col-12 text-center py-5">
+          <div class="p-5 bg-white rounded-4 shadow-sm">
+            <i class="fa-solid fa-shield-cat fs-1 text-muted mb-3"></i>
+            <h4 class="fw-bold text-dark">No verified cases found</h4>
+            <p class="text-muted small">No verified cases match your search criteria. Try clearing filters.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const col = document.createElement('div');
+      col.className = 'col-lg-4 col-md-6';
+
+      const verifiedDate = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent');
+      const hasSupported = userSupportedCaseIds.has(item.caseId);
+      const isResolved = item.status === 'Resolved';
+
+      col.innerHTML = `
+        <div class="card h-100 border-0 shadow-sm rounded-4 safety-card">
+          <div class="card-body p-4 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small">
+                  🛡️ ${item.platform || 'Other'}
+                </span>
+                ${isResolved ? `
+                  <span class="badge bg-primary text-white px-3 py-1 rounded-pill small">
+                    ✔ Resolved
+                  </span>
+                ` : `
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 rounded-pill small">
+                    🟢 Verified Case
+                  </span>
+                `}
+              </div>
+
+              <h3 class="h5 card-title fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                👤 ${item.fakeUsername || 'Fake Account'}
+              </h3>
+
+              <div class="text-muted small mb-3">
+                🏫 ${item.college || 'Verified Student Community'}
+              </div>
+
+              <div class="p-3 bg-light rounded-3 mb-3 small text-muted lh-base" style="max-height: 80px; overflow: hidden; text-overflow: ellipsis;">
+                <strong>Reason:</strong> ${item.reason}<br>
+                ${item.description}
+              </div>
+            </div>
+
+            <div>
+              <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                <span>📅 Verified: ${verifiedDate}</span>
+                <span class="fw-bold text-primary">👍 <span id="support-count-${item.caseId}">${item.supportCount || 0}</span> Supporters</span>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a href="/student-safety/cases/${item.caseId}" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1 fw-bold py-2">
+                  View Details
+                </a>
+                <button class="btn btn-sm ${hasSupported ? 'btn-success' : 'btn-danger'} rounded-pill px-3 py-2 support-btn" data-case-id="${item.caseId}" ${hasSupported ? 'disabled' : ''}>
+                  ${hasSupported ? '👍 Supported' : '👍 Support'}
+                </button>
+                <button class="btn btn-sm btn-light border rounded-circle p-2 share-btn d-flex align-items-center justify-content-center" data-case-id="${item.caseId}" style="width: 38px; height: 38px;">
+                  <i class="fa-solid fa-share-nodes text-dark"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(col);
+    });
+
+    // Attach support button listeners
+    document.querySelectorAll('.support-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const cId = btn.getAttribute('data-case-id');
+        await handleSupportCase(cId, btn);
+      });
+    });
+
+    // Attach share button listeners
+    document.querySelectorAll('.share-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cId = btn.getAttribute('data-case-id');
+        selectedShareUrl = `${window.location.origin}/student-safety/cases/${cId}`;
+        document.getElementById('shareLinkInput').value = selectedShareUrl;
+        const modal = new bootstrap.Modal(document.getElementById('shareCaseModal'));
+        modal.show();
+      });
+    });
+  }
+
+  async function handleSupportCase(cId, btnElement) {
+    if (!checkUserLoggedIn()) {
+      if (typeof window.showWindow === 'function') {
+        window.showWindow({
+          title: 'Login Required',
+          message: 'Please register/login first to support this case.',
+          type: 'warning'
+        });
+      } else {
+        alert('Please login first to support this case.');
+      }
+      return;
+    }
+
+    const userId = getUserId();
+
+    btnElement.disabled = true;
+    btnElement.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
+
+    try {
+      const res = await fetch(`/student-safety/cases/${cId}/support`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userId })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Support action failed.');
+        btnElement.disabled = false;
+        btnElement.innerText = '👍 Support';
+        return;
+      }
+
+      userSupportedCaseIds.add(cId);
+      btnElement.className = 'btn btn-sm btn-success rounded-pill px-3 py-2 support-btn';
+      btnElement.innerText = '👍 Supported';
+
+      // Update support count display
+      const countSpan = document.getElementById(`support-count-${cId}`);
+      if (countSpan) {
+        countSpan.innerText = data.supportCount;
+      }
+
+      if (typeof window.showWindow === 'function') {
+        window.showWindow({
+          title: 'Thank You!',
+          message: '✅ Thank you! You supported this case.',
+          type: 'success'
+        });
+      } else {
+        alert('✅ Thank you! You supported this case.');
+      }
+
+    } catch (err) {
+      console.error("Support error:", err);
+      alert('An error occurred while supporting this case.');
+      btnElement.disabled = false;
+      btnElement.innerText = '👍 Support';
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

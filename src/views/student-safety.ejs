@@ -1,0 +1,197 @@
+<%- include('partials/header') %>
+
+<section class="student-safety-hero py-5">
+  <div class="container">
+    <!-- Hero Banner -->
+    <div class="row justify-content-center text-center mb-5">
+      <div class="col-lg-9 col-xl-8">
+        <div class="safety-badge mb-3 d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill">
+          <span class="pulse-dot"></span>
+          <span class="fw-semibold small">Student Protection & Cyber Safety Initiative</span>
+        </div>
+        <h1 class="display-4 fw-extrabold hero-title mb-3">
+          🛡️ Student Identity Shield
+        </h1>
+        <p class="lead text-muted hero-subtitle mb-4">
+          Protect students from fake social media profiles. Report impersonation, help verify genuine cases, and support affected students.
+        </p>
+
+        <!-- Primary CTA Button -->
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <a id="cta-report-fake-profile" href="/student-safety/report" class="btn btn-lg btn-danger shadow-lg px-4 py-3 rounded-pill btn-report-now">
+            🚨 Report Fake Profile
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Counter Bar -->
+    <div class="row g-3 g-md-4 mb-5 justify-content-center text-center">
+      <div class="col-6 col-lg-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm border border-light-subtle h-100">
+          <div class="fs-2 fw-extrabold text-danger mb-1">150+</div>
+          <div class="text-muted small fw-semibold">Reports Submitted</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm border border-light-subtle h-100">
+          <div class="fs-2 fw-extrabold text-primary mb-1">98%</div>
+          <div class="text-muted small fw-semibold">Verification Rate</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm border border-light-subtle h-100">
+          <div class="fs-2 fw-extrabold text-success mb-1">24h</div>
+          <div class="text-muted small fw-semibold">Avg. Resolution Time</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="p-3 bg-white rounded-4 shadow-sm border border-light-subtle h-100">
+          <div class="fs-2 fw-extrabold text-warning mb-1">1,200+</div>
+          <div class="text-muted small fw-semibold">Students Protected</div>
+        </div>
+      </div>
+    </div>
+
+    <% if (typeof activeTab !== 'undefined' && activeTab !== 'overview') { %>
+      <!-- Active Section Header for Sub-routes -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-lg-10">
+          <div class="alert alert-info border-0 shadow-sm rounded-4 p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+              <h4 class="fw-bold mb-1 text-capitalize">
+                <% if (activeTab === 'report') { %>📝 Report Fake Profile<% } %>
+                <% if (activeTab === 'cases') { %>📋 Active Cases<% } %>
+                <% if (activeTab === 'my-reports') { %>📄 My Reports<% } %>
+                <% if (activeTab === 'how-it-works') { %>ℹ️ How It Works<% } %>
+              </h4>
+              <p class="mb-0 text-muted small">
+                <% if (activeTab === 'report') { %>Submit a fake account report with evidence.<% } %>
+                <% if (activeTab === 'cases') { %>View verified cases that need community support.<% } %>
+                <% if (activeTab === 'my-reports') { %>Track the status of reports you've submitted.<% } %>
+                <% if (activeTab === 'how-it-works') { %>Learn the reporting and verification process.<% } %>
+              </p>
+            </div>
+            <a href="/student-safety" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+              ← Back to Overview
+            </a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 4 Feature Cards -->
+    <div class="row g-4 mb-5 justify-content-center">
+      <!-- Card 1: Report Fake Profile -->
+      <div class="col-lg-3 col-md-6">
+        <a href="/student-safety/report" class="text-decoration-none">
+          <div class="card h-100 border-0 shadow-sm safety-card card-report <%= typeof activeTab !== 'undefined' && activeTab === 'report' ? 'border border-danger border-2' : '' %>">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+              <div>
+                <div class="card-icon-wrapper mb-3 text-danger">
+                  <span class="fs-1">📝</span>
+                </div>
+                <h2 class="h5 card-title fw-bold text-dark mb-2">Report Fake Profile</h2>
+                <p class="card-text text-muted small">
+                  Submit a fake account report with evidence.
+                </p>
+              </div>
+              <div class="card-arrow text-danger font-semibold mt-3 small d-flex align-items-center gap-1">
+                <span>Report now</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Card 2: Active Cases -->
+      <div class="col-lg-3 col-md-6">
+        <a href="/student-safety/cases" class="text-decoration-none">
+          <div class="card h-100 border-0 shadow-sm safety-card card-cases <%= typeof activeTab !== 'undefined' && activeTab === 'cases' ? 'border border-primary border-2' : '' %>">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+              <div>
+                <div class="card-icon-wrapper mb-3 text-primary">
+                  <span class="fs-1">📋</span>
+                </div>
+                <h2 class="h5 card-title fw-bold text-dark mb-2">Active Cases</h2>
+                <p class="card-text text-muted small">
+                  View verified cases that need community support.
+                </p>
+              </div>
+              <div class="card-arrow text-primary font-semibold mt-3 small d-flex align-items-center gap-1">
+                <span>Explore cases</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Card 3: My Reports -->
+      <div class="col-lg-3 col-md-6">
+        <a href="/student-safety/my-reports" class="text-decoration-none">
+          <div class="card h-100 border-0 shadow-sm safety-card card-my-reports <%= typeof activeTab !== 'undefined' && activeTab === 'my-reports' ? 'border border-warning border-2' : '' %>">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+              <div>
+                <div class="card-icon-wrapper mb-3 text-warning">
+                  <span class="fs-1">📄</span>
+                </div>
+                <h2 class="h5 card-title fw-bold text-dark mb-2">My Reports</h2>
+                <p class="card-text text-muted small">
+                  Track the status of reports you've submitted.
+                </p>
+              </div>
+              <div class="card-arrow text-warning font-semibold mt-3 small d-flex align-items-center gap-1">
+                <span>View status</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Card 4: How It Works -->
+      <div class="col-lg-3 col-md-6">
+        <a href="/student-safety/how-it-works" class="text-decoration-none">
+          <div class="card h-100 border-0 shadow-sm safety-card card-how-it-works <%= typeof activeTab !== 'undefined' && activeTab === 'how-it-works' ? 'border border-info border-2' : '' %>">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+              <div>
+                <div class="card-icon-wrapper mb-3 text-info">
+                  <span class="fs-1">ℹ️</span>
+                </div>
+                <h2 class="h5 card-title fw-bold text-dark mb-2">How It Works</h2>
+                <p class="card-text text-muted small">
+                  Learn the reporting and verification process.
+                </p>
+              </div>
+              <div class="card-arrow text-info font-semibold mt-3 small d-flex align-items-center gap-1">
+                <span>Learn more</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Notice at the bottom -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="safety-notice-box p-4 rounded-4 shadow-sm border border-warning-subtle bg-warning-subtle d-flex align-items-start gap-3">
+          <div class="notice-icon fs-3 flex-shrink-0 text-warning-emphasis">
+            ⚠️
+          </div>
+          <div>
+            <h3 class="h6 fw-bold text-warning-emphasis mb-1">Important Notice</h3>
+            <p class="mb-0 text-dark-emphasis small lh-base">
+              <strong>Important:</strong> Only genuine impersonation reports are allowed. False or malicious reports may be removed, and accounts that repeatedly misuse this feature may lose access.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

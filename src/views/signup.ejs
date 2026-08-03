@@ -1,0 +1,314 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light d-flex align-items-center min-vh-100" style="padding-top: 100px !important;">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6 col-xl-5">
+        
+        <!-- Auth Card -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 28px;">
+              🎓
+            </div>
+            <h1 class="h3 fw-extrabold text-dark mb-1">Create Account</h1>
+            <p class="text-muted small">Join 2AM Study & Student Safety Hub in less than a minute</p>
+          </div>
+
+          <!-- Alert Banners -->
+          <div id="auth-error-alert" class="alert alert-danger border-0 rounded-3 p-3 small mb-4 d-none">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
+              <span id="auth-error-msg">Failed to create account.</span>
+            </div>
+          </div>
+
+          <div id="auth-success-alert" class="alert alert-success border-0 rounded-3 p-3 small mb-4 d-none">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa-solid fa-circle-check text-success fs-5 mt-1"></i>
+              <div>
+                <strong class="d-block text-success mb-1">Account Created Successfully!</strong>
+                <span>We've sent a verification email to your address. Please check your inbox. Redirecting...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signup Form -->
+          <form id="signupForm" novalidate>
+            <!-- Full Name -->
+            <div class="mb-3">
+              <label for="signupName" class="form-label fw-semibold text-dark small">Full Name <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+                <input type="text" class="form-control bg-light border-start-0 py-2" id="signupName" placeholder="Nishant Kumar" required>
+              </div>
+              <div class="invalid-feedback">Please enter your full name.</div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="signupEmail" class="form-label fw-semibold text-dark small">Email Address <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
+                <input type="email" class="form-control bg-light border-start-0 py-2" id="signupEmail" placeholder="student@university.edu" required>
+              </div>
+              <div class="invalid-feedback">Please enter a valid email address.</div>
+            </div>
+
+            <!-- College / University -->
+            <div class="mb-3">
+              <label for="signupCollege" class="form-label fw-semibold text-dark small">College / University <span class="text-muted fw-normal">(Optional)</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-building-columns"></i></span>
+                <input type="text" class="form-control bg-light border-start-0 py-2" id="signupCollege" placeholder="e.g. Delhi University, IIT Bombay">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+              <label for="signupPassword" class="form-label fw-semibold text-dark small">Password <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                <input type="password" class="form-control bg-light border-start-0 py-2" id="signupPassword" placeholder="Minimum 6 characters" minlength="6" required>
+              </div>
+              <div class="invalid-feedback">Password must be at least 6 characters.</div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="mb-3">
+              <label for="signupConfirmPassword" class="form-label fw-semibold text-dark small">Confirm Password <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-shield-halved"></i></span>
+                <input type="password" class="form-control bg-light border-start-0 py-2" id="signupConfirmPassword" placeholder="Re-enter password" required>
+              </div>
+              <div class="invalid-feedback" id="confirmPasswordFeedback">Passwords do not match.</div>
+            </div>
+
+            <!-- Terms Confirmation Checkbox -->
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                <label class="form-check-label text-dark small" for="termsCheck">
+                  I agree to the <a href="/terms" target="_blank" class="text-primary text-decoration-none">Terms of Service</a> and <a href="/privacy-policy" target="_blank" class="text-primary text-decoration-none">Privacy Policy</a>.
+                </label>
+                <div class="invalid-feedback">You must agree to the terms to proceed.</div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="signupSubmitBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-2 shadow-sm">
+              ✨ Create Account
+            </button>
+          </form>
+
+          <div class="d-flex align-items-center my-4">
+            <hr class="flex-grow-1 my-0 opacity-25">
+            <span class="px-3 text-muted small fw-semibold">OR</span>
+            <hr class="flex-grow-1 my-0 opacity-25">
+          </div>
+
+          <!-- Google Sign-In Button -->
+          <button type="button" id="googleSignUpBtn" class="btn btn-outline-secondary w-100 rounded-pill py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
+              <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
+              <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
+              <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <!-- Footer Link -->
+          <div class="text-center mt-4 pt-2">
+            <p class="text-muted small mb-0">
+              Already have an account? <a href="/login" class="text-primary fw-bold text-decoration-none">Log In</a>
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Firebase Auth Handler Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    updateProfile, 
+    sendEmailVerification, 
+    GoogleAuthProvider, 
+    signInWithPopup 
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const errorAlert = document.getElementById('auth-error-alert');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successAlert = document.getElementById('auth-success-alert');
+  const signupForm = document.getElementById('signupForm');
+  const submitBtn = document.getElementById('signupSubmitBtn');
+  const googleBtn = document.getElementById('googleSignUpBtn');
+
+  // Sync session details to localStorage UI cache
+  const syncLocalCache = (user, collegeName = '') => {
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('user_id', user.uid);
+    localStorage.setItem('studentEmail', user.email || '');
+    localStorage.setItem('studentName', user.displayName || user.email.split('@')[0]);
+    localStorage.setItem('studentRegistered', 'true');
+    if (collegeName) {
+      localStorage.setItem('studentCollege', collegeName);
+    }
+  };
+
+  // Full Firestore User Schema creation/upsert
+  const saveUserToFirestore = async (user, collegeName = '') => {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          photoURL: user.photoURL || '',
+          college: collegeName || '',
+          role: 'student',
+          emailVerified: user.emailVerified,
+          trustScore: 10,
+          badges: ['student_protector'],
+          reportsSubmitted: 0,
+          reportsSupported: 0,
+          status: 'active',
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp()
+        });
+      } else {
+        await updateDoc(userRef, {
+          emailVerified: user.emailVerified,
+          lastLoginAt: serverTimestamp()
+        });
+      }
+    } catch (e) {
+      console.warn("Firestore user creation warning:", e);
+    }
+  };
+
+  // Signup Form Submit Handler
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    errorAlert.classList.add('d-none');
+    successAlert.classList.add('d-none');
+
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const college = document.getElementById('signupCollege').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+    if (password !== confirmPassword) {
+      document.getElementById('signupConfirmPassword').setCustomValidity('Passwords do not match');
+    } else {
+      document.getElementById('signupConfirmPassword').setCustomValidity('');
+    }
+
+    signupForm.classList.add('was-validated');
+
+    if (!signupForm.checkValidity()) {
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Creating Account...`;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Update displayName
+      await updateProfile(user, { displayName: name });
+
+      // Send verification email
+      try {
+        await sendEmailVerification(user);
+      } catch (evErr) {
+        console.warn("Email verification send warning:", evErr);
+      }
+
+      syncLocalCache(user, college);
+      await saveUserToFirestore(user, college);
+
+      successAlert.classList.remove('d-none');
+
+      setTimeout(() => {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
+        window.location.href = redirectUrl;
+      }, 1500);
+
+    } catch (err) {
+      console.error("Signup error:", err);
+      errorAlert.classList.remove('d-none');
+      if (err.code === 'auth/email-already-in-use') {
+        errorMsg.textContent = 'This email address is already registered. Please log in instead.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMsg.textContent = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/weak-password') {
+        errorMsg.textContent = 'Password is too weak. Please use at least 6 characters.';
+      } else {
+        errorMsg.textContent = err.message || 'Failed to create account.';
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = '✨ Create Account';
+    }
+  });
+
+  // Google Sign-Up Button
+  googleBtn.addEventListener('click', async () => {
+    errorAlert.classList.add('d-none');
+    const provider = new GoogleAuthProvider();
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      syncLocalCache(user);
+      await saveUserToFirestore(user);
+
+      successAlert.classList.remove('d-none');
+
+      setTimeout(() => {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
+        window.location.href = redirectUrl;
+      }, 800);
+
+    } catch (err) {
+      console.error("Google signup error:", err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        errorAlert.classList.remove('d-none');
+        errorMsg.textContent = err.message || 'Google Sign-Up failed.';
+      }
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

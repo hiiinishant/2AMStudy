@@ -1,0 +1,372 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger bg-opacity-10 text-danger mb-2 fw-semibold small">
+      📄 Case Tracker
+    </div>
+    <h1 class="display-6 fw-extrabold text-dark mb-1">My Reports</h1>
+    <p class="text-muted small mb-0">Track your submitted cases, monitor progress, and see your community impact.</p>
+  </div>
+</section>
+
+<main class="container py-5">
+
+  <!-- Login Required -->
+  <div id="loginRequired" class="text-center py-5 d-none">
+    <div class="p-5 bg-white rounded-4 shadow-sm mx-auto" style="max-width: 480px;">
+      <div class="fs-1 mb-3">🔒</div>
+      <h3 class="fw-bold text-dark">Login Required</h3>
+      <p class="text-muted small">Please register or login to view your reports and track case progress.</p>
+    </div>
+  </div>
+
+  <div id="mainContent" class="d-none">
+    <!-- Stats Dashboard -->
+    <div class="row g-3 mb-5" id="statCards">
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center h-100">
+          <div class="fs-1 mb-2">📋</div>
+          <div class="fw-bold fs-3 text-dark" id="statTotal">0</div>
+          <div class="text-muted small">Total Reports</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center h-100">
+          <div class="fs-1 mb-2">⏳</div>
+          <div class="fw-bold fs-3 text-warning" id="statPending">0</div>
+          <div class="text-muted small">Pending</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center h-100">
+          <div class="fs-1 mb-2">✅</div>
+          <div class="fw-bold fs-3 text-success" id="statVerified">0</div>
+          <div class="text-muted small">Verified</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center h-100">
+          <div class="fs-1 mb-2">🎉</div>
+          <div class="fw-bold fs-3 text-primary" id="statResolved">0</div>
+          <div class="text-muted small">Resolved</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Left: Trust Score + Badges + Leaderboard -->
+      <div class="col-lg-4">
+        <!-- Trust Score Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+          <h2 class="h6 fw-bold text-dark text-uppercase mb-3">🏆 Trust Score</h2>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="trust-score-circle d-flex align-items-center justify-content-center rounded-circle fw-extrabold text-white" id="trustScoreCircle" style="width: 72px; height: 72px; font-size: 22px; background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 14px rgba(37,99,235,0.4);">
+              0
+            </div>
+            <div>
+              <div class="fw-bold text-dark mb-1" id="trustScoreLabel">Calculating...</div>
+              <div class="text-muted small">out of 100</div>
+            </div>
+          </div>
+          <div class="progress rounded-pill mb-2" style="height: 10px;">
+            <div class="progress-bar trust-progress-bar rounded-pill" id="trustProgressBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="text-muted small mb-0 mt-2">Earn points by submitting verified reports and supporting community cases.</p>
+        </div>
+
+        <!-- Badges Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+          <h2 class="h6 fw-bold text-dark text-uppercase mb-3">🎖️ Earned Badges</h2>
+          <div id="badgesGrid" class="d-flex flex-wrap gap-2">
+            <!-- Dynamically injected -->
+          </div>
+          <div id="noBadges" class="text-muted small text-center py-3 d-none">
+            Complete actions to earn badges!<br>
+            <a href="/student-safety/report" class="text-primary text-decoration-none fw-semibold mt-1 d-inline-block">Submit your first report →</a>
+          </div>
+        </div>
+
+        <!-- Leaderboard Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+          <h2 class="h6 fw-bold text-dark text-uppercase mb-3">🏅 Top Contributors</h2>
+          <div id="leaderboardList">
+            <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: My Reports List -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+          <div class="card-header bg-white border-0 rounded-top-4 p-4 pb-2">
+            <h2 class="h5 fw-bold text-dark mb-0">My Submitted Reports</h2>
+          </div>
+          <div class="card-body p-4">
+            <div id="myReportsList" class="d-flex flex-column gap-4">
+              <!-- Injected dynamically -->
+            </div>
+            <div id="emptyReports" class="text-center py-5 d-none">
+              <div class="fs-1 mb-3">📋</div>
+              <h4 class="fw-bold text-dark">No reports submitted yet</h4>
+              <p class="text-muted small">You haven't submitted any fake profile reports. Help protect your community!</p>
+              <a href="/student-safety/report" class="btn btn-danger rounded-pill px-4 fw-bold mt-2">🚨 Report Fake Profile</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (err) {
+    console.error("Firebase init error:", err);
+  }
+
+  const checkUserLoggedIn = () => localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+  const getUserId = () => localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null;
+
+  const statusBadge = (status) => {
+    const map = {
+      'Pending Review': 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
+      'Needs Evidence': 'bg-orange-100 text-orange border border-orange',
+      'Verified': 'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+      'Rejected': 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+      'Resolved': 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25'
+    };
+    return map[status] || 'bg-light text-muted border';
+  };
+
+  const timelineStages = [
+    { label: 'Submitted', key: 'submitted' },
+    { label: 'Pending Review', key: 'Pending Review' },
+    { label: 'Verified', key: 'Verified' },
+    { label: 'Community Support', key: 'community' },
+    { label: 'Resolved', key: 'Resolved' }
+  ];
+
+  const getTimelineStageIndex = (status) => {
+    if (status === 'Resolved') return 4;
+    if (status === 'Verified') return 3;
+    if (status === 'Needs Evidence' || status === 'Pending Review') return 1;
+    if (status === 'Rejected') return 1;
+    return 0;
+  };
+
+  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!checkUserLoggedIn()) {
+      document.getElementById('loginRequired').classList.remove('d-none');
+      return;
+    }
+
+    const userId = getUserId();
+    if (!userId) {
+      document.getElementById('loginRequired').classList.remove('d-none');
+      return;
+    }
+
+    document.getElementById('mainContent').classList.remove('d-none');
+
+    // Fetch trust score + badges
+    try {
+      const tsRes = await fetch(`/api/student-safety/trust-score/${encodeURIComponent(userId)}`);
+      const tsData = await tsRes.json();
+
+      if (tsData.success) {
+        const score = tsData.trustScore || 0;
+        document.getElementById('trustScoreCircle').textContent = score;
+        document.getElementById('trustProgressBar').style.width = score + '%';
+        document.getElementById('trustProgressBar').setAttribute('aria-valuenow', score);
+        document.getElementById('trustScoreLabel').textContent = score >= 75 ? 'Trusted Reporter 🏆' : score >= 50 ? 'Active Contributor' : score >= 25 ? 'Growing Reporter' : 'New Reporter';
+
+        const badgesGrid = document.getElementById('badgesGrid');
+        const noBadges = document.getElementById('noBadges');
+
+        if (tsData.badges && tsData.badges.length > 0) {
+          tsData.badges.forEach(badge => {
+            const b = document.createElement('div');
+            b.className = 'badge-card d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2';
+            b.title = badge.desc;
+            b.innerHTML = `<span class="fs-5">${badge.icon}</span><span class="small fw-bold text-dark">${badge.label}</span>`;
+            badgesGrid.appendChild(b);
+          });
+        } else {
+          noBadges.classList.remove('d-none');
+        }
+      }
+    } catch (e) {
+      console.error('Trust score error:', e);
+    }
+
+    // Fetch leaderboard
+    try {
+      const lbRes = await fetch('/api/student-safety/leaderboard');
+      const lbData = await lbRes.json();
+      const lbList = document.getElementById('leaderboardList');
+      lbList.innerHTML = '';
+
+      if (lbData.leaderboard && lbData.leaderboard.length > 0) {
+        lbData.leaderboard.forEach((entry, idx) => {
+          const isMe = entry.userId === userId;
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+          const li = document.createElement('div');
+          li.className = `d-flex align-items-center justify-content-between py-2 border-bottom ${isMe ? 'fw-bold text-primary' : 'text-dark'}`;
+          li.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+              <span class="small">${medal}</span>
+              <span class="small">${isMe ? 'You 🙋' : entry.displayId}</span>
+            </div>
+            <div class="d-flex gap-3 small text-muted">
+              <span title="Verified reports">✅ ${entry.verifiedReports}</span>
+              <span title="Supports given">👍 ${entry.supportsGiven}</span>
+              <span title="Trust score" class="fw-bold text-dark">${entry.score}pts</span>
+            </div>
+          `;
+          lbList.appendChild(li);
+        });
+      } else {
+        lbList.innerHTML = '<p class="text-muted small text-center py-3">No contributors yet. Be the first!</p>';
+      }
+    } catch (e) {
+      document.getElementById('leaderboardList').innerHTML = '<p class="text-muted small text-center">Could not load leaderboard.</p>';
+    }
+
+    // Fetch user cases from server API
+    let myCases = [];
+    try {
+      const casesRes = await fetch('/api/student-safety/cases');
+      const casesData = await casesRes.json();
+      myCases = (casesData.cases || []).filter(c => c.userId === userId);
+
+      // Also try Firestore for real-time data
+      if (db) {
+        try {
+          const snap = await getDocs(collection(db, "studentSafetyCases"));
+          const fsCases = [];
+          snap.forEach(doc => {
+            const d = doc.data();
+            if (d.userId === userId) fsCases.push({ docId: doc.id, ...d });
+          });
+          if (fsCases.length > 0) {
+            const map = new Map();
+            myCases.forEach(c => map.set(c.caseId, c));
+            fsCases.forEach(c => map.set(c.caseId, c));
+            myCases = Array.from(map.values());
+          }
+        } catch (fsErr) {
+          console.warn("Firestore fetch warning:", fsErr);
+        }
+      }
+    } catch (e) {
+      console.error('Cases fetch error:', e);
+    }
+
+    // Update stats
+    const total = myCases.length;
+    const pending = myCases.filter(c => c.status === 'Pending Review' || c.status === 'Needs Evidence').length;
+    const verified = myCases.filter(c => c.status === 'Verified').length;
+    const resolved = myCases.filter(c => c.status === 'Resolved').length;
+    const supportsReceived = myCases.reduce((sum, c) => sum + (c.supportCount || 0), 0);
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statVerified').textContent = verified;
+    document.getElementById('statResolved').textContent = resolved;
+
+    const listEl = document.getElementById('myReportsList');
+    const emptyEl = document.getElementById('emptyReports');
+
+    if (myCases.length === 0) {
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+
+    myCases.forEach(c => {
+      const stageIdx = getTimelineStageIndex(c.status);
+      const stagesHtml = timelineStages.map((stage, i) => {
+        const done = i <= stageIdx;
+        const active = i === stageIdx;
+        return `
+          <div class="d-flex flex-column align-items-center text-center" style="flex: 1; min-width: 60px;">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold small mb-1
+              ${done ? 'bg-success text-white' : 'bg-light text-muted border'}
+              ${active && c.status !== 'Rejected' && c.status !== 'Resolved' ? 'pulse-badge' : ''}"
+              style="width:32px;height:32px;font-size:12px;">
+              ${done ? '✓' : (i + 1)}
+            </div>
+            <div class="small lh-sm ${done ? 'fw-semibold text-dark' : 'text-muted'}" style="font-size:10px;">${stage.label}</div>
+          </div>
+        `;
+      }).join('<div class="d-flex align-items-center" style="flex:0.5; height:32px;"><div style="height:2px;width:100%;background:${stageIdx > 0 ? \'#16a34a\' : \'#e2e8f0\'};" class="flex-grow-1"></div></div>');
+
+      const card = document.createElement('div');
+      card.className = 'card border-0 shadow-sm rounded-4 p-4';
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+          <div>
+            <span class="badge bg-light text-dark border small me-2">🛡️ ${c.platform || 'Other'}</span>
+            <span class="badge ${statusBadge(c.status)} px-3 py-1 rounded-pill small">${c.status}</span>
+          </div>
+          <span class="text-muted small font-monospace">${c.caseId}</span>
+        </div>
+        <h3 class="h6 fw-bold text-dark mb-1">👤 ${c.fakeUsername || 'Fake Account'}</h3>
+        ${c.college ? `<p class="text-muted small mb-0">🏫 ${c.college}</p>` : ''}
+
+        <!-- Progress Timeline -->
+        <div class="d-flex align-items-center justify-content-between mt-3 mb-3 gap-1 position-relative" style="overflow-x:auto;padding:8px 0;">
+          ${timelineStages.map((stage, i) => {
+            const done = i <= stageIdx;
+            const active = i === stageIdx && c.status !== 'Rejected' && c.status !== 'Resolved';
+            return `
+              <div class="d-flex flex-column align-items-center text-center" style="flex:1;min-width:60px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold mb-1 step-icon
+                  ${done ? 'bg-success text-white' : 'bg-light text-muted border'}
+                  ${active ? 'pulse-badge' : ''}"
+                  style="width:32px;height:32px;font-size:11px;">
+                  ${done ? '✓' : (i + 1)}
+                </div>
+                <div style="font-size:10px;" class="${done ? 'fw-semibold text-dark' : 'text-muted'}">${stage.label}</div>
+              </div>
+              ${i < timelineStages.length - 1 ? `<div style="height:2px;width:100%;background:${done && i < stageIdx ? '#16a34a' : '#e2e8f0'};margin-bottom:18px;flex:0.5;min-width:8px;"></div>` : ''}
+            `;
+          }).join('')}
+        </div>
+
+        ${c.moderatorNote ? `<div class="alert alert-warning border-0 rounded-3 p-3 small mb-3"><strong>📩 Moderator Note:</strong> ${c.moderatorNote}</div>` : ''}
+        ${c.rejectionReason ? `<div class="alert alert-danger border-0 rounded-3 p-3 small mb-3"><strong>❌ Rejection Reason:</strong> ${c.rejectionReason}</div>` : ''}
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+          <div class="d-flex gap-3 text-muted small">
+            <span>👍 ${c.supportCount || 0} supporters</span>
+            <span>🕐 ${formatDate(c.updatedAt || c.createdAt)}</span>
+          </div>
+          <div class="d-flex gap-2">
+            ${(c.status === 'Verified' || c.status === 'Resolved') ? `<a href="/student-safety/cases/${c.caseId}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 small fw-bold">View Public Case</a>` : ''}
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

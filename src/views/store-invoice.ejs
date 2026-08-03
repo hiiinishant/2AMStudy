@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tax Invoice - <%= order.invoiceNo %> | 2AM Study Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- QRCode.js Local Generation Library (Zero External API Dependency) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --brand-primary: #4f46e5;
+      --brand-dark: #0f172a;
+      --brand-green: #16a34a;
+      --border-color: #cbd5e1;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --bg-light: #f8fafc;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-dark);
+      background-color: var(--bg-light);
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    .invoice-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      max-width: 920px;
+      margin: 30px auto;
+      padding: 40px;
+      position: relative;
+    }
+
+    .invoice-header {
+      border-bottom: 2px solid var(--brand-primary);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .invoice-logo {
+      height: 55px;
+      border-radius: 10px;
+    }
+
+    .paid-stamp-badge {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .table-invoice {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .table-invoice th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      border-top: 1px solid #cbd5e1;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .table-invoice td {
+      padding: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    .product-thumb {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 2px;
+    }
+
+    .summary-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .summary-row.grand-total {
+      border-top: 2px dashed #cbd5e1;
+      padding-top: 14px;
+      margin-top: 14px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--brand-primary);
+    }
+
+    .notice-banner {
+      background-color: #eff6ff;
+      border-left: 4px solid var(--brand-primary);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1e40af;
+    }
+
+    .qr-box {
+      width: 90px;
+      height: 90px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 4px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-bar {
+      max-width: 920px;
+      margin: 20px auto 0;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .action-bar {
+        display: none !important;
+      }
+      .invoice-card {
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Hidden in Print) -->
+  <div class="action-bar d-flex justify-content-between align-items-center mb-3 px-2">
+    <a href="/store" class="btn btn-outline-secondary btn-sm rounded-pill">
+      <i class="fa-solid fa-arrow-left me-1"></i> Back to Store
+    </a>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold">
+        <i class="fa-solid fa-eye me-1"></i> View / Print Invoice
+      </button>
+      <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold">
+        <i class="fa-solid fa-download me-1"></i> Download PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Invoice Container Card -->
+  <div class="invoice-card">
+
+    <!-- Header: Logo, Store Title, Invoice Number & Paid Stamp -->
+    <div class="invoice-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <img src="https://2amstudy.online/assets/images/logo.jpg" alt="2AM Study Logo" class="invoice-logo mb-2" onerror="this.style.display='none'">
+        <h1 class="h4 fw-extrabold text-dark mb-0">2AM Study Store</h1>
+        <div class="text-muted small">Operated by: <strong>[YOUR LEGAL BUSINESS NAME]</strong></div>
+      </div>
+
+      <div class="text-end">
+        <div class="paid-stamp-badge mb-2">
+          <i class="fa-solid fa-circle-check"></i> PAID
+        </div>
+        <div class="fw-extrabold text-dark fs-5"><%= order.invoiceNo %></div>
+        <div class="text-muted small">Date: <%= order.invoiceDate %></div>
+      </div>
+    </div>
+
+    <!-- Seller Info & Customer Info (Bill To / Ship To) Grid -->
+    <div class="row g-4 mb-4">
+      <!-- Seller Details -->
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3 h-100 border">
+          <div class="info-label">Seller Details</div>
+          <h3 class="h6 fw-bold text-dark mb-1">2AM Study Store</h3>
+          <div class="text-muted small lh-sm">
+            Operated by: <strong>[YOUR LEGAL BUSINESS NAME]</strong><br>
+            [YOUR BUSINESS ADDRESS]<br>
+            [CITY, STATE - PINCODE], India<br>
+            <strong>Web:</strong> https://2amstudy.online<br>
+            <strong>Email:</strong> support@2amstudy.online<br>
+            <strong>Phone:</strong> +91 6202225179
+          </div>
+          <div class="mt-2 pt-2 border-top">
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 small" style="font-size: 10px;">
+              🏅 MSME (Udyam) Registered Business
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Bill To -->
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3 h-100 border">
+          <div class="info-label">Bill To</div>
+          <h3 class="h6 fw-bold text-dark mb-1"><%= order.customerName %></h3>
+          <div class="text-muted small lh-sm">
+            <strong>Email:</strong> <%= order.customerEmail %><br>
+            <strong>Phone:</strong> <%= order.customerPhone %><br>
+            <strong>Account:</strong> Registered Student<br>
+            <strong>Country:</strong> India
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Ship To -->
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3 h-100 border">
+          <div class="info-label">Ship To</div>
+          <h3 class="h6 fw-bold text-dark mb-1"><%= order.customerName %></h3>
+          <div class="text-muted small lh-sm">
+            <%= order.shippingAddress %><br>
+            <%= order.city %>, <%= order.state || 'Bihar' %><br>
+            PIN Code: <strong><%= order.pincode %></strong>, India
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment & Transaction Details Bar -->
+    <div class="row g-3 p-3 bg-white border rounded-3 mb-4 text-center">
+      <div class="col-6 col-md-3">
+        <div class="info-label">Order ID</div>
+        <div class="fw-bold text-dark small"><%= order.orderId %></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="info-label">Payment Method</div>
+        <div class="fw-bold text-dark small"><%= order.paymentMethod %></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="info-label">Razorpay Payment ID</div>
+        <div class="fw-bold text-primary small text-break"><%= order.paymentId %></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="info-label">Payment Status</div>
+        <div class="fw-bold text-success small">✓ Verified & Paid</div>
+      </div>
+    </div>
+
+    <!-- Clean Product Table with Image, Product, Qty, Unit Price, Discount, Total -->
+    <table class="table-invoice">
+      <thead>
+        <tr>
+          <th style="width: 60px;">Image</th>
+          <th>Product Details</th>
+          <th class="text-center" style="width: 60px;">Qty</th>
+          <th class="text-end" style="width: 100px;">Unit Price</th>
+          <th class="text-end" style="width: 100px;">Discount</th>
+          <th class="text-end" style="width: 110px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (Array.isArray(order.items) && order.items.length > 0) { %>
+          <% order.items.forEach(function(item) { %>
+            <tr>
+              <td>
+                <img src="<%= item.image || '/assets/images/store/placeholder.jpg' %>" alt="<%= item.name %>" class="product-thumb" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
+              </td>
+              <td>
+                <div class="fw-bold text-dark"><%= item.name %></div>
+                <% if (item.variant) { %>
+                  <div class="text-muted small">Variant: <%= item.variant %></div>
+                <% } %>
+              </td>
+              <td class="text-center fw-bold"><%= item.qty || 1 %></td>
+              <td class="text-end text-muted">₹<%= Number(item.origPrice || item.unitPrice).toLocaleString() %></td>
+              <td class="text-end text-success">-₹<%= Number((item.discountPerUnit || 0) * item.qty).toLocaleString() %></td>
+              <td class="text-end fw-bold text-dark">₹<%= Number(item.lineTotal || (item.unitPrice * item.qty)).toLocaleString() %></td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+
+    <!-- Order Summary & Local QR Code Verification Section -->
+    <div class="row g-4 align-items-center mb-4">
+      <!-- Local Client QR Code (No External API Dependency) -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-3 p-3 border rounded-3 bg-light">
+          <div id="qrcodeCanvas" class="qr-box flex-shrink-0"></div>
+          <div>
+            <div class="fw-bold text-dark small mb-1">Order Verification QR</div>
+            <div class="text-muted small lh-sm">Scan to verify this invoice online on 2AM Study Store.</div>
+            <div class="text-muted small mt-1" style="font-size: 10px;">Security Code: <%= order.securityHash %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Totals -->
+      <div class="col-md-6">
+        <div class="summary-box">
+          <div class="summary-row">
+            <span class="text-muted">Subtotal (MRP):</span>
+            <span class="fw-semibold">₹<%= Number(order.subtotal).toLocaleString() %></span>
+          </div>
+          <% if (order.totalItemDiscount && order.totalItemDiscount > 0) { %>
+            <div class="summary-row">
+              <span class="text-muted">Product Discount:</span>
+              <span class="text-success fw-semibold">-₹<%= Number(order.totalItemDiscount).toLocaleString() %></span>
+            </div>
+          <% } %>
+          <% if (order.couponDiscount && order.couponDiscount > 0) { %>
+            <div class="summary-row">
+              <span class="text-muted">Coupon Discount (<%= order.couponCode %>):</span>
+              <span class="text-success fw-semibold">-₹<%= Number(order.couponDiscount).toLocaleString() %></span>
+            </div>
+          <% } %>
+          <div class="summary-row">
+            <span class="text-muted">Shipping Charges:</span>
+            <span class="text-success fw-bold">FREE</span>
+          </div>
+          <div class="summary-row grand-total">
+            <span>Grand Total:</span>
+            <span>₹<%= Number(order.grandTotal).toLocaleString() %></span>
+          </div>
+          <div class="summary-row mt-2 pt-2 border-top">
+            <span class="fw-bold text-dark">Amount Paid:</span>
+            <span class="fw-bold text-success">₹<%= Number(order.amountPaid).toLocaleString() %> (PAID)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statutory MSME Exemption Notice -->
+    <div class="notice-banner mb-4">
+      <strong>MSME (Udyam) Registered Business Notice:</strong> 2AM Study Store is an MSME (Udyam) registered business. GST is not applicable on this invoice. This invoice serves as a valid proof of purchase.
+    </div>
+
+    <!-- Footer Notes -->
+    <div class="text-center pt-3 border-top text-muted small">
+      <p class="fw-bold text-dark mb-1">Thank you for shopping with 2AM Study Store! 🎓</p>
+      <p class="mb-1">MSME (Udyam) Registered | Website: https://2amstudy.online | Email: support@2amstudy.online | Phone: +91 6202225179</p>
+      <p class="mb-0 text-muted" style="font-size: 11px;">This is a computer-generated invoice and does not require a physical signature.</p>
+    </div>
+
+  </div>
+
+  <!-- Local QRCode Generator Script (No Google Charts Dependency) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const qrElement = document.getElementById('qrcodeCanvas');
+      if (qrElement && typeof QRCode !== 'undefined') {
+        const qrData = JSON.stringify({
+          orderId: "<%= order.orderId %>",
+          invoiceNo: "<%= order.invoiceNo %>",
+          url: "https://2amstudy.online/store/invoice/<%= order.orderId %>"
+        });
+        new QRCode(qrElement, {
+          text: qrData,
+          width: 82,
+          height: 82,
+          colorDark : "#0f172a",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

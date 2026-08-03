@@ -1,0 +1,299 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light d-flex align-items-center min-vh-100" style="padding-top: 100px !important;">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6 col-xl-5">
+        
+        <!-- Auth Card -->
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 28px;">
+              🔑
+            </div>
+            <h1 class="h3 fw-extrabold text-dark mb-1">Welcome Back</h1>
+            <p class="text-muted small">Log in to access your 2AM Study account & Student Safety Hub</p>
+          </div>
+
+          <!-- Alert Banners -->
+          <div id="auth-error-alert" class="alert alert-danger border-0 rounded-3 p-3 small mb-4 d-none">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
+              <span id="auth-error-msg">Failed to log in. Please check your credentials.</span>
+            </div>
+          </div>
+
+          <div id="auth-success-alert" class="alert alert-success border-0 rounded-3 p-3 small mb-4 d-none">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-circle-check text-success fs-5"></i>
+              <span>Logged in successfully! Redirecting...</span>
+            </div>
+          </div>
+
+          <!-- Login Form -->
+          <form id="loginForm" novalidate>
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="loginEmail" class="form-label fw-semibold text-dark small">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
+                <input type="email" class="form-control bg-light border-start-0 py-2" id="loginEmail" placeholder="student@university.edu" required>
+              </div>
+              <div class="invalid-feedback">Please enter a valid email address.</div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="loginPassword" class="form-label fw-semibold text-dark small mb-0">Password</label>
+                <a href="#" id="forgotPasswordBtn" class="text-primary text-decoration-none small">Forgot Password?</a>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                <input type="password" class="form-control bg-light border-start-0 py-2" id="loginPassword" placeholder="••••••••" required>
+              </div>
+              <div class="invalid-feedback">Please enter your password.</div>
+            </div>
+
+            <!-- Remember Me & Checkbox -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                <label class="form-check-label text-dark small" for="rememberMe">
+                  Remember me
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow-sm">
+              Log In
+            </button>
+          </form>
+
+          <div class="d-flex align-items-center my-4">
+            <hr class="flex-grow-1 my-0 opacity-25">
+            <span class="px-3 text-muted small fw-semibold">OR</span>
+            <hr class="flex-grow-1 my-0 opacity-25">
+          </div>
+
+          <!-- Google Sign-In Button -->
+          <button type="button" id="googleSignInBtn" class="btn btn-outline-secondary w-100 rounded-pill py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
+              <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
+              <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
+              <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <!-- Footer Link -->
+          <div class="text-center mt-4 pt-2">
+            <p class="text-muted small mb-0">
+              Don't have an account? <a href="/signup" class="text-primary fw-bold text-decoration-none">Sign Up</a>
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Firebase Auth Handler Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    sendPasswordResetEmail,
+    setPersistence,
+    browserLocalPersistence,
+    browserSessionPersistence,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const errorAlert = document.getElementById('auth-error-alert');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successAlert = document.getElementById('auth-success-alert');
+  const loginForm = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+  const googleBtn = document.getElementById('googleSignInBtn');
+  const forgotBtn = document.getElementById('forgotPasswordBtn');
+  const rememberMeCheck = document.getElementById('rememberMe');
+
+  // Check if already logged in via Firebase Auth source of truth
+  onAuthStateChanged(auth, (user) => {
+    if (user && !successAlert.classList.contains('redirecting')) {
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
+      window.location.href = redirectUrl;
+    }
+  });
+
+  // Upsert user doc in Firestore (respecting existing profile data)
+  const saveUserToFirestore = async (user) => {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          photoURL: user.photoURL || '',
+          college: '',
+          role: 'student',
+          emailVerified: user.emailVerified,
+          trustScore: 10,
+          badges: ['student_protector'],
+          reportsSubmitted: 0,
+          reportsSupported: 0,
+          status: 'active',
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp()
+        });
+      } else {
+        await updateDoc(userRef, {
+          emailVerified: user.emailVerified,
+          lastLoginAt: serverTimestamp()
+        });
+      }
+    } catch (e) {
+      console.warn("Firestore user sync warning:", e);
+    }
+  };
+
+  // Sync session details to localStorage UI cache
+  const syncLocalCache = (user) => {
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('user_id', user.uid);
+    localStorage.setItem('studentEmail', user.email || '');
+    localStorage.setItem('studentName', user.displayName || user.email.split('@')[0]);
+    localStorage.setItem('studentRegistered', 'true');
+  };
+
+  // Email/Password Login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    errorAlert.classList.add('d-none');
+    successAlert.classList.add('d-none');
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+      loginForm.classList.add('was-validated');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Logging in...`;
+
+    try {
+      // Remember me persistence
+      const persistence = rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      syncLocalCache(user);
+      await saveUserToFirestore(user);
+
+      successAlert.classList.add('redirecting');
+      successAlert.classList.remove('d-none');
+
+      setTimeout(() => {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
+        window.location.href = redirectUrl;
+      }, 800);
+
+    } catch (err) {
+      console.error("Login error:", err);
+      errorAlert.classList.remove('d-none');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        errorMsg.textContent = 'Invalid email or password. Please check your credentials.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMsg.textContent = 'Too many failed login attempts. Please try again later.';
+      } else {
+        errorMsg.textContent = err.message || 'An error occurred during login.';
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Log In';
+    }
+  });
+
+  // Google Sign-In
+  googleBtn.addEventListener('click', async () => {
+    errorAlert.classList.add('d-none');
+    const provider = new GoogleAuthProvider();
+
+    try {
+      const persistence = rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      syncLocalCache(user);
+      await saveUserToFirestore(user);
+
+      successAlert.classList.add('redirecting');
+      successAlert.classList.remove('d-none');
+
+      setTimeout(() => {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
+        window.location.href = redirectUrl;
+      }, 800);
+
+    } catch (err) {
+      console.error("Google auth error:", err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        errorAlert.classList.remove('d-none');
+        errorMsg.textContent = err.message || 'Google Sign-In failed.';
+      }
+    }
+  });
+
+  // Forgot Password
+  forgotBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) {
+      alert('Please enter your email address in the Email field above first.');
+      document.getElementById('loginEmail').focus();
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert(`Password reset link sent to ${email}. Please check your inbox.`);
+    } catch (err) {
+      alert(err.message || 'Could not send password reset email.');
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

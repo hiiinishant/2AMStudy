@@ -1,0 +1,320 @@
+<%- include('partials/header') %>
+
+<section class="py-5 bg-light pb-4" style="padding-top: 90px !important;">
+  <div class="container py-4">
+    <!-- Breadcrumb -->
+    <div class="mb-3">
+      <a href="/student-safety/cases" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1">
+        <i class="fa-solid fa-arrow-left"></i> Back to Active Community Cases
+      </a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">
+            🛡️ <%= caseData.platform || 'Other' %>
+          </span>
+          <% if (caseData.status === 'Resolved') { %>
+            <span class="badge bg-primary text-white px-3 py-1 rounded-pill small">
+              ✔ Resolved Case
+            </span>
+          <% } else { %>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 rounded-pill small">
+              🟢 Verified Case
+            </span>
+          <% } %>
+        </div>
+        <h1 class="display-6 fw-extrabold text-dark mb-1">
+          👤 <%= caseData.fakeUsername %>
+        </h1>
+        <p class="text-muted small mb-0">
+          🏫 <%= caseData.college || 'Verified Student Community' %> &nbsp;|&nbsp; 
+          <span class="fw-semibold text-secondary font-monospace">
+            <% if (caseData.anonymous) { %>
+              Reported by: Anonymous Student
+            <% } else { %>
+              Reported by: Verified Student
+            <% } %>
+          </span>
+        </p>
+      </div>
+
+      <div class="d-flex gap-2 align-items-center">
+        <button id="detailSupportBtn" class="btn btn-danger btn-lg rounded-pill px-4 shadow-sm fw-bold">
+          👍 Support Case (<span id="detailSupportCount"><%= caseData.supportCount || 0 %></span>)
+        </button>
+        <button id="detailShareBtn" class="btn btn-outline-secondary btn-lg rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+          <i class="fa-solid fa-share-nodes fs-5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container py-5">
+  <div class="row g-4">
+    <!-- Left Column: Case Information & Evidence -->
+    <div class="col-lg-8">
+      
+      <!-- 5-Stage Progress Timeline Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <h2 class="h6 fw-bold text-dark text-uppercase mb-4">Case Resolution Progress</h2>
+        
+        <div class="progress-timeline d-flex justify-content-between position-relative text-center">
+          <div class="timeline-line position-absolute top-50 start-0 w-100 translate-middle-y bg-light" style="height: 4px; z-index: 1;"></div>
+          <div class="timeline-progress position-absolute top-50 start-0 translate-middle-y bg-success" style="height: 4px; z-index: 2; width: <%= caseData.status === 'Resolved' ? '100%' : '75%' %>;"></div>
+
+          <!-- Step 1: Submitted -->
+          <div class="timeline-step position-relative z-3 bg-white px-2">
+            <div class="step-icon rounded-circle bg-success text-white mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 38px; height: 38px;">✓</div>
+            <div class="step-label small fw-bold text-dark">Submitted</div>
+          </div>
+
+          <!-- Step 2: Under Review -->
+          <div class="timeline-step position-relative z-3 bg-white px-2">
+            <div class="step-icon rounded-circle bg-success text-white mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 38px; height: 38px;">✓</div>
+            <div class="step-label small fw-bold text-dark">Under Review</div>
+          </div>
+
+          <!-- Step 3: Verified -->
+          <div class="timeline-step position-relative z-3 bg-white px-2">
+            <div class="step-icon rounded-circle bg-success text-white mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 38px; height: 38px;">✓</div>
+            <div class="step-label small fw-bold text-dark">Verified</div>
+          </div>
+
+          <!-- Step 4: Community Support -->
+          <div class="timeline-step position-relative z-3 bg-white px-2">
+            <div class="step-icon rounded-circle <%= caseData.status === 'Resolved' ? 'bg-success text-white' : 'bg-danger text-white pulse-badge' %> mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 38px; height: 38px;">
+              <%= caseData.status === 'Resolved' ? '✓' : '👍' %>
+            </div>
+            <div class="step-label small fw-bold text-dark">Community Support</div>
+          </div>
+
+          <!-- Step 5: Resolved -->
+          <div class="timeline-step position-relative z-3 bg-white px-2">
+            <div class="step-icon rounded-circle <%= caseData.status === 'Resolved' ? 'bg-success text-white' : 'bg-light text-muted border' %> mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 38px; height: 38px;">
+              <%= caseData.status === 'Resolved' ? '✓' : '5' %>
+            </div>
+            <div class="step-label small fw-bold <%= caseData.status === 'Resolved' ? 'text-dark' : 'text-muted' %>">Resolved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Main Details Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
+        <h2 class="h5 fw-bold text-dark mb-4">Case Details & Evidence</h2>
+
+        <div class="row g-4 mb-4">
+          <div class="col-md-12">
+            <label class="small text-muted fw-bold text-uppercase d-block">Reported Fake Profile</label>
+            <a href="<%= caseData.fakeProfileUrl %>" target="_blank" class="fw-bold text-danger fs-5 text-break">
+              <%= caseData.fakeProfileUrl %> <i class="fa-solid fa-arrow-up-right-from-square fs-6 ms-1"></i>
+            </a>
+          </div>
+
+          <% if (caseData.realProfileUrl) { %>
+            <div class="col-md-12">
+              <label class="small text-muted fw-bold text-uppercase d-block">Genuine Student Profile</label>
+              <a href="<%= caseData.realProfileUrl %>" target="_blank" class="fw-bold text-success text-break">
+                <%= caseData.realProfileUrl %> <i class="fa-solid fa-arrow-up-right-from-square fs-6 ms-1"></i>
+              </a>
+            </div>
+          <% } %>
+
+          <div class="col-md-6">
+            <label class="small text-muted fw-bold text-uppercase d-block">Impersonation Reason</label>
+            <div class="badge bg-light text-dark border fs-6 mt-1 px-3 py-2 rounded-pill"><%= caseData.reason %></div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="small text-muted fw-bold text-uppercase d-block">College / Institution</label>
+            <div class="text-dark fw-semibold mt-1"><%= caseData.college || 'Verified Student Community' %></div>
+          </div>
+
+          <div class="col-md-12">
+            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Issue Description</label>
+            <div class="p-3 bg-light rounded-3 text-dark lh-base border"><%= caseData.description %></div>
+          </div>
+        </div>
+
+        <!-- Evidence Section -->
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">Verified Attachments</h3>
+        <div class="row g-3">
+          <% if (Array.isArray(caseData.evidence) && caseData.evidence.length > 0) { %>
+            <% caseData.evidence.forEach(function(ev, idx) { %>
+              <% const url = typeof ev === 'object' ? ev.url : ev; %>
+              <% const isPdf = typeof ev === 'object' ? ev.type === 'pdf' : (url.includes('.pdf') || url.includes('pdf')); %>
+              <div class="col-6 col-md-4">
+                <% if (isPdf) { %>
+                  <a href="<%= url %>" target="_blank" class="card h-100 text-decoration-none p-3 text-center bg-light border shadow-sm rounded-3">
+                    <i class="fa-solid fa-file-pdf fs-1 text-danger mb-2"></i>
+                    <span class="small fw-bold text-dark text-truncate">PDF Evidence #<%= idx + 1 %></span>
+                    <span class="badge bg-primary mt-2 small">View Cloudinary File</span>
+                  </a>
+                <% } else { %>
+                  <a href="<%= url %>" target="_blank" class="d-block card border-0 shadow-sm rounded-3 overflow-hidden">
+                    <img src="<%= url %>" class="img-fluid" style="height: 150px; object-fit: cover;" alt="Evidence #<%= idx + 1 %>">
+                    <div class="p-2 bg-light text-center small text-muted">Cloudinary Attachment #<%= idx + 1 %></div>
+                  </a>
+                <% } %>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <p class="text-muted small">No evidence attachments available.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Sidebar & Actions -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">Community Shield Action</h3>
+        <p class="text-muted small mb-4">
+          By supporting this case, you help signal to platforms and administrators that this impersonation account is actively harming students.
+        </p>
+
+        <button id="sidebarSupportBtn" class="btn btn-danger btn-lg w-100 rounded-pill fw-bold shadow-sm mb-3">
+          👍 Support This Case
+        </button>
+
+        <div class="alert alert-success border-0 rounded-3 p-3 small mb-0 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-circle-check text-success fs-5"></i>
+          <div>Admin Verified on <%= caseData.updatedAt ? new Date(caseData.updatedAt).toLocaleDateString() : 'Recent' %></div>
+        </div>
+      </div>
+
+      <!-- Reporter Privacy Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-2">🔒 Privacy Protection</h3>
+        <p class="text-muted small mb-0 lh-base">
+          2AM Study protects the identity of student reporters. Personal contact information and account UIDs are never displayed publicly.
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
+    authDomain: "am-study-7ea87.firebaseapp.com",
+    projectId: "am-study-7ea87",
+    storageBucket: "am-study-7ea87.firebasestorage.app",
+    messagingSenderId: "270924691236",
+    appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
+  };
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (err) {
+    console.error("Firebase init error:", err);
+  }
+
+  const caseId = "<%= caseData.caseId %>";
+
+  const checkUserLoggedIn = () => {
+    if (typeof window.isLoggedIn === 'function') {
+      return window.isLoggedIn();
+    }
+    return localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+  };
+
+  const getUserId = () => {
+    return localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || ('USER-' + Math.random().toString(36).substring(2, 9));
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const supportBtns = [document.getElementById('detailSupportBtn'), document.getElementById('sidebarSupportBtn')];
+    const shareBtn = document.getElementById('detailShareBtn');
+
+    supportBtns.forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          if (!checkUserLoggedIn()) {
+            if (typeof window.showWindow === 'function') {
+              window.showWindow({
+                title: 'Login Required',
+                message: 'Please register/login first to support this case.',
+                type: 'warning'
+              });
+            } else {
+              alert('Please login first to support this case.');
+            }
+            return;
+          }
+
+          const userId = getUserId();
+
+          btn.disabled = true;
+          btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
+
+          try {
+            const res = await fetch(`/student-safety/cases/${caseId}/support`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: userId })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+              alert(data.message || 'Support action failed.');
+              btn.disabled = false;
+              btn.innerText = '👍 Support Case';
+              return;
+            }
+
+            document.getElementById('detailSupportCount').innerText = data.supportCount;
+            supportBtns.forEach(b => {
+              if (b) {
+                b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+                b.innerText = '👍 Supported';
+                b.disabled = true;
+              }
+            });
+
+            if (typeof window.showWindow === 'function') {
+              window.showWindow({
+                title: 'Thank You!',
+                message: '✅ Thank you! You supported this case.',
+                type: 'success'
+              });
+            } else {
+              alert('✅ Thank you! You supported this case.');
+            }
+
+          } catch (err) {
+            console.error("Support error:", err);
+            alert('An error occurred while supporting this case.');
+            btn.disabled = false;
+            btn.innerText = '👍 Support Case';
+          }
+        });
+      }
+    });
+
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        if (navigator.share) {
+          navigator.share({
+            title: '2AM Study - Student Identity Shield',
+            text: 'Help support this verified student impersonation case:',
+            url: window.location.href
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

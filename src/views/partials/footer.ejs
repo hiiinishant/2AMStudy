@@ -485,6 +485,16 @@
     flex: 1 0 auto;
   }
 
+  /* Student Safety & other pages: hero section + main are direct body children.
+     Give ALL direct body sections grow so footer is always pushed down. */
+  body > section {
+    flex: 1 0 auto;
+  }
+  body > main {
+    flex: 1 0 auto;
+  }
+
+
   body>footer.site-footer {
     flex-shrink: 0;
   }
@@ -653,10 +663,11 @@
           <li class="footer-link-item"><i class="fa-solid fa-calendar-check"></i><a href="/tasks">Academic Planner</a>
           </li>
           <li class="footer-link-item"><i class="fa-solid fa-brain"></i><a href="/study-tools">Flashcard Hub</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-clock"></i><a href="/clock">Digital Clock</a></li>
           <li class="footer-link-item"><i class="fa-solid fa-graduation-cap"></i><a href="/college-student">Student
               Support</a></li>
           <li class="footer-link-item"><i class="fa-solid fa-store"></i><a href="/store">Student Store</a></li>
+          <li class="footer-link-item"><i class="fa-solid fa-shield-halved"></i><a href="/student-safety">Student Safety</a></li>
+          <li class="footer-link-item"><i class="fa-solid fa-book-open-reader"></i><a href="/resources">Exam Resource Center</a></li>
         </ul>
       </div>
 

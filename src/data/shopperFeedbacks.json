@@ -1,0 +1,32 @@
+[
+  {
+    "id": "fb-1",
+    "name": "Meera P.",
+    "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&q=80&fm=webp",
+    "rating": 5,
+    "comment": "My smart bottle keeps water ice-cold for 18 hours during long library sessions. Highly recommended!",
+    "product": "Smart Thermal Bottle",
+    "verified": true,
+    "date": "2026-03-28"
+  },
+  {
+    "id": "fb-2",
+    "name": "Nishu Sharma",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&q=80&fm=webp",
+    "rating": 5,
+    "comment": "Notebook paper quality is top-notch. Thick pages that don't bleed through even with fountain pens.",
+    "product": "Premium Grid Notebook",
+    "verified": true,
+    "date": "2026-03-25"
+  },
+  {
+    "id": "fb-3",
+    "name": "Tanvi R.",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&q=80&fm=webp",
+    "rating": 5,
+    "comment": "Spacious and super comfortable to carry. Easily holds my laptop, chargers, and heavy books every day.",
+    "product": "Ergonomic Study Bag",
+    "verified": true,
+    "date": "2026-03-20"
+  }
+]
