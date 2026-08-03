@@ -1,0 +1,26 @@
+[
+  {
+    "caseId": "CASE-0F7373FC",
+    "userId": "USER-6ikp6f6",
+    "platform": "Instagram",
+    "fakeUsername": "@huii",
+    "fakeProfileUrl": "https://www.instagram.com/2amstudyofficial/",
+    "realProfileUrl": "",
+    "reason": "Impersonating me",
+    "description": "problem",
+    "college": "",
+    "evidence": [
+      {
+        "url": "https://res.cloudinary.com/2amstudy/image/upload/v1785762720/student-safety/case_1785762720477_6b76eb.png",
+        "publicId": "student-safety/case_1785762720477_6b76eb",
+        "type": "image",
+        "uploadedAt": "2026-08-03T13:12:00.487Z"
+      }
+    ],
+    "anonymous": false,
+    "status": "Pending Review",
+    "supportCount": 0,
+    "createdAt": "2026-08-03T13:12:00.491Z",
+    "updatedAt": "2026-08-03T13:12:00.491Z"
+  }
+]

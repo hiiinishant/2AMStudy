@@ -1,0 +1,13 @@
+[
+  {
+    "notificationId": "NOTIF-A9E65940",
+    "userId": "USER-6ikp6f6",
+    "caseId": "CASE-0F7373FC",
+    "title": "Report Submitted",
+    "type": "info",
+    "message": "Your fake profile report (Case CASE-0F7373FC) has been received. Our moderation team will review it within 24–48 hours.",
+    "isRead": false,
+    "read": false,
+    "createdAt": "2026-08-03T13:12:00.513Z"
+  }
+]
