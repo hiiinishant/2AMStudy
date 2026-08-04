@@ -354,7 +354,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -425,6 +425,12 @@
     loadCases();
     loadAuditLogs();
     loadNotifAnalytics();
+
+    // Auto-refresh cases & analytics every 30 seconds for live report updates
+    setInterval(() => {
+      loadCases();
+      loadNotifAnalytics();
+    }, 30000);
   }
 
   // ── Load Notification Analytics & Logs ──
@@ -850,13 +856,25 @@
         return;
       }
 
-      // Firestore audit log
+      // Firestore audit log & status sync
       try {
         await addDoc(collection(db, 'studentSafetyModerationLogs'), {
           caseId, moderatorUid, moderatorName, action,
           reason: note || (action + ' action'),
           createdAt: serverTimestamp()
         });
+
+        // Sync status update to Firestore collection if available
+        if (db && result.status && result.status !== 'Deleted') {
+          const q = query(collection(db, 'studentSafetyCases'), where('caseId', '==', caseId));
+          const fsSnap = await getDocs(q);
+          fsSnap.forEach(async (dDoc) => {
+            await updateDoc(doc(db, 'studentSafetyCases', dDoc.id), {
+              status: result.status,
+              updatedAt: serverTimestamp()
+            });
+          });
+        }
       } catch (_) {}
 
       bootstrap.Modal.getOrCreateInstance(document.getElementById('actionConfirmModal')).hide();

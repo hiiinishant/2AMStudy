@@ -251,11 +251,12 @@
     }
 
     // Fetch user cases from server API
+    const userEmail = localStorage.getItem('studentEmail') || localStorage.getItem('userEmail') || '';
     let myCases = [];
     try {
       const casesRes = await fetch('/api/student-safety/cases');
       const casesData = await casesRes.json();
-      myCases = (casesData.cases || []).filter(c => c.userId === userId);
+      myCases = (casesData.cases || []).filter(c => c.userId === userId || (userEmail && c.reporterEmail === userEmail));
 
       // Also try Firestore for real-time data
       if (db) {
@@ -264,7 +265,7 @@
           const fsCases = [];
           snap.forEach(doc => {
             const d = doc.data();
-            if (d.userId === userId) fsCases.push({ docId: doc.id, ...d });
+            if (d.userId === userId || (userEmail && d.reporterEmail === userEmail)) fsCases.push({ docId: doc.id, ...d });
           });
           if (fsCases.length > 0) {
             const map = new Map();
