@@ -1,5 +1,5 @@
 {
-  "name": "student-ngo-backend",
+  "name": "2amstudy",
   "version": "1.0.0",
   "description": "Node.js + Nodemailer backend for the NGO website",
   "main": "src/server.js",

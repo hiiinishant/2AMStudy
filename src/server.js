@@ -16,35 +16,39 @@ require('dotenv').config();
 // Initialises only if FIREBASE_SERVICE_ACCOUNT env var is set (JSON string) or
 // GOOGLE_APPLICATION_CREDENTIALS points to a service account file.
 // The app runs fine without it — inventory falls back to in-memory + storeInvoicesMap.
+let firebaseAdmin = null;
 let firestoreDb = null;
 try {
-  const admin = require('firebase-admin');
-  const getApps = () => (Array.isArray(admin.apps) ? admin.apps : (typeof admin.getApps === 'function' ? admin.getApps() : []));
+  firebaseAdmin = require('firebase-admin');
+  const getApps = () => (Array.isArray(firebaseAdmin.apps) ? firebaseAdmin.apps : (typeof firebaseAdmin.getApps === 'function' ? firebaseAdmin.getApps() : []));
   let existingApps = getApps();
   if (existingApps.length === 0) {
     const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (serviceAccountEnv) {
-      admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(serviceAccountEnv))
+      firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.credential.cert(JSON.parse(serviceAccountEnv))
       });
     } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault()
+      firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.credential.applicationDefault()
       });
     } else {
       console.warn('[Firebase Admin] No credentials found — Firestore inventory disabled. Set FIREBASE_SERVICE_ACCOUNT or GOOGLE_APPLICATION_CREDENTIALS to enable.');
     }
     existingApps = getApps();
     if (existingApps.length > 0) {
-      firestoreDb = admin.firestore();
+      firestoreDb = firebaseAdmin.firestore();
       console.log('[Firebase Admin] Firestore connected — atomic inventory enabled.');
     }
   } else {
-    firestoreDb = admin.firestore();
+    firestoreDb = firebaseAdmin.firestore();
   }
 } catch (e) {
   console.warn('[Firebase Admin] Initialization warning:', e.message);
 }
+
+const { createFirebaseAuthMiddleware } = require('./middleware/firebaseAuth');
+const { verifyFirebaseToken, requireAdmin, requireSelfOrAdmin } = createFirebaseAuthMiddleware(firebaseAdmin, firestoreDb);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Student Safety cases JSON persistence
@@ -636,6 +640,138 @@ app.get('/student-safety/admin', (req, res) => {
   });
 });
 
+// ===== Student Safety helpers =====
+function normalizeProfileUrl(urlStr) {
+  if (!urlStr) return '';
+  return urlStr.trim().toLowerCase().replace(/\/+$/, '');
+}
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return String(forwarded).split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function sanitizeCaseForOwner(caseObj) {
+  const copy = { ...caseObj };
+  if (copy.anonymous) {
+    delete copy.reporterEmail;
+  }
+  return copy;
+}
+
+function sanitizeCaseForPublic(caseObj) {
+  return {
+    caseId: caseObj.caseId,
+    platform: caseObj.platform,
+    fakeUsername: caseObj.fakeUsername,
+    fakeProfileUrl: caseObj.fakeProfileUrl,
+    realProfileUrl: caseObj.realProfileUrl || '',
+    reason: caseObj.reason,
+    description: caseObj.description,
+    college: caseObj.college || '',
+    evidence: caseObj.evidence || [],
+    anonymous: caseObj.anonymous,
+    status: caseObj.status,
+    supportCount: caseObj.supportCount || 0,
+    createdAt: caseObj.createdAt,
+    updatedAt: caseObj.updatedAt,
+    moderatorNote: caseObj.moderatorNote || '',
+    rejectionReason: caseObj.rejectionReason || ''
+  };
+}
+
+function migrateSupportsOnMerge(sourceCaseId, targetCaseId) {
+  let changed = false;
+  studentSafetySupports.forEach(s => {
+    if (s.caseId === sourceCaseId) {
+      s.caseId = targetCaseId;
+      s.mergedFrom = sourceCaseId;
+      s.updatedAt = new Date().toISOString();
+      changed = true;
+    }
+  });
+  if (changed) saveStudentSafetySupports();
+}
+
+function notifyReporterForModerationAction(targetCase, action, note) {
+  if (!targetCase?.userId) return;
+
+  const caseId = targetCase.caseId;
+  const notifTypeMap = {
+    approve: 'success', reject: 'error', request_evidence: 'warning',
+    resolve: 'success', reopen: 'info'
+  };
+  const notifTitleMap = {
+    approve: '✅ Report Approved & Verified',
+    reject: '❌ Report Rejected',
+    request_evidence: '📩 More Evidence Needed',
+    resolve: '🎉 Case Resolved',
+    reopen: '🔄 Case Reopened'
+  };
+  const notificationMsgMap = {
+    approve: `Your impersonation report (Case ${caseId}) has been approved & verified by our moderation team.`,
+    reject: `Your impersonation report (Case ${caseId}) was reviewed and rejected. Reason: ${note || targetCase.rejectionReason || 'Insufficient evidence'}`,
+    request_evidence: `Action required on Case ${caseId}: Our moderation team requested additional evidence. Note: ${note || targetCase.moderatorNote || ''}`,
+    resolve: `Great news! Case ${caseId} has been officially marked as resolved. Thank you for keeping 2AM Study safe.`,
+    reopen: `Case ${caseId} has been reopened for moderation review.`
+  };
+
+  const notif = {
+    notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+    userId: targetCase.userId,
+    caseId,
+    title: notifTitleMap[action] || 'Case Update',
+    type: notifTypeMap[action] || 'info',
+    message: notificationMsgMap[action] || `Case ${caseId} status updated.`,
+    isRead: false,
+    read: false,
+    createdAt: new Date().toISOString()
+  };
+  studentSafetyNotifications.unshift(notif);
+  saveNotifications();
+
+  const emailTemplates = {
+    approve: { subject: `[2AM Study] Case ${caseId} Verified ✅`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">✅ Your report has been verified!</h2><p>Case <strong>${caseId}</strong> has been reviewed and approved by our moderation team. It is now publicly visible for community support.</p><a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:#1e40af;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:16px;">View Your Case</a><p style="color:#64748b;font-size:13px;margin-top:24px;">Thank you for making 2AM Study safer.</p></div>` },
+    reject: { subject: `[2AM Study] Case ${caseId} Update`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#dc2626;">Case Review Update</h2><p>Case <strong>${caseId}</strong> could not be verified at this time.</p><p><strong>Reason:</strong> ${note || targetCase.rejectionReason || 'Insufficient evidence'}</p><p>If you believe this is an error, you may submit a new report with additional evidence.</p></div>` },
+    request_evidence: { subject: `[2AM Study] Action Required — Case ${caseId}`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#d97706;">📩 Additional Evidence Required</h2><p>Our team is reviewing Case <strong>${caseId}</strong> and needs more information to proceed.</p><p><strong>Moderator Note:</strong> ${note || targetCase.moderatorNote || 'Please provide additional proof or ID verification.'}</p></div>` },
+    resolve: { subject: `[2AM Study] Case ${caseId} Resolved 🎉`, body: `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;"><h2 style="color:#16a34a;">🎉 Case Resolved!</h2><p>Great news! Case <strong>${caseId}</strong> has been officially resolved. Thank you for helping keep 2AM Study safe.</p></div>` }
+  };
+
+  if (action === 'approve') {
+    dispatchSmartNotification({
+      userId: targetCase.userId,
+      userEmail: targetCase.reporterEmail,
+      caseId,
+      title: `[2AM Study] Case ${caseId} Verified ✅`,
+      message: `Your report for ${targetCase.fakeUsername || 'fake profile'} has been verified by our moderation team.`,
+      targetUrl: `/student-safety#${caseId}`
+    });
+  } else if (emailTemplates[action]) {
+    sendSafetyEmail(targetCase.reporterEmail || null, emailTemplates[action].subject, emailTemplates[action].body);
+  }
+
+  if (action === 'resolve' || action === 'reject') {
+    const supporters = studentSafetySupports.filter(s => s.caseId === caseId);
+    supporters.forEach(supporter => {
+      if (supporter.userId === targetCase.userId) return;
+      studentSafetyNotifications.unshift({
+        notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+        userId: supporter.userId,
+        caseId,
+        title: action === 'resolve' ? '🎉 Supported Case Resolved' : '❌ Supported Case Closed',
+        type: action === 'resolve' ? 'success' : 'info',
+        message: action === 'resolve'
+          ? `A case you supported (${caseId}) has been officially resolved. Thank you for your community support!`
+          : `A case you supported (${caseId}) has been reviewed and closed.`,
+        isRead: false, read: false,
+        createdAt: new Date().toISOString()
+      });
+    });
+    saveNotifications();
+  }
+}
+
 // ===== Step 5: Email Notification Helper (nodemailer) =====
 async function sendSafetyEmail(to, subject, html) {
   if (!to || !process.env.SMTP_USER) return; // Silently skip if no email or SMTP config
@@ -696,22 +832,17 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
           uploadedAt: new Date().toISOString()
         };
       }
+      throw new Error(data.error?.message || 'Cloudinary upload returned no URL.');
     } catch (err) {
-      console.warn("Direct Cloudinary API upload warning:", err);
+      console.warn("Direct Cloudinary API upload warning:", err.message || err);
+      throw new Error('Evidence upload failed. Please try again in a moment.');
     }
   }
 
-  // Secure Cloudinary URL format
-  const cUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${Math.floor(Date.now() / 1000)}/${publicId}.${ext}`;
-  return {
-    url: cUrl,
-    publicId: publicId,
-    type: isPdf ? 'pdf' : 'image',
-    uploadedAt: new Date().toISOString()
-  };
+  throw new Error('Evidence upload is not configured. Please contact support.');
 }
 
-app.post('/student-safety/report', async (req, res) => {
+app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
   uploadEvidence(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
@@ -734,9 +865,7 @@ app.post('/student-safety/report', async (req, res) => {
       description,
       college,
       anonymous,
-      truthConfirmed,
-      userId,
-      reporterEmail
+      truthConfirmed
     } = req.body;
 
     if (!platform || !fakeUsername || !fakeProfileUrl || !reason || !description) {
@@ -760,9 +889,10 @@ app.post('/student-safety/report', async (req, res) => {
       });
     }
 
-    const finalUserId = userId || req.session?.userId || ('USER-' + Math.random().toString(36).substring(2, 9));
+    const finalUserId = req.firebaseUid;
+    const reporterEmail = req.firebaseEmail || null;
 
-    // Rate Limiting Check (Maximum 3 reports per user per day)
+    // Rate Limiting Check (Maximum 3 reports per verified user per day)
     const now = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
     const userRecentReports = studentSafetyCases.filter(c => {
@@ -779,35 +909,44 @@ app.post('/student-safety/report', async (req, res) => {
       });
     }
 
-    // Duplicate Profile URL Check
-    const normalizeUrl = (urlStr) => {
-      if (!urlStr) return '';
-      return urlStr.trim().toLowerCase().replace(/\/+$/, '');
-    };
-
-    const targetUrl = normalizeUrl(fakeProfileUrl);
-    const existingCase = studentSafetyCases.find(c => normalizeUrl(c.fakeProfileUrl) === targetUrl);
+    const targetUrl = normalizeProfileUrl(fakeProfileUrl);
+    const existingCase = studentSafetyCases.find(c => {
+      if (normalizeProfileUrl(c.fakeProfileUrl) !== targetUrl) return false;
+      return c.status !== 'Rejected';
+    });
 
     if (existingCase) {
+      const isPublic = existingCase.status === 'Verified' || existingCase.status === 'Resolved';
       return res.status(409).json({
         success: false,
         isDuplicate: true,
         existingCaseId: existingCase.caseId,
-        message: 'This profile has already been reported. Would you like to support the existing case instead?'
+        existingCaseStatus: existingCase.status,
+        existingCasePublic: isPublic,
+        message: isPublic
+          ? 'This profile has already been reported. Would you like to support the existing case instead?'
+          : 'This profile has already been reported and is under review. Track it in My Reports.'
       });
     }
 
-    // Process files through Cloudinary Uploader (Cloudinary URLs, no Base64 strings in DB)
-    const structuredEvidence = await Promise.all(
-      req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
-    );
+    let structuredEvidence;
+    try {
+      structuredEvidence = await Promise.all(
+        req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
+      );
+    } catch (uploadErr) {
+      return res.status(502).json({
+        success: false,
+        message: uploadErr.message || 'Evidence upload failed. Please try again.'
+      });
+    }
 
     const generatedCaseId = 'CASE-' + uuidv4().substring(0, 8).toUpperCase();
 
     const newCase = {
       caseId: generatedCaseId,
       userId: finalUserId,
-      reporterEmail: reporterEmail || req.body.email || req.session?.email || null,
+      reporterEmail: reporterEmail,
       platform: platform,
       fakeUsername: fakeUsername,
       fakeProfileUrl: fakeProfileUrl,
@@ -826,7 +965,6 @@ app.post('/student-safety/report', async (req, res) => {
     studentSafetyCases.unshift(newCase);
     saveStudentSafetyCases();
 
-    // Step 5: Create "Report Submitted" notification
     const submitNotif = {
       notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
       userId: finalUserId,
@@ -841,10 +979,8 @@ app.post('/student-safety/report', async (req, res) => {
     studentSafetyNotifications.unshift(submitNotif);
     saveNotifications();
 
-    // Step 5: Send submission confirmation email (fire-and-forget)
-    const emailToNotify = reporterEmail || req.body.email || req.session?.email || null;
     sendSafetyEmail(
-      emailToNotify,
+      reporterEmail,
       `[2AM Study] Report Submitted — Case ${generatedCaseId}`,
       `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;">
         <h2 style="color:#1e40af;">🛡️ Report Received</h2>
@@ -864,7 +1000,7 @@ app.post('/student-safety/report', async (req, res) => {
       return res.json({
         success: true,
         caseId: generatedCaseId,
-        case: newCase,
+        case: sanitizeCaseForOwner(newCase),
         message: '✅ Report Submitted Successfully\n\nOur moderation team will review your report within 24–48 hours.\n\nStatus: Pending Review'
       });
     }
