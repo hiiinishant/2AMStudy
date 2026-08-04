@@ -159,6 +159,13 @@
     if (toSignup) toSignup.href = '/signup?redirect=' + encodeURIComponent(safeRedirectUrl);
   }
 
+  // Instant redirect if already logged in locally (zero flash of login form)
+  const isAlreadyLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+  if (isAlreadyLoggedIn) {
+    window.location.href = safeRedirectUrl;
+    return;
+  }
+
   // Check if already logged in via Firebase Auth source of truth
   onAuthStateChanged(auth, (user) => {
     if (user && !successAlert.classList.contains('redirecting')) {
