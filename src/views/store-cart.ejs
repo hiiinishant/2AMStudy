@@ -605,13 +605,24 @@ function renderCart() {
   if (mobBar) mobBar.style.display = 'flex';
 }
 
-function proceedToCheckout() {
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
-  if (!isLoggedIn) {
+async function proceedToCheckout() {
+  if (cartItems.length === 0) return;
+
+  // Use server session as single source of truth for auth — never trust localStorage alone
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    const data = await res.json();
+    if (!data || !data.loggedIn) {
+      window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
+      return;
+    }
+  } catch(e) {
+    // Network error — fall back to login to be safe
     window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
-  } else {
-    window.location.href = '/store/order-summary';
+    return;
   }
+
+  window.location.href = '/store/order-summary';
 }
 
 loadCart();

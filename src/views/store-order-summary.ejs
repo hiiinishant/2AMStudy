@@ -465,7 +465,7 @@ body {
         <div style="border-top: 1px dashed var(--order-border); padding-top: 16px; margin-bottom: 16px;">
           <div class="promo-code" style="margin-bottom: 5px;">
             <input type="text" class="promo-input" id="couponInput" placeholder="Enter Coupon Code" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon('desktop');}">
-            <button type="button" class="promo-btn" onclick="applyCoupon('desktop')">Apply</button>
+            <button type="button" class="promo-btn" id="couponApplyBtn" onclick="applyCoupon('desktop')">Apply</button>
           </div>
           <div id="couponMessage" style="font-size: 0.85rem; margin-top: 4px; display: none;"></div>
         </div>
@@ -741,10 +741,19 @@ function showCouponSuccess(data, source = 'desktop') {
 async function applyCoupon(source = 'desktop') {
   const inputId = source === 'mobile' ? 'couponInput2' : 'couponInput';
   const msgId = source === 'mobile' ? 'couponMessage2' : 'couponMessage';
+  const btnId = source === 'mobile' ? 'couponApplyBtn2' : 'couponApplyBtn';
   const input = document.getElementById(inputId) || document.getElementById('couponInput');
   const msg = document.getElementById(msgId) || document.getElementById('couponMessage');
+  const applyBtn = document.getElementById(btnId);
   const code = input ? input.value.trim() : '';
-  if (!code) { if(msg) { msg.textContent = 'Enter a coupon code first.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; } return; }
+  if (!code) {
+    if (msg) { msg.textContent = 'Enter a coupon code first.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+    return;
+  }
+
+  // Show pending state — block button while validating
+  if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = '...'; }
+  if (msg) { msg.textContent = 'Validating…'; msg.style.color = 'var(--order-text-muted)'; msg.style.display = 'block'; }
 
   try {
     const res = await fetch(`/store/api/store/checkout/coupon`, {
@@ -760,9 +769,8 @@ async function applyCoupon(source = 'desktop') {
       updateSummary();
     } else {
       appliedCouponData = null;
-      try {
-        await fetch(`/store/api/store/checkout/coupon`, { method: 'DELETE', credentials: 'include' });
-      } catch(e) {}
+      try { await fetch(`/store/api/store/checkout/coupon`, { method: 'DELETE', credentials: 'include' }); } catch(e) {}
+      // Keep code visible — just show error below input
       if (msg) { msg.textContent = data.error || 'Invalid coupon.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
       updateSummary();
     }
@@ -770,6 +778,8 @@ async function applyCoupon(source = 'desktop') {
     appliedCouponData = null;
     if (msg) { msg.textContent = 'Could not apply coupon. Try again.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
     updateSummary();
+  } finally {
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
   }
 }
 
@@ -806,21 +816,46 @@ async function proceedToCheckout() {
 
   if (hasEmpty) { alert('Please fill in all mandatory address details (marked with *) before proceeding.'); return; }
 
-  // Flipkart-style: Auto-apply typed coupon on Proceed to Pay
-  const couponInputEl = document.getElementById('couponInput');
-  const typedCoupon = couponInputEl ? couponInputEl.value.trim() : '';
-  if (typedCoupon) {
-    if (!appliedCouponData || appliedCouponData.code.toUpperCase() !== typedCoupon.toUpperCase()) {
-      await applyCoupon('desktop');
-      if (!appliedCouponData) {
-        // If typed coupon is invalid, clear invalid input and proceed smoothly with standard checkout
-        await removeCoupon();
+  // Disable Proceed button while processing
+  const proceedBtns = document.querySelectorAll('[onclick*="proceedToCheckout"]');
+  proceedBtns.forEach(b => { b.disabled = true; b.textContent = 'Processing…'; });
+
+  try {
+    // Revalidate coupon server-side to prevent stale discounts
+    const couponInputEl = document.getElementById('couponInput');
+    const typedCoupon = couponInputEl ? couponInputEl.value.trim() : '';
+    if (typedCoupon) {
+      if (!appliedCouponData || appliedCouponData.code.toUpperCase() !== typedCoupon.toUpperCase()) {
+        await applyCoupon('desktop');
+        if (!appliedCouponData) {
+          const msg = document.getElementById('couponMessage');
+          if (msg) { msg.textContent = 'Coupon is invalid. Remove it or enter a valid code to continue.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+          return;
+        }
+      } else {
+        // Re-verify existing coupon with server (prevent stale discount)
+        try {
+          const recheck = await fetch('/store/api/store/checkout/coupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: appliedCouponData.code }),
+            credentials: 'include'
+          });
+          const recheckData = await recheck.json();
+          if (!recheckData.success) {
+            appliedCouponData = null;
+            const msg = document.getElementById('couponMessage');
+            if (msg) { msg.textContent = 'Your coupon is no longer valid. Proceeding without discount.'; msg.style.color = '#f59e0b'; msg.style.display = 'block'; }
+            updateSummary();
+          } else {
+            appliedCouponData = recheckData;
+            updateSummary();
+          }
+        } catch(e) { /* network error — proceed with existing coupon */ }
       }
     }
-  }
 
-  // Submit address to server for validation + session save
-  try {
+    // Submit address to server for validation + session save
     const res = await fetch(`/store/api/store/checkout/address`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -835,6 +870,8 @@ async function proceedToCheckout() {
   } catch(e) {
     alert('Network error. Please try again.');
     return;
+  } finally {
+    proceedBtns.forEach(b => { b.disabled = false; b.textContent = 'PROCEED TO PAY'; });
   }
 
   window.location.href = '/store/payment';

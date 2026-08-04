@@ -319,38 +319,67 @@ body {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const lastOrder = JSON.parse(localStorage.getItem('2am_last_order') || 'null');
+let currentOrderName = 'Happy Customer';
+let currentOrderId = null;
+const ratings = {};
+
+document.addEventListener('DOMContentLoaded', async function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  currentOrderId = urlParams.get('order_id') || '<%= orderId %>';
+
+  let lastOrder = null;
+
+  // ── Always fetch from server first (source of truth) ──
+  if (currentOrderId) {
+    try {
+      const res = await fetch('/api/store/orders/' + encodeURIComponent(currentOrderId), { credentials: 'include' });
+      const data = await res.json();
+      if (data && data.success && data.order) {
+        lastOrder = data.order;
+      }
+    } catch(e) {
+      console.warn('[Rating] Server fetch failed, trying localStorage cache:', e);
+    }
+  }
+
+  // ── localStorage as optional cache (fallback only if server returned nothing) ──
+  if (!lastOrder || !lastOrder.items || !lastOrder.items.length) {
+    lastOrder = JSON.parse(localStorage.getItem('2am_last_order') || 'null');
+  }
+
   if (!lastOrder || !lastOrder.items || lastOrder.items.length === 0) return;
+
+  currentOrderName = lastOrder.customerName || lastOrder.customer?.name || lastOrder.address?.name || 'Happy Customer';
 
   const container = document.getElementById('purchasedItemsList');
   const itemsContainer = document.getElementById('itemsContainer');
   container.style.display = 'block';
 
-  itemsContainer.innerHTML = lastOrder.items.map((item, index) => `
-    <div class="purchased-item-row" id="item-row-${item.productId}">
+  itemsContainer.innerHTML = lastOrder.items.map((item) => {
+    const pId = item.productId || item.id;
+    return `
+    <div class="purchased-item-row" id="item-row-${pId}">
       <img src="${item.image || '/assets/images/store/placeholder.jpg'}" class="item-img" alt="${item.name}" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
       <div class="item-info">
         <span class="item-name">${item.name}</span>
-        <button class="write-review-btn" onclick="toggleReviewForm(${item.productId})">Write a Review</button>
+        <button class="write-review-btn" onclick="toggleReviewForm(${pId})">Write a Review</button>
         
-        <div id="review-form-${item.productId}" class="review-form-container">
-          <div class="star-rating" id="stars-${item.productId}">
-            <i class="fa-solid fa-star" onclick="setStarRating(${item.productId}, 1)"></i>
-            <i class="fa-solid fa-star" onclick="setStarRating(${item.productId}, 2)"></i>
-            <i class="fa-solid fa-star" onclick="setStarRating(${item.productId}, 3)"></i>
-            <i class="fa-solid fa-star" onclick="setStarRating(${item.productId}, 4)"></i>
-            <i class="fa-solid fa-star" onclick="setStarRating(${item.productId}, 5)"></i>
+        <div id="review-form-${pId}" class="review-form-container">
+          <div class="star-rating" id="stars-${pId}">
+            <i class="fa-solid fa-star" onclick="setStarRating(${pId}, 1)"></i>
+            <i class="fa-solid fa-star" onclick="setStarRating(${pId}, 2)"></i>
+            <i class="fa-solid fa-star" onclick="setStarRating(${pId}, 3)"></i>
+            <i class="fa-solid fa-star" onclick="setStarRating(${pId}, 4)"></i>
+            <i class="fa-solid fa-star" onclick="setStarRating(${pId}, 5)"></i>
           </div>
-          <textarea id="comment-${item.productId}" class="review-textarea" placeholder="Share your experience with this product..." rows="3"></textarea>
-          <button class="submit-review-btn" onclick="submitItemReview(${item.productId}, '${lastOrder.address?.name || 'Happy Customer'}')">Submit Review</button>
+          <textarea id="comment-${pId}" class="review-textarea" placeholder="Share your experience with this product..." rows="3"></textarea>
+          <button class="submit-review-btn" onclick="submitItemReview(${pId})">Submit Review</button>
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 });
-
-const ratings = {};
 
 function toggleReviewForm(productId) {
   const form = document.getElementById(`review-form-${productId}`);
@@ -365,12 +394,13 @@ function setStarRating(productId, rating) {
   });
 }
 
-async function submitItemReview(productId, userName) {
+async function submitItemReview(productId) {
   const rating = ratings[productId];
   const comment = document.getElementById(`comment-${productId}`).value.trim();
 
   if (!rating) return alert('Please select a star rating.');
   if (!comment) return alert('Please write a short comment.');
+  if (!currentOrderId) return alert('Order ID not found. Please contact support.');
 
   const btn = document.querySelector(`#review-form-${productId} .submit-review-btn`);
   btn.innerText = 'Submitting...';
@@ -380,14 +410,16 @@ async function submitItemReview(productId, userName) {
     const res = await fetch(`/store/api/store/products/${productId}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user: userName, rating, comment }),
+      // orderId is required by server for purchase verification
+      body: JSON.stringify({ user: currentOrderName, rating, comment, orderId: currentOrderId }),
       credentials: 'include'
     });
     const data = await res.json();
     if (data.success) {
+      const label = data.message && data.message.includes('updated') ? 'Review updated! Thank you.' : 'Review submitted! Thank you.';
       document.getElementById(`review-form-${productId}`).innerHTML = `
         <div style="color: var(--success-green); font-weight: 600; padding: 1rem 0;">
-          <i class="fa-solid fa-circle-check"></i> Review submitted! Thank you.
+          <i class="fa-solid fa-circle-check"></i> ${label}
         </div>
       `;
       setTimeout(() => {

@@ -91,7 +91,7 @@
           <!-- Footer Link -->
           <div class="text-center mt-4 pt-2">
             <p class="text-muted small mb-0">
-              Don't have an account? <a href="/signup" class="text-primary fw-bold text-decoration-none">Sign Up</a>
+              Don't have an account? <a href="/signup" id="toSignupLink" class="text-primary fw-bold text-decoration-none">Sign Up</a>
             </p>
           </div>
 
@@ -138,13 +138,31 @@
   const submitBtn = document.getElementById('loginSubmitBtn');
   const googleBtn = document.getElementById('googleSignInBtn');
   const forgotBtn = document.getElementById('forgotPasswordBtn');
-  const rememberMeCheck = document.getElementById('rememberMe');
+  // Safe redirect helper — rejects external URLs, only allows relative paths starting with /
+  function safeRedirect(param, fallback = '/student-safety/my-reports') {
+    if (!param) return fallback;
+    try {
+      // Reject anything that looks like an absolute URL
+      if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) {
+        return fallback;
+      }
+      return param;
+    } catch(e) { return fallback; }
+  }
+
+  const rawRedirect = new URLSearchParams(window.location.search).get('redirect');
+  const safeRedirectUrl = safeRedirect(rawRedirect);
+
+  // Preserve safe redirect on Sign Up link
+  if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
+    const toSignup = document.getElementById('toSignupLink');
+    if (toSignup) toSignup.href = '/signup?redirect=' + encodeURIComponent(safeRedirectUrl);
+  }
 
   // Check if already logged in via Firebase Auth source of truth
   onAuthStateChanged(auth, (user) => {
     if (user && !successAlert.classList.contains('redirecting')) {
-      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
-      window.location.href = redirectUrl;
+      window.location.href = safeRedirectUrl;
     }
   });
 
@@ -225,8 +243,7 @@
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
-        window.location.href = redirectUrl;
+        window.location.href = safeRedirectUrl;
       }, 800);
 
     } catch (err) {
@@ -264,8 +281,7 @@
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
-        window.location.href = redirectUrl;
+        window.location.href = safeRedirectUrl;
       }, 800);
 
     } catch (err) {

@@ -614,10 +614,29 @@ body {
       if (rpCouponRow2) rpCouponRow2.style.display = 'none';
     }
 
+    function showKeyNoticeModal() {
+      const modal = document.createElement('div');
+      modal.innerHTML = `
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;">
+          <div style="background:#fff;border-radius:12px;max-width:440px;width:100%;padding:24px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+            <div style="font-size:2.5rem;margin-bottom:12px;color:#f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 style="font-weight:700;font-size:1.25rem;margin-bottom:8px;color:#1e293b;">Payments Temporarily Unavailable</h3>
+            <p style="font-size:0.9rem;color:#64748b;margin-bottom:20px;line-height:1.5;">
+              We're unable to process payments at this time. Please try again later or contact support if the issue persists.
+            </p>
+            <button onclick="this.closest('div').parentElement.remove()" style="background:#2874f0;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-weight:600;cursor:pointer;">Got It</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
     // Pay Button Config
     async function startPaymentFlow(btn) {
-      if (!btn) return;
-      if (!RAZORPAY_KEY_ID) return alert('Razorpay server key not found in environment.');
+      if (!RAZORPAY_KEY_ID) {
+        showKeyNoticeModal();
+        return;
+      }
       
       const originalHTML = btn.innerHTML;
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Loading...`;
@@ -656,41 +675,56 @@ body {
             }
           },
           handler: async function (response) {
-            document.body.insertAdjacentHTML('beforeend', `
+            const overlay = document.createElement('div');
+            overlay.id = 'verifyingOverlay';
+            overlay.innerHTML = `
               <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,18,32,0.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                 <div class="spinner-border text-primary" style="width: 3rem; height: 3rem; margin-bottom:1rem;" role="status"></div>
                 <h4 class="text-white fw-bold">Verifying Payment...</h4>
               </div>
-            `);
+            `;
+            document.body.appendChild(overlay);
 
-            const verifyRes = await fetch(`/store/api/store/verify-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(response),
-              credentials: 'include'
-            });
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok || !verifyData.verified) {
-              alert(verifyData.error || 'Payment verification failed.');
+            try {
+              const verifyRes = await fetch(`/store/api/store/verify-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(response),
+                credentials: 'include'
+              });
+              const verifyData = await verifyRes.json();
+              if (!verifyRes.ok || !verifyData.verified) {
+                alert(verifyData.error || 'Payment verification failed.');
+                if (overlay) overlay.remove();
+                window.location.reload();
+                return;
+              }
+
+              // Save minimal last-order to localStorage ONLY as optional cache for review feature
+              try {
+                localStorage.setItem('2am_last_order', JSON.stringify({
+                  paymentId: response.razorpay_payment_id,
+                  orderId: response.razorpay_order_id,
+                  items: [...cart],
+                  address: checkoutCustomer,
+                  total: confirmedTotal,
+                  coupon: appliedCoupon?.code || '',
+                  platformFee: s.platformFee
+                }));
+              } catch(e) { /* ignore quota/private browsing issues */ }
+
+              // Clear checkout state from server session
+              try {
+                await fetch(`/store/api/store/checkout/clear`, { method: 'POST', credentials: 'include' });
+              } catch(e) {}
+
+              window.location.href = `/store/payment-success?payment_id=${encodeURIComponent(response.razorpay_payment_id)}&order_id=${encodeURIComponent(response.razorpay_order_id)}`;
+            } catch (err) {
+              console.error('Payment verification fetch error:', err);
+              alert('Network error while verifying payment. Please refresh the page or contact support.');
+              if (overlay) overlay.remove();
               window.location.reload();
-              return;
             }
-
-            // Save minimal last-order to localStorage ONLY for the post-payment review feature
-            localStorage.setItem('2am_last_order', JSON.stringify({
-              paymentId: response.razorpay_payment_id,
-              orderId: response.razorpay_order_id,
-              items: [...cart],
-              address: checkoutCustomer,
-              total: confirmedTotal,
-              coupon: appliedCoupon?.code || '',
-              platformFee: s.platformFee
-            }));
-
-            // Clear all checkout state from server session
-            await fetch(`/store/api/store/checkout/clear`, { method: 'POST', credentials: 'include' });
-
-            window.location.href = `/store/payment-success?payment_id=${encodeURIComponent(response.razorpay_payment_id)}&order_id=${encodeURIComponent(response.razorpay_order_id)}`;
           }
         });
         

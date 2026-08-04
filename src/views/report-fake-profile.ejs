@@ -467,6 +467,10 @@
         const userId = localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || ('USER-' + Math.random().toString(36).substring(2, 9));
         formData.append('userId', userId);
 
+        // Pass reporter email for email fallback notifications
+        const reporterEmail = localStorage.getItem('userEmail') || localStorage.getItem('studentEmail') || null;
+        if (reporterEmail) formData.append('reporterEmail', reporterEmail);
+
         // POST to backend server
         const response = await fetch('/student-safety/report', {
           method: 'POST',

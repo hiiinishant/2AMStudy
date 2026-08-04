@@ -121,7 +121,7 @@
           <!-- Footer Link -->
           <div class="text-center mt-4 pt-2">
             <p class="text-muted small mb-0">
-              Already have an account? <a href="/login" class="text-primary fw-bold text-decoration-none">Log In</a>
+              Already have an account? <a href="/login" id="toLoginLink" class="text-primary fw-bold text-decoration-none">Log In</a>
             </p>
           </div>
 
@@ -164,6 +164,22 @@
   const signupForm = document.getElementById('signupForm');
   const submitBtn = document.getElementById('signupSubmitBtn');
   const googleBtn = document.getElementById('googleSignUpBtn');
+
+  // Safe redirect helper — only allow relative paths starting with /
+  function safeRedirect(param, fallback = '/student-safety/my-reports') {
+    if (!param) return fallback;
+    if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) return fallback;
+    return param;
+  }
+
+  const rawRedirect = new URLSearchParams(window.location.search).get('redirect');
+  const safeRedirectUrl = safeRedirect(rawRedirect);
+
+  // Preserve safe redirect on Log In link
+  if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
+    const toLogin = document.getElementById('toLoginLink');
+    if (toLogin) toLogin.href = '/login?redirect=' + encodeURIComponent(safeRedirectUrl);
+  }
 
   // Sync session details to localStorage UI cache
   const syncLocalCache = (user, collegeName = '') => {
@@ -260,8 +276,7 @@
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
-        window.location.href = redirectUrl;
+        window.location.href = safeRedirectUrl;
       }, 1500);
 
     } catch (err) {
@@ -297,8 +312,7 @@
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/student-safety/my-reports';
-        window.location.href = redirectUrl;
+        window.location.href = safeRedirectUrl;
       }, 800);
 
     } catch (err) {

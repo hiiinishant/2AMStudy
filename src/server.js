@@ -12,6 +12,41 @@ const multer = require('multer');
 const fs = require('fs');
 require('dotenv').config();
 
+// ─── Firebase Admin (Firestore for inventory + orders) ───────────────────────
+// Initialises only if FIREBASE_SERVICE_ACCOUNT env var is set (JSON string) or
+// GOOGLE_APPLICATION_CREDENTIALS points to a service account file.
+// The app runs fine without it — inventory falls back to in-memory + storeInvoicesMap.
+let firestoreDb = null;
+try {
+  const admin = require('firebase-admin');
+  const getApps = () => (Array.isArray(admin.apps) ? admin.apps : (typeof admin.getApps === 'function' ? admin.getApps() : []));
+  let existingApps = getApps();
+  if (existingApps.length === 0) {
+    const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (serviceAccountEnv) {
+      admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(serviceAccountEnv))
+      });
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault()
+      });
+    } else {
+      console.warn('[Firebase Admin] No credentials found — Firestore inventory disabled. Set FIREBASE_SERVICE_ACCOUNT or GOOGLE_APPLICATION_CREDENTIALS to enable.');
+    }
+    existingApps = getApps();
+    if (existingApps.length > 0) {
+      firestoreDb = admin.firestore();
+      console.log('[Firebase Admin] Firestore connected — atomic inventory enabled.');
+    }
+  } else {
+    firestoreDb = admin.firestore();
+  }
+} catch (e) {
+  console.warn('[Firebase Admin] Initialization warning:', e.message);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Student Safety cases JSON persistence
 const casesDataFilePath = path.join(__dirname, 'data', 'studentSafetyCases.json');
 let studentSafetyCases = [];
@@ -85,12 +120,14 @@ const uploadEvidence = multer({
 
 const app = express();
 
-// Enable CORS for cross-origin requests (strict validation)
+// Enable CORS for cross-origin requests (strict validation + localhost for dev)
 app.use(cors({
   origin: [
     "https://2amstudy.vercel.app",
     "https://2amstudy.online",
-    "https://2amstudy-rokrnkxpj-nishant-4us-projects.vercel.app"
+    "https://2amstudy-rokrnkxpj-nishant-4us-projects.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
   ],
   credentials: true
 }));
@@ -290,9 +327,41 @@ const STORE_PRODUCTS = [
     stock: 11, rating: 4.6, ratingCount: 789,
     features: ['10+ essential items in one kit', 'Includes pens, highlighters, sticky notes', 'Ruler, eraser, and pencil included', 'Compact carrying pouch', 'Perfect starter kit for students'],
     specs: { brand: '2 AM Study', type: 'Essentials Kit', items: '10+ (Pens, Highlighters, Sticky Notes, Ruler, Eraser, Pencil, Pouch)', pouch: 'Zippered Compact Pouch', totalItems: '12', idealFor: 'School, College, Self-Study', weight: '350g' },
-    reviews: [{ user: 'Kavya R.', rating: 5, comment: 'Everything I need in one pouch! No more searching for supplies. Best value!', date: '2026-03-13' }, { user: 'Ishaan M.', rating: 5, comment: 'Perfect starter kit. The pouch quality is great too.', date: '2026-02-27' }, { user: 'Pranjal S.', rating: 4, comment: 'Good variety of items. The pouch keeps everything organized.', date: '2026-02-09' }]
   },
 ];
+
+// Persistent Stock Management
+const storeStockFilePath = path.join(__dirname, 'data', 'storeStock.json');
+
+function loadPersistedStock() {
+  try {
+    if (fs.existsSync(storeStockFilePath)) {
+      const stockData = JSON.parse(fs.readFileSync(storeStockFilePath, 'utf8'));
+      STORE_PRODUCTS.forEach(p => {
+        if (stockData[p.id] !== undefined) {
+          p.stock = stockData[p.id];
+        }
+      });
+      console.log('[Store] Loaded persisted stock levels from disk.');
+    }
+  } catch (e) {
+    console.warn('[Store] Notice loading persisted stock:', e.message);
+  }
+}
+
+function savePersistedStock() {
+  try {
+    const stockData = {};
+    STORE_PRODUCTS.forEach(p => { stockData[p.id] = p.stock; });
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    fs.writeFileSync(storeStockFilePath, JSON.stringify(stockData, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Store] Notice saving stock:', e.message);
+  }
+}
+
+loadPersistedStock();
+
 const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET ?
   new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -416,7 +485,8 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  res.json({ success: true, user: req.session.user || null });
+  const user = req.session.user || null;
+  res.json({ success: true, loggedIn: !!user, user });
 });
 
 
@@ -665,7 +735,8 @@ app.post('/student-safety/report', async (req, res) => {
       college,
       anonymous,
       truthConfirmed,
-      userId
+      userId,
+      reporterEmail
     } = req.body;
 
     if (!platform || !fakeUsername || !fakeProfileUrl || !reason || !description) {
@@ -736,6 +807,7 @@ app.post('/student-safety/report', async (req, res) => {
     const newCase = {
       caseId: generatedCaseId,
       userId: finalUserId,
+      reporterEmail: reporterEmail || req.body.email || req.session?.email || null,
       platform: platform,
       fakeUsername: fakeUsername,
       fakeProfileUrl: fakeProfileUrl,
@@ -770,9 +842,9 @@ app.post('/student-safety/report', async (req, res) => {
     saveNotifications();
 
     // Step 5: Send submission confirmation email (fire-and-forget)
-    const reporterEmail = req.body.email || req.session?.email || null;
+    const emailToNotify = reporterEmail || req.body.email || req.session?.email || null;
     sendSafetyEmail(
-      reporterEmail,
+      emailToNotify,
       `[2AM Study] Report Submitted — Case ${generatedCaseId}`,
       `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;">
         <h2 style="color:#1e40af;">🛡️ Report Received</h2>
@@ -903,23 +975,36 @@ function savePushSubscriptions() {
 }
 
 // Web Push VAPID Keys Setup
+// Keys are persisted to disk so push subscribers don't break on restart
+const vapidKeysFilePath = path.join(__dirname, 'data', 'vapidKeys.json');
 let webpush = null;
-let vapidKeys = {
-  publicKey: process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa1622b7d-6-3983278923-28329783921789-231',
-  privateKey: process.env.VAPID_PRIVATE_KEY || 'N2819381290381902830192830918230'
-};
+let vapidKeys = null;
 try {
   webpush = require('web-push');
-  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    // Use env vars if set (production)
+    vapidKeys = { publicKey: process.env.VAPID_PUBLIC_KEY, privateKey: process.env.VAPID_PRIVATE_KEY };
+  } else if (fs.existsSync(vapidKeysFilePath)) {
+    // Load persisted keys so subscribers don't break on restart
+    vapidKeys = JSON.parse(fs.readFileSync(vapidKeysFilePath, 'utf8'));
+    console.log('[WebPush] Loaded persisted VAPID keys from disk.');
+  } else {
+    // Generate fresh keys and persist them
     vapidKeys = webpush.generateVAPIDKeys();
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    fs.writeFileSync(vapidKeysFilePath, JSON.stringify(vapidKeys, null, 2), 'utf8');
+    console.log('[WebPush] Generated and persisted new VAPID keys to disk.');
   }
+
   webpush.setVapidDetails(
     'mailto:safety@2amstudy.online',
     vapidKeys.publicKey,
     vapidKeys.privateKey
   );
+  console.log('[WebPush] VAPID keys loaded and web-push initialized successfully.');
 } catch (e) {
-  console.warn("Web Push initialization notice:", e.message);
+  console.warn('[WebPush] Initialization notice:', e.message);
 }
 
 /**
@@ -1454,6 +1539,14 @@ app.get('/api/student-safety/moderation-logs', (req, res) => {
   res.json({ success: true, logs: studentSafetyModerationLogs });
 });
 
+// Admin: ALL cases (every status) — used by admin dashboard
+app.get('/api/student-safety/cases', (req, res) => {
+  const cases = studentSafetyCases
+    .slice() // copy
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ success: true, cases });
+});
+
 
 app.get('/api/student-safety/notifications/:userId', (req, res) => {
   const userNotifs = studentSafetyNotifications
@@ -1936,16 +2029,45 @@ app.get('/store/invoice/:orderId', (req, res) => {
   });
 });
 
-// Invoice API Data Route
+// Invoice API Data Route — also used as rating fallback in payment-success page
 app.get('/api/store/invoice/:orderId', (req, res) => {
   const { orderId } = req.params;
-  const invoiceNo = storeInvoicesMap.get(orderId) || 'INV-202600001';
+  const cached = storeInvoicesMap.get(orderId);
+  // Return rich order object if cached (set during verify-payment), else fallback
+  const invoiceNo = cached ? (cached.invoiceNo || 'INV-202600001') : 'INV-202600001';
+  const order = cached && typeof cached === 'object' && cached.items ? cached : (req.session?.lastOrder || null);
   res.json({
     success: true,
-    orderId: orderId,
-    invoiceNo: invoiceNo,
-    order: req.session?.lastOrder || null
+    orderId,
+    invoiceNo,
+    order
   });
+});
+
+// Orders API — server-first order fetch for payment-success rating flow
+// Always fetches from Firestore (if available), then falls back to in-memory map, then session
+app.get('/api/store/orders/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  try {
+    // 1. Try Firestore first
+    if (firestoreDb) {
+      const snap = await firestoreDb.collection('storeOrders').doc(orderId).get();
+      if (snap.exists) {
+        return res.json({ success: true, order: snap.data() });
+      }
+    }
+    // 2. Fall back to in-memory map (same server process, e.g. just purchased)
+    const cached = storeInvoicesMap.get(orderId);
+    if (cached) return res.json({ success: true, order: cached });
+    // 3. Fall back to session
+    if (req.session?.lastOrder?.orderId === orderId) {
+      return res.json({ success: true, order: req.session.lastOrder });
+    }
+    return res.status(404).json({ success: false, error: 'Order not found.' });
+  } catch (e) {
+    console.error('[GET /api/store/orders]', e.message);
+    return res.status(500).json({ success: false, error: 'Could not fetch order.' });
+  }
 });
 
 // --- Store API Endpoints ---
@@ -2125,39 +2247,77 @@ app.get('/store/api/store/products/:id/reviews', (req, res) => {
 });
 
 app.post('/store/api/store/products/:id/reviews', (req, res) => {
-  const { user, rating, comment } = req.body;
+  const { user, rating, comment, orderId } = req.body;
   if (!user || !rating || !comment) return res.status(400).json({ success: false, error: 'All fields required' });
-  if (rating < 1 || rating > 5) return res.status(400).json({ success: false, error: 'Rating must be 1-5' });
-  const product = STORE_PRODUCTS.find(p => p.id === Number(req.params.id));
+  if (rating < 1 || rating > 5) return res.status(400).json({ success: false, error: 'Rating must be between 1 and 5' });
+  const productId = Number(req.params.id);
+  const product = STORE_PRODUCTS.find(p => p.id === productId);
   if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
 
-  const newReview = { user, rating: Number(rating), comment, date: new Date().toISOString().split('T')[0] };
+  // — Security: verify purchaser —
+  // orderId must be provided and must correspond to a completed order containing this product
+  if (!orderId) return res.status(403).json({ success: false, error: 'Order ID required to submit a review.' });
+  const cachedOrder = storeInvoicesMap.get(orderId);
+  if (!cachedOrder) return res.status(403).json({ success: false, error: 'Could not verify purchase. Please ensure your order has been completed.' });
+  const orderedProduct = (cachedOrder.items || []).find(item => Number(item.productId) === productId);
+  if (!orderedProduct) return res.status(403).json({ success: false, error: 'You can only review products you have purchased.' });
+
+  // — Sanitize review text: strip HTML tags, limit to 500 chars —
+  const sanitize = (str) => String(str || '').replace(/<[^>]*>/g, '').trim().slice(0, 500);
+  const safeComment = sanitize(comment);
+  const safeUser = sanitize(user).slice(0, 80);
+  if (!safeComment) return res.status(400).json({ success: false, error: 'Review text cannot be empty.' });
+
   if (!product.reviews) product.reviews = [];
-  product.reviews.unshift(newReview);
-  product.ratingCount = (product.ratingCount || 0) + 1;
+
+  // — Idempotency: one review per product per order (upsert) —
+  const existingIdx = product.reviews.findIndex(r => r.orderId === orderId);
+  const reviewRecord = {
+    user: safeUser,
+    rating: Number(rating),
+    comment: safeComment,
+    orderId,
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  if (existingIdx !== -1) {
+    // Update existing review for this order
+    product.reviews[existingIdx] = reviewRecord;
+  } else {
+    product.reviews.unshift(reviewRecord);
+    product.ratingCount = (product.ratingCount || 0) + 1;
+  }
+
   product.rating = Number((product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length).toFixed(1));
 
-  // Push to global shopper feedbacks list as well
+  // Push to global shopper feedbacks list
   const avatarList = [
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&q=80&fm=webp',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&q=80&fm=webp',
     'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&q=80&fm=webp',
     'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&q=80&fm=webp'
   ];
-  const newFb = {
-    id: 'fb-' + Date.now(),
-    name: user.trim(),
+  const fbIdx = shopperFeedbacks.findIndex(f => f.orderId === orderId && f.productId === productId);
+  const feedbackRecord = {
+    id: fbIdx !== -1 ? shopperFeedbacks[fbIdx].id : 'fb-' + Date.now(),
+    name: safeUser,
     avatar: avatarList[Math.floor(Math.random() * avatarList.length)],
     rating: Number(rating),
-    comment: comment.trim(),
+    comment: safeComment,
     product: product.name,
+    productId,
+    orderId,
     verified: true,
-    date: new Date().toISOString().split('T')[0]
+    date: reviewRecord.date
   };
-  shopperFeedbacks.unshift(newFb);
+  if (fbIdx !== -1) {
+    shopperFeedbacks[fbIdx] = feedbackRecord;
+  } else {
+    shopperFeedbacks.unshift(feedbackRecord);
+  }
   saveShopperFeedbacks();
 
-  res.json({ success: true, message: 'Review added successfully', review: newReview });
+  res.json({ success: true, message: existingIdx !== -1 ? 'Review updated successfully' : 'Review added successfully', review: reviewRecord });
 });
 
 // Global Shopper Feedback APIs
@@ -2698,21 +2858,117 @@ app.post('/store/api/store/create-order', async (req, res) => {
   }
 });
 
-app.post('/store/api/store/verify-payment', (req, res) => {
+app.post('/store/api/store/verify-payment', async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ verified: false, error: 'Missing payment verification fields.' });
     }
 
+    // ── 1. Verify HMAC signature ──────────────────────────────────────────────
     const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
     hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
     const generatedSignature = hmac.digest('hex');
-    const verified = generatedSignature === razorpay_signature;
-
-    if (!verified) {
+    if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({ verified: false, error: 'Payment verification failed.' });
     }
+
+    const cart = req.session.cart || [];
+
+    // ── 2. Idempotency: reject duplicate webhook/retry for same order ─────────
+    if (storeInvoicesMap.has(razorpay_order_id)) {
+      console.warn(`[verify-payment] Duplicate call for order ${razorpay_order_id} — ignoring.`);
+      return res.json({ verified: true, duplicate: true });
+    }
+
+    // ── 3. Deduct inventory (Firestore atomic OR in-memory fallback) ──────────
+    if (firestoreDb) {
+      // Firestore path: run one transaction per product (atomically decrement stock)
+      for (const item of cart) {
+        const productId = String(item.productId);
+        const qty = item.qty || 1;
+        const docRef = firestoreDb.collection('storeProducts').doc(productId);
+        try {
+          await firestoreDb.runTransaction(async (tx) => {
+            const snap = await tx.get(docRef);
+            const now = new Date();
+            if (!snap.exists) {
+              // Seed from STORE_PRODUCTS if not in Firestore yet
+              const localProduct = STORE_PRODUCTS.find(p => p.id === item.productId);
+              tx.set(docRef, {
+                name: localProduct?.name || 'Unknown',
+                price: localProduct?.price || 0,
+                stock: Math.max(0, (localProduct?.stock || 0) - qty),
+                sold: qty,
+                updatedAt: now,
+                lastPurchasedAt: now
+              });
+            } else {
+              const currentStock = snap.data().stock || 0;
+              if (currentStock < qty) {
+                throw new Error(`Insufficient stock for product ${productId}`);
+              }
+              tx.update(docRef, {
+                stock: currentStock - qty,
+                sold: (snap.data().sold || 0) + qty,
+                updatedAt: now,
+                lastPurchasedAt: now
+              });
+            }
+          });
+          // Keep in-memory in sync
+          const localProduct = STORE_PRODUCTS.find(p => p.id === item.productId);
+          if (localProduct) localProduct.stock = Math.max(0, (localProduct.stock || 0) - qty);
+        } catch (txErr) {
+          console.error(`[Firestore] Stock transaction failed for product ${productId}:`, txErr.message);
+          if (txErr.message.includes('Insufficient stock')) {
+            return res.status(409).json({ verified: false, error: `Product "${item.name || productId}" is out of stock.` });
+          }
+          // Non-stock error: log but continue (don't block payment success)
+        }
+      }
+    } else {
+      // In-memory fallback (no Firestore configured)
+      for (const item of cart) {
+        const product = STORE_PRODUCTS.find(p => p.id === item.productId);
+        if (product) {
+          const qty = item.qty || 1;
+          if ((product.stock || 0) < qty) {
+            return res.status(409).json({ verified: false, error: `Product "${product.name}" is out of stock.` });
+          }
+          product.stock = Math.max(0, product.stock - qty);
+          product.sold = (product.sold || 0) + qty;
+        }
+      }
+      savePersistedStock();
+    }
+
+    // ── 4. Persist completed order (for rating + invoice fallback) ─────────────
+    const seqStr = String(invoiceCounter++).padStart(5, '0');
+    const invoiceNo = `INV-2026${seqStr}`;
+    const now = new Date();
+    const completedOrder = {
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      invoiceNo,
+      customerName: req.session.checkoutCustomer?.name || 'Student Customer',
+      customer: req.session.checkoutCustomer,
+      items: cart.length ? [...cart] : [],
+      createdAt: now.toISOString()
+    };
+
+    // Save to Firestore if available
+    if (firestoreDb) {
+      try {
+        await firestoreDb.collection('storeOrders').doc(razorpay_order_id).set(completedOrder);
+      } catch (e) {
+        console.error('[Firestore] Failed to save order:', e.message);
+      }
+    }
+
+    storeInvoicesMap.set(razorpay_order_id, completedOrder);
+    req.session.lastOrder = completedOrder;
+
     return res.json({ verified: true });
   } catch (error) {
     console.error('Razorpay verify error:', error);
