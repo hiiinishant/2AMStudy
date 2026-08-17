@@ -81,6 +81,30 @@
   </div>
 
   <div class="row g-4">
+    <% if (typeof dynamicBlogs !== 'undefined' && dynamicBlogs && dynamicBlogs.length) { %>
+      <% const staticSlugs = ['mistakes-before-exams', 'no-motivation-2am-study', 'how-to-stay-focused', 'best-study-techniques', 'avoid-distraction', 'daily-study-routine', 'build-consistency', 'focus-tips', 'study-routine-guide', 'study-at-night', 'smart-work-student-success']; %>
+      <% dynamicBlogs.forEach(function(post) { %>
+        <% if (!staticSlugs.includes(post.slug)) { %>
+          <div class="col-md-6 col-lg-4 blog-card-col">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+              <div class="pt-5 text-center text-white" style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); height: 180px; position: relative;">
+                <% if (post.image) { %>
+                  <img src="<%= post.image %>" alt="<%= post.title %>" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;" onerror="this.style.display='none'">
+                <% } else { %>
+                  <i class="fa-solid fa-feather-pointed fa-4x mb-3 opacity-75"></i>
+                <% } %>
+              </div>
+              <div class="card-body p-4 d-flex flex-column border-top border-4 border-primary">
+                <span class="badge bg-light text-primary mb-2 align-self-start"><%= post.category || 'Study Tips' %></span>
+                <h4 class="card-title fw-bold"><%= post.title %></h4>
+                <p class="card-text text-muted flex-grow-1"><%= post.excerpt || '' %></p>
+                <a href="/blog/<%= post.slug %>" class="btn btn-outline-primary stretched-link mt-3 rounded-pill fw-bold">Read Article <i class="fa-solid fa-arrow-right ms-2"></i></a>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      <% }); %>
+    <% } %>
     <!-- Blog - Mistakes (Latest) -->
     <div class="col-md-6 col-lg-4 blog-card-col">
       <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">

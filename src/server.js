@@ -124,15 +124,36 @@ const uploadEvidence = multer({
 
 const app = express();
 
-// Enable CORS for cross-origin requests (strict validation + localhost for dev)
+// Enable CORS for cross-origin requests (strict validation + Hiii Nishant integration + localhost for dev)
+const ALLOWED_ORIGINS = [
+  "https://2amstudy.com",
+  "https://www.2amstudy.com",
+  "https://2amstudy.online",
+  "https://2amstudy.online",
+  "https://2amstudy.vercel.app",
+  "https://2amstudy-rokrnkxpj-nishant-4us-projects.vercel.app",
+  "https://hiiinishant.com",
+  "https://www.hiiinishant.com",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:8080"
+];
+
 app.use(cors({
-  origin: [
-    "https://2amstudy.vercel.app",
-    "https://2amstudy.online",
-    "https://2amstudy-rokrnkxpj-nishant-4us-projects.vercel.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (
+      ALLOWED_ORIGINS.includes(origin) ||
+      origin.endsWith('.hiiinishant.com') ||
+      origin.endsWith('.2amstudy.com') ||
+      origin.endsWith('.2amstudy.online')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
@@ -140,7 +161,7 @@ app.use(cors({
 app.set('trust proxy', 1);
 
 const port = process.env.PORT || 3000;
-const STORE_PRODUCTS = [
+let STORE_PRODUCTS = [
   {
     id: 101, cat: 'notebooks', emoji: '📓', badge: 'top', badgeLabel: '2 AM Edition', name: 'Notebook', desc: 'Signature everyday notebook from 2 AM Study with smooth ruled pages for focused class notes.', price: 199, orig: 299,
     images: ['/assets/images/products/notebook-1.jpg', '/assets/images/products/notebook-2.jpg', '/assets/images/products/notebook-3.jpg', '/assets/images/products/notebook-4.jpg'],
@@ -334,37 +355,80 @@ const STORE_PRODUCTS = [
   },
 ];
 
-// Persistent Stock Management
+// Persistent Product Catalog & Stock Management
+const storeProductsFilePath = path.join(__dirname, 'data', 'storeProducts.json');
 const storeStockFilePath = path.join(__dirname, 'data', 'storeStock.json');
 
-function loadPersistedStock() {
+function loadPersistedProducts() {
   try {
-    if (fs.existsSync(storeStockFilePath)) {
-      const stockData = JSON.parse(fs.readFileSync(storeStockFilePath, 'utf8'));
-      STORE_PRODUCTS.forEach(p => {
-        if (stockData[p.id] !== undefined) {
-          p.stock = stockData[p.id];
-        }
-      });
-      console.log('[Store] Loaded persisted stock levels from disk.');
+    if (fs.existsSync(storeProductsFilePath)) {
+      const productData = JSON.parse(fs.readFileSync(storeProductsFilePath, 'utf8'));
+      if (Array.isArray(productData) && productData.length > 0) {
+        STORE_PRODUCTS = productData;
+        console.log(`[Store] Loaded ${STORE_PRODUCTS.length} products from storeProducts.json`);
+        return;
+      }
     }
+    // If storeProducts.json doesn't exist, seed it with default STORE_PRODUCTS
+    savePersistedProducts();
   } catch (e) {
-    console.warn('[Store] Notice loading persisted stock:', e.message);
+    console.warn('[Store] Notice loading persisted products:', e.message);
   }
+}
+
+function savePersistedProducts() {
+  try {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    fs.writeFileSync(storeProductsFilePath, JSON.stringify(STORE_PRODUCTS, null, 2), 'utf8');
+
+    // Also sync stock file for backward compatibility
+    const stockData = {};
+    STORE_PRODUCTS.forEach(p => { stockData[p.id] = p.stock; });
+    fs.writeFileSync(storeStockFilePath, JSON.stringify(stockData, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Store] Notice saving products:', e.message);
+  }
+}
+
+function loadPersistedStock() {
+  loadPersistedProducts();
 }
 
 function savePersistedStock() {
+  savePersistedProducts();
+}
+
+loadPersistedProducts();
+
+// Persistent Blog Management
+const blogsFilePath = path.join(__dirname, 'data', 'blogs.json');
+let BLOG_POSTS = [];
+
+function loadPersistedBlogs() {
   try {
-    const stockData = {};
-    STORE_PRODUCTS.forEach(p => { stockData[p.id] = p.stock; });
-    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-    fs.writeFileSync(storeStockFilePath, JSON.stringify(stockData, null, 2), 'utf8');
+    if (fs.existsSync(blogsFilePath)) {
+      const data = JSON.parse(fs.readFileSync(blogsFilePath, 'utf8'));
+      if (Array.isArray(data)) {
+        BLOG_POSTS = data;
+        console.log(`[Blog] Loaded ${BLOG_POSTS.length} blog posts from disk.`);
+        return;
+      }
+    }
   } catch (e) {
-    console.warn('[Store] Notice saving stock:', e.message);
+    console.warn('[Blog] Notice loading persisted blogs:', e.message);
   }
 }
 
-loadPersistedStock();
+function savePersistedBlogs() {
+  try {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    fs.writeFileSync(blogsFilePath, JSON.stringify(BLOG_POSTS, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Blog] Notice saving blogs:', e.message);
+  }
+}
+
+loadPersistedBlogs();
 
 const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET ?
   new Razorpay({
@@ -2042,6 +2106,19 @@ app.get('/behind-2am-study', (req, res) => {
   });
 });
 
+app.get('/faqs', (req, res) => {
+  res.render('faqs', {
+    pageTitle: 'How I Can Help You – Q&A | FAQs & Student-First Support - 2AM Study',
+    metaDescription: 'From classrooms to life goals — here’s how we make it happen. Frequently asked questions on study strategies, 2 AM Study tools, store essentials, and student safety.',
+    ogTitle: 'How I Can Help You – Q&A | 2AM Study FAQs',
+    ogDescription: 'From classrooms to life goals — here’s how we make it happen. Clear answers to your study routines, focus techniques, store essentials, and student safety questions.'
+  });
+});
+
+app.get('/faq', (req, res) => {
+  res.redirect('/faqs');
+});
+
 app.get('/store', (req, res) => {
   res.render('store', {
     pageTitle: '2AM Study Store - Student Essentials, Digital Tools & Accessories',
@@ -2204,6 +2281,612 @@ app.get('/api/store/orders/:orderId', async (req, res) => {
     console.error('[GET /api/store/orders]', e.message);
     return res.status(500).json({ success: false, error: 'Could not fetch order.' });
   }
+});
+
+// ─── Public Read-Only Product API (for Hiii Nishant & public previews) ───────────
+
+// Lightweight in-memory rate limiter for public APIs (120 requests / min per IP)
+const publicRateLimitMap = new Map();
+const PUBLIC_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const PUBLIC_RATE_LIMIT_MAX = 120;
+
+function publicApiRateLimiter(req, res, next) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = (forwarded ? String(forwarded).split(',')[0].trim() : req.socket?.remoteAddress) || 'unknown';
+  const now = Date.now();
+  
+  let entry = publicRateLimitMap.get(ip);
+  if (!entry || (now - entry.startTime) > PUBLIC_RATE_LIMIT_WINDOW_MS) {
+    entry = { count: 1, startTime: now };
+    publicRateLimitMap.set(ip, entry);
+  } else {
+    entry.count += 1;
+    if (entry.count > PUBLIC_RATE_LIMIT_MAX) {
+      return res.status(429).json({
+        success: false,
+        error: 'Too many requests. Rate limit exceeded. Please try again in a minute.'
+      });
+    }
+  }
+  
+  // Explicit CORS for public read-only endpoints
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+}
+
+// Cleanup stale rate limit map entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of publicRateLimitMap.entries()) {
+    if (now - entry.startTime > PUBLIC_RATE_LIMIT_WINDOW_MS) {
+      publicRateLimitMap.delete(ip);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// Extract product ID from URL or numeric ID string
+function extractProductIdFromInput(input) {
+  if (!input) return null;
+  const str = String(input).trim();
+  
+  // 1. Direct number e.g. "101"
+  if (/^\d+$/.test(str)) {
+    return Number(str);
+  }
+
+  // 2. URL or path format e.g. "https://2amstudy.com/store/product/101"
+  const urlMatch = str.match(/(?:store\/product|products?|id=|\/product\/)\/?(\d+)/i) || str.match(/\/(\d+)(?:[?#\/]|$)/);
+  if (urlMatch && urlMatch[1]) {
+    return Number(urlMatch[1]);
+  }
+
+  return null;
+}
+
+// Format public product preview (strictly public data only)
+function formatPublicProductPreview(product, req) {
+  if (!product) return null;
+
+  // Determine base URL
+  let baseUrl = process.env.PUBLIC_APP_URL || process.env.BASE_URL;
+  if (!baseUrl) {
+    const host = req ? req.get('host') : null;
+    if (host && (host.includes('localhost') || host.includes('127.0.0.1'))) {
+      baseUrl = `${req.protocol || 'http'}://${host}`;
+    } else {
+      baseUrl = 'https://2amstudy.com';
+    }
+  }
+  baseUrl = baseUrl.replace(/\/+$/, '');
+
+  const resolveImageUrl = (img) => {
+    if (!img) return `${baseUrl}/assets/images/store/placeholder.jpg`;
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    return `${baseUrl}${img.startsWith('/') ? '' : '/'}${img}`;
+  };
+
+  const images = (Array.isArray(product.images) && product.images.length > 0)
+    ? product.images.map(resolveImageUrl)
+    : [resolveImageUrl(null)];
+
+  const primaryImage = images[0];
+  const stock = typeof product.stock === 'number' ? product.stock : 0;
+  const inStock = stock > 0;
+  
+  let stockStatus = 'out_of_stock';
+  let stockStatusLabel = 'Out of Stock';
+  if (stock > 5) {
+    stockStatus = 'in_stock';
+    stockStatusLabel = 'In Stock';
+  } else if (stock > 0) {
+    stockStatus = 'low_stock';
+    stockStatusLabel = `Only ${stock} left in stock`;
+  }
+
+  const regularPrice = typeof product.orig === 'number' ? product.orig : (product.price || 0);
+  const salePrice = typeof product.price === 'number' ? product.price : regularPrice;
+  const discountPercent = (regularPrice > salePrice && regularPrice > 0)
+    ? Math.round(((regularPrice - salePrice) / regularPrice) * 100)
+    : 0;
+
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.desc || '',
+    category: product.cat || null,
+    image: primaryImage,
+    images: images,
+    price: regularPrice,
+    salePrice: salePrice,
+    regularPrice: regularPrice,
+    currency: 'INR',
+    currencySymbol: '₹',
+    discountPercent: discountPercent,
+    inStock: inStock,
+    stock: stock,
+    stockStatus: stockStatus,
+    stockStatusLabel: stockStatusLabel,
+    badge: product.badgeLabel || product.badge || null,
+    rating: product.rating || null,
+    ratingCount: product.ratingCount || 0,
+    canonicalUrl: `${baseUrl}/store/product/${product.id}`
+  };
+}
+
+// 1. Public Product Preview API (by URL or ID query param)
+app.get(['/api/public/products/preview', '/store/api/public/products/preview'], publicApiRateLimiter, (req, res) => {
+  const queryInput = req.query.url || req.query.id || req.query.productUrl || req.query.q;
+  if (!queryInput) {
+    return res.status(400).json({
+      success: false,
+      error: 'Please provide a product URL or ID (e.g. ?url=https://2amstudy.com/store/product/101)'
+    });
+  }
+
+  const productId = extractProductIdFromInput(queryInput);
+  if (!productId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid product URL or ID format. Expected format like: https://2amstudy.com/store/product/101'
+    });
+  }
+
+  const product = STORE_PRODUCTS.find(p => p.id === productId);
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      error: `Product with ID ${productId} not found.`
+    });
+  }
+
+  const publicData = formatPublicProductPreview(product, req);
+  res.json({
+    success: true,
+    product: publicData
+  });
+});
+
+// 2. Public Product by ID API
+app.get(['/api/public/products/:id', '/store/api/public/products/:id'], publicApiRateLimiter, (req, res) => {
+  const productId = Number(req.params.id);
+  if (isNaN(productId)) {
+    return res.status(400).json({ success: false, error: 'Invalid product ID' });
+  }
+
+  const product = STORE_PRODUCTS.find(p => p.id === productId);
+  if (!product) {
+    return res.status(404).json({ success: false, error: 'Product not found' });
+  }
+
+  const publicData = formatPublicProductPreview(product, req);
+  res.json({
+    success: true,
+    product: publicData
+  });
+});
+
+// 3. Public Product Catalog API (Read-only listing)
+app.get(['/api/public/products', '/store/api/public/products'], publicApiRateLimiter, (req, res) => {
+  const { category, search } = req.query;
+  let products = [...STORE_PRODUCTS];
+
+  if (category && category !== 'all') {
+    products = products.filter(p => p.cat === category.toLowerCase());
+  }
+
+  if (search) {
+    const term = search.toLowerCase();
+    products = products.filter(p =>
+      p.name.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term))
+    );
+  }
+
+  const formatted = products.map(p => formatPublicProductPreview(p, req));
+  res.json({
+    success: true,
+    count: formatted.length,
+    products: formatted
+  });
+});
+
+// ─── Store Admin Authentication & Management APIs ──────────────────────────
+
+const STORE_ADMIN_PASSWORD = process.env.STORE_ADMIN_PASSWORD || process.env.ADMIN_PASSCODE || '2amadmin2026';
+
+function requireStoreAdmin(req, res, next) {
+  if (req.session && req.session.isStoreAdmin) {
+    return next();
+  }
+  
+  if (req.path.startsWith('/api/') || req.xhr || req.headers.accept?.includes('application/json')) {
+    return res.status(401).json({ success: false, error: 'Unauthorized. Store admin authentication required.' });
+  }
+
+  return res.redirect('/store/admin/login?redirect=' + encodeURIComponent(req.originalUrl || '/store/admin'));
+}
+
+// 1. Admin Login Page View
+app.get('/store/admin/login', (req, res) => {
+  if (req.session && req.session.isStoreAdmin) {
+    return res.redirect('/store/admin');
+  }
+  res.render('store-admin-login', {
+    pageTitle: 'Store Admin Login | 2AM Study',
+    metaDescription: 'Secure administrator login for 2AM Study Store product catalog and inventory management.'
+  });
+});
+
+// 2. Admin Login Action
+app.post('/api/store/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ success: false, error: 'Password is required.' });
+  }
+
+  if (password === STORE_ADMIN_PASSWORD) {
+    req.session.isStoreAdmin = true;
+    req.session.adminLoggedInAt = new Date().toISOString();
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/store/admin' });
+  }
+
+  return res.status(401).json({ success: false, error: 'Invalid master admin password.' });
+});
+
+// 3. Admin Logout Action
+app.post('/api/store/admin/logout', (req, res) => {
+  if (req.session) {
+    delete req.session.isStoreAdmin;
+    delete req.session.adminLoggedInAt;
+  }
+  res.json({ success: true, redirect: '/store/admin/login' });
+});
+
+app.get('/store/admin/logout', (req, res) => {
+  if (req.session) {
+    delete req.session.isStoreAdmin;
+    delete req.session.adminLoggedInAt;
+  }
+  res.redirect('/store/admin/login');
+});
+
+// 4. Check Current Admin Session Status
+app.get('/api/store/admin/me', (req, res) => {
+  res.json({
+    success: true,
+    authenticated: !!(req.session && req.session.isStoreAdmin),
+    loggedInAt: req.session?.adminLoggedInAt || null
+  });
+});
+
+// 5. Admin Dashboard View
+app.get('/store/admin', requireStoreAdmin, (req, res) => {
+  res.render('store-admin', {
+    pageTitle: 'Store Admin Dashboard | 2AM Study Store',
+    metaDescription: 'Comprehensive store management dashboard for 2 AM Study.',
+    products: STORE_PRODUCTS
+  });
+});
+
+// 6. Admin Analytics Stats API
+app.get('/api/store/admin/stats', requireStoreAdmin, (req, res) => {
+  const totalProducts = STORE_PRODUCTS.length;
+  const inStockProducts = STORE_PRODUCTS.filter(p => p.stock > 5).length;
+  const lowStockProducts = STORE_PRODUCTS.filter(p => p.stock > 0 && p.stock <= 5).length;
+  const outOfStockProducts = STORE_PRODUCTS.filter(p => p.stock === 0).length;
+  const totalStockUnits = STORE_PRODUCTS.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+  const totalValuation = STORE_PRODUCTS.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.stock) || 0)), 0);
+
+  res.json({
+    success: true,
+    stats: {
+      totalProducts,
+      inStockProducts,
+      lowStockProducts,
+      outOfStockProducts,
+      totalStockUnits,
+      totalValuation
+    }
+  });
+});
+
+// 7. Get All Products (Admin)
+app.get('/api/store/admin/products', requireStoreAdmin, (req, res) => {
+  res.json({
+    success: true,
+    count: STORE_PRODUCTS.length,
+    products: STORE_PRODUCTS
+  });
+});
+
+// 8. Create New Product (Admin)
+app.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
+  const { id, name, cat, desc, price, orig, stock, badge, badgeLabel, images, features, specs } = req.body;
+  if (!name || price === undefined) {
+    return res.status(400).json({ success: false, error: 'Product name and price are required.' });
+  }
+
+  // Determine or validate ID
+  let newId = Number(id);
+  if (!newId || isNaN(newId)) {
+    newId = STORE_PRODUCTS.reduce((max, p) => Math.max(max, p.id || 0), 100) + 1;
+  }
+
+  if (STORE_PRODUCTS.some(p => p.id === newId)) {
+    return res.status(400).json({ success: false, error: `Product ID ${newId} already exists.` });
+  }
+
+  const newProduct = {
+    id: newId,
+    cat: (cat || 'notebooks').toLowerCase(),
+    emoji: req.body.emoji || '✨',
+    badge: badge || 'top',
+    badgeLabel: badgeLabel || '',
+    name: String(name).trim(),
+    desc: String(desc || '').trim(),
+    price: Number(price),
+    orig: Number(orig) || Number(price),
+    images: Array.isArray(images) && images.length > 0 ? images : ['/assets/images/store/placeholder.jpg'],
+    stock: Number(stock) >= 0 ? Number(stock) : 10,
+    rating: 4.5,
+    ratingCount: 0,
+    features: Array.isArray(features) ? features : [],
+    specs: typeof specs === 'object' && specs !== null ? specs : { brand: '2 AM Study' },
+    reviews: []
+  };
+
+  STORE_PRODUCTS.push(newProduct);
+  savePersistedProducts();
+
+  res.json({
+    success: true,
+    message: 'Product created successfully',
+    product: newProduct
+  });
+});
+
+// 9. Update Existing Product (Admin)
+app.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
+  const productId = Number(req.params.id);
+  const index = STORE_PRODUCTS.findIndex(p => p.id === productId);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: `Product #${productId} not found.` });
+  }
+
+  const existing = STORE_PRODUCTS[index];
+  const { name, cat, desc, price, orig, stock, badge, badgeLabel, images, features, specs, rating, ratingCount } = req.body;
+
+  STORE_PRODUCTS[index] = {
+    ...existing,
+    name: name !== undefined ? String(name).trim() : existing.name,
+    cat: cat !== undefined ? String(cat).toLowerCase() : existing.cat,
+    desc: desc !== undefined ? String(desc).trim() : existing.desc,
+    price: price !== undefined ? Number(price) : existing.price,
+    orig: orig !== undefined ? Number(orig) : existing.orig,
+    stock: stock !== undefined ? Number(stock) : existing.stock,
+    badge: badge !== undefined ? badge : existing.badge,
+    badgeLabel: badgeLabel !== undefined ? badgeLabel : existing.badgeLabel,
+    images: Array.isArray(images) && images.length > 0 ? images : existing.images,
+    features: Array.isArray(features) ? features : existing.features,
+    specs: typeof specs === 'object' && specs !== null ? specs : existing.specs,
+    rating: rating !== undefined ? Number(rating) : existing.rating,
+    ratingCount: ratingCount !== undefined ? Number(ratingCount) : existing.ratingCount
+  };
+
+  savePersistedProducts();
+
+  res.json({
+    success: true,
+    message: 'Product updated successfully',
+    product: STORE_PRODUCTS[index]
+  });
+});
+
+// 10. Quick Stock Adjustment (Admin)
+app.patch('/api/store/admin/products/:id/stock', requireStoreAdmin, (req, res) => {
+  const productId = Number(req.params.id);
+  const { stock, delta } = req.body;
+  const product = STORE_PRODUCTS.find(p => p.id === productId);
+  if (!product) {
+    return res.status(404).json({ success: false, error: 'Product not found.' });
+  }
+
+  if (stock !== undefined) {
+    product.stock = Math.max(0, Number(stock) || 0);
+  } else if (delta !== undefined) {
+    product.stock = Math.max(0, (product.stock || 0) + Number(delta));
+  }
+
+  savePersistedProducts();
+
+  res.json({
+    success: true,
+    id: product.id,
+    stock: product.stock
+  });
+});
+
+// 11. Delete Product (Admin)
+app.delete('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
+  const productId = Number(req.params.id);
+  const index = STORE_PRODUCTS.findIndex(p => p.id === productId);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: `Product #${productId} not found.` });
+  }
+
+  const deleted = STORE_PRODUCTS.splice(index, 1)[0];
+  savePersistedProducts();
+
+  res.json({
+    success: true,
+    message: `Product #${productId} (${deleted.name}) deleted successfully.`
+  });
+});
+
+// 12. View Store Orders (Admin)
+app.get('/api/store/admin/orders', requireStoreAdmin, async (req, res) => {
+  try {
+    let ordersList = [];
+    if (firestoreDb) {
+      const snap = await firestoreDb.collection('storeOrders').orderBy('createdAt', 'desc').limit(50).get();
+      if (!snap.empty) {
+        ordersList = snap.docs.map(doc => doc.data());
+      }
+    }
+    
+    // Supplement from storeInvoicesMap if any
+    if (ordersList.length === 0 && storeInvoicesMap.size > 0) {
+      for (const [orderId, data] of storeInvoicesMap.entries()) {
+        if (typeof data === 'object' && data !== null) {
+          ordersList.push({ orderId, ...data });
+        } else {
+          ordersList.push({ orderId, invoiceNo: data });
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      count: ordersList.length,
+      orders: ordersList
+    });
+  } catch (err) {
+    console.error('[Admin Orders Error]:', err.message);
+    res.status(500).json({ success: false, error: 'Could not load orders.' });
+  }
+});
+
+// ─── Blog Admin & Public APIs ──────────────────────────────────────────────────
+
+// 13. Get All Blogs (Admin)
+app.get('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
+  res.json({
+    success: true,
+    count: BLOG_POSTS.length,
+    blogs: BLOG_POSTS
+  });
+});
+
+// 14. Create New Blog Post (Admin)
+app.post('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
+  const { title, slug, category, author, readTime, image, excerpt, content, status, tags } = req.body;
+  if (!title || !content) {
+    return res.status(400).json({ success: false, error: 'Title and article content are required.' });
+  }
+
+  let postSlug = slug ? String(slug).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
+  if (!postSlug) {
+    postSlug = String(title).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  if (BLOG_POSTS.some(b => b.slug === postSlug)) {
+    postSlug = `${postSlug}-${Date.now().toString().slice(-4)}`;
+  }
+
+  const newPost = {
+    id: 'blog-' + Date.now(),
+    slug: postSlug,
+    title: String(title).trim(),
+    category: category || 'Study Tips',
+    author: author || 'Nishant Kumar',
+    date: new Date().toISOString().split('T')[0],
+    readTime: readTime || '5 min read',
+    image: image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80',
+    excerpt: excerpt ? String(excerpt).trim() : String(content).replace(/<[^>]*>/g, '').slice(0, 160) + '...',
+    content: content,
+    status: status === 'draft' ? 'draft' : 'published',
+    tags: Array.isArray(tags) ? tags : (tags ? String(tags).split(',').map(t => t.trim()).filter(Boolean) : []),
+    views: 0
+  };
+
+  BLOG_POSTS.unshift(newPost);
+  savePersistedBlogs();
+
+  res.json({
+    success: true,
+    message: 'Blog post published successfully!',
+    post: newPost
+  });
+});
+
+// 15. Update Blog Post (Admin)
+app.put('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
+  const { id } = req.params;
+  const index = BLOG_POSTS.findIndex(b => b.id === id || b.slug === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Blog post not found.' });
+  }
+
+  const existing = BLOG_POSTS[index];
+  const { title, slug, category, author, readTime, image, excerpt, content, status, tags } = req.body;
+
+  let postSlug = existing.slug;
+  if (slug && slug !== existing.slug) {
+    postSlug = String(slug).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  BLOG_POSTS[index] = {
+    ...existing,
+    slug: postSlug,
+    title: title !== undefined ? String(title).trim() : existing.title,
+    category: category !== undefined ? category : existing.category,
+    author: author !== undefined ? author : existing.author,
+    readTime: readTime !== undefined ? readTime : existing.readTime,
+    image: image !== undefined ? image : existing.image,
+    excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
+    content: content !== undefined ? content : existing.content,
+    status: status !== undefined ? status : existing.status,
+    tags: Array.isArray(tags) ? tags : (tags !== undefined ? String(tags).split(',').map(t => t.trim()).filter(Boolean) : existing.tags),
+    updatedAt: new Date().toISOString()
+  };
+
+  savePersistedBlogs();
+
+  res.json({
+    success: true,
+    message: 'Blog post updated successfully!',
+    post: BLOG_POSTS[index]
+  });
+});
+
+// 16. Delete Blog Post (Admin)
+app.delete('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
+  const { id } = req.params;
+  const index = BLOG_POSTS.findIndex(b => b.id === id || b.slug === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Blog post not found.' });
+  }
+
+  const deleted = BLOG_POSTS.splice(index, 1)[0];
+  savePersistedBlogs();
+
+  res.json({
+    success: true,
+    message: `Blog post "${deleted.title}" deleted.`
+  });
+});
+
+// Public read blogs API
+app.get('/api/public/blogs', (req, res) => {
+  const published = BLOG_POSTS.filter(b => b.status === 'published');
+  res.json({ success: true, count: published.length, blogs: published });
+});
+
+app.get('/api/public/blogs/:slug', (req, res) => {
+  const post = BLOG_POSTS.find(b => b.slug === req.params.slug && b.status === 'published');
+  if (!post) return res.status(404).json({ success: false, error: 'Blog post not found' });
+  res.json({ success: true, post });
 });
 
 // --- Store API Endpoints ---
@@ -2677,81 +3360,37 @@ app.get('/store/payment-success', (req, res) => {
 app.get('/blog', (req, res) => {
   res.render('blog/index', {
     pageTitle: '2AM Study Blog - Best Study Tips & Student Productivity Guides',
-    metaDescription: 'Expert study tips for exam preparation, focus techniques for concentration, and productivity hacks to help students excel academically.'
-  });
-});
-app.get('/blog/how-to-stay-focused', (req, res) => {
-  res.render('blog/how-to-stay-focused', {
-    pageTitle: 'How to Stay Focused While Studying | Concentration Techniques',
-    metaDescription: 'Struggling with distractions? Learn expert concentration techniques and study tips to maintain deep focus for longer periods.'
-  });
-});
-app.get('/blog/best-study-techniques', (req, res) => {
-  res.render('blog/best-study-techniques', {
-    pageTitle: '7 Best Study Techniques for Students | Exam Preparation',
-    metaDescription: 'Master your exams with science-backed study techniques like Pomodoro, Active Recall, and Spaced Repetition for better student success.'
-  });
-});
-app.get('/blog/avoid-distraction', (req, res) => {
-  res.render('blog/avoid-distraction', {
-    pageTitle: 'How to Avoid Distractions While Studying | Student Productivity',
-    metaDescription: 'Transform your study environment and block digital distractions. Practical focus techniques to help students stay productive.'
-  });
-});
-app.get('/blog/daily-study-routine', (req, res) => {
-  res.render('blog/daily-study-routine', {
-    pageTitle: 'Perfect Daily Study Routine for Academic Success',
-    metaDescription: 'Build a consistent study schedule with our daily routine guide. Tips for balancing lectures, rest, and deep work sessions.'
-  });
-});
-app.get('/blog/build-consistency', (req, res) => {
-  res.render('blog/build-consistency', {
-    pageTitle: 'How to Build Consistency in Your Study Habits',
-    metaDescription: 'Motivation is the start, but consistency is the key. Learn how to maintain a long-term study routine and achieve your academic goals.'
-  });
-});
-app.get('/blog/no-motivation-2am-study', (req, res) => {
-  res.render('blog/no-motivation-2am-study', {
-    pageTitle: 'No Motivation? Start 2AM Study With Me',
-    metaDescription: 'Learn how to overcome a lack of study motivation with our actionable 2AM strategy and focus tools.'
+    metaDescription: 'Expert study tips for exam preparation, focus techniques for concentration, and productivity hacks to help students excel academically.',
+    dynamicBlogs: BLOG_POSTS.filter(b => b.status === 'published')
   });
 });
 
-app.get('/blog/mistakes-before-exams', (req, res) => {
-  res.render('blog/mistakes-before-exams', {
-    pageTitle: '20 Common Mistakes Students Make 7 Days Before Exams | 2AM Study',
-    metaDescription: 'Avoid these 20 common exam mistakes and last-minute preparation errors. Get the best study tips for 7 days before exams to improve your academic performance with 2AM Study.'
-  });
-});
+app.get('/blog/:slug', (req, res) => {
+  const slug = req.params.slug.toLowerCase().trim();
 
+  // 1. Check dynamic blog posts first
+  const dynamicPost = BLOG_POSTS.find(b => b.slug === slug);
+  if (dynamicPost) {
+    if (dynamicPost.status === 'published' || req.session?.isStoreAdmin) {
+      dynamicPost.views = (dynamicPost.views || 0) + 1;
+      return res.render('blog/post', {
+        pageTitle: `${dynamicPost.title} | 2AM Study Blog`,
+        metaDescription: dynamicPost.excerpt || 'Read this article on 2AM Study Blog.',
+        post: dynamicPost
+      });
+    }
+  }
 
+  // 2. Fallback to existing static EJS views if file exists
+  const staticFilePath = path.join(__dirname, 'views', 'blog', `${slug}.ejs`);
+  if (fs.existsSync(staticFilePath)) {
+    return res.render(`blog/${slug}`, {
+      pageTitle: `${slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} | 2AM Study`,
+      metaDescription: 'Expert study tips and guides on 2AM Study.'
+    });
+  }
 
-app.get('/blog/focus-tips', (req, res) => {
-  res.render('blog/focus-tips', {
-    pageTitle: 'Focus Tips - How to Stay Focused While Studying',
-    metaDescription: 'Explore practical focus tips for students that improve concentration, study productivity, and effective learning habits while studying.',
-  });
-});
-
-app.get('/blog/study-routine-guide', (req, res) => {
-  res.render('blog/study-routine-guide', {
-    pageTitle: 'Study Routine Guide - Best Study Schedule for Students',
-    metaDescription: 'Discover the best study routine for students with daily habits, focus strategies, and productivity tips.',
-  });
-});
-
-app.get('/blog/study-at-night', (req, res) => {
-  res.render('blog/study-at-night', {
-    pageTitle: 'Study at Night - How to Study at 2AM Effectively',
-    metaDescription: 'Learn how to study at night with a smart 2AM study strategy, nighttime productivity tips, and ways to balance rest.',
-  });
-});
-
-app.get('/blog/smart-work-student-success', (req, res) => {
-  res.render('blog/smart-work-student-success', {
-    pageTitle: 'How 2 AM Study Transforms Hard Work into Smart Work for Student Success',
-    metaDescription: 'Learn how to maximize output and minimize burnout by shifting from mere hard work to effective smart work with 2AM Study.',
-  });
+  return res.status(404).redirect('/blog');
 });
 
 // --- Study Tools ---

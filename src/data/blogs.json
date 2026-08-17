@@ -1,0 +1,59 @@
+[
+  {
+    "id": "blog-1",
+    "slug": "mistakes-before-exams",
+    "title": "20 Common Mistakes Students Make 7 Days Before Exams",
+    "category": "Exam Prep",
+    "author": "Nishant Kumar",
+    "date": "2026-03-16",
+    "readTime": "6 min read",
+    "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80",
+    "excerpt": "Avoid common pitfalls that ruin exam performance. Learn what NOT to do in your final week.",
+    "content": "<p>The final seven days before an exam are the most critical period in any student's preparation cycle. Often, success is determined not just by what you study, but by the avoidable mistakes you prevent.</p><h2>1. Starting New Heavy Topics</h2><p>Trying to master complex new chapters at the last minute triggers panic and compromises retention of what you already know. Consolidate your core strengths instead.</p><h2>2. Sacrificing Sleep for Cramming</h2><p>Your brain requires REM sleep to move facts into long-term memory. Less than 6 hours of sleep reduces recall efficiency by up to 40%.</p><div class=\"pro-tip\"><strong>Pro Tip:</strong> Stick to active revision using previous year questions (PYQs) and flashcards rather than passively re-reading entire textbooks.</div>",
+    "status": "published",
+    "tags": [
+      "exams",
+      "revision",
+      "study tips"
+    ],
+    "views": 2840
+  },
+  {
+    "id": "blog-2",
+    "slug": "how-to-stay-focused",
+    "title": "How to Stay Focused While Studying (Science-Backed Guide)",
+    "category": "Focus & Concentration",
+    "author": "Nishant Kumar",
+    "date": "2026-03-14",
+    "readTime": "5 min read",
+    "image": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&q=80",
+    "excerpt": "Struggling with distractions? Learn concentration techniques and focus tips to maintain deep focus for hours.",
+    "content": "<p>Focus is not a fixed trait—it is a cognitive muscle that grows stronger with deliberate practice and the right environment.</p><h2>1. The 50/10 Focus Protocol</h2><p>Work with complete intensity for 50 minutes, followed by a strict 10-minute non-screen break to reset dopamine levels.</p><h2>2. Eliminate Micro-Distractions</h2><p>Put your smartphone in another room or turn on Do Not Disturb. Every notification costs 23 minutes of focus recovery time.</p>",
+    "status": "published",
+    "tags": [
+      "focus",
+      "pomodoro",
+      "productivity"
+    ],
+    "views": 1950
+  },
+  {
+    "id": "blog-3",
+    "slug": "study-at-night",
+    "title": "How to Study at 2 AM Effectively (Night Study Strategy)",
+    "category": "Study Routines",
+    "author": "Nishant Kumar",
+    "date": "2026-03-10",
+    "readTime": "4 min read",
+    "image": "https://images.unsplash.com/photo-1517842645767-c639042777db?w=1200&q=80",
+    "excerpt": "Late night study sessions can be extremely productive if you know how to manage lighting, hydration, and mental alertness.",
+    "content": "<p>Late-night hours offer absolute silence and zero social distractions. Here is how to conquer 2 AM study without burnout.</p><h2>1. Use Focused Warm Light</h2><p>Bright overhead white lights strain eyes at night. A directional desk lamp with warm tone keeps attention locked on your pages.</p><h2>2. Keep Hydration Nearby</h2><p>Dehydration is the #1 cause of sudden late-night drowsiness. Sip water steadily throughout your session.</p>",
+    "status": "published",
+    "tags": [
+      "night study",
+      "2am",
+      "habits"
+    ],
+    "views": 3210
+  }
+]

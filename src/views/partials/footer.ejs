@@ -315,16 +315,16 @@
     }
   }
 
-  /* ── Enhanced Professional Footer ── */
+  /* ── Enhanced Mobile-Optimized Footer (Hiii Nishant Style) ── */
   .site-footer {
-    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
-    color: #cbd5e1;
+    background: linear-gradient(180deg, #090d16 0%, #020617 100%);
+    color: #94a3b8;
     margin-top: auto;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
     overflow: hidden;
-    padding-bottom: 0;
-    margin-bottom: 0;
+    padding-top: 48px;
+    padding-bottom: 24px;
   }
 
   .site-footer::before {
@@ -333,17 +333,25 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #2874f0, #8b5cf6, transparent);
+  }
+
+  .footer-brand-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .footer-title {
     color: #f8fafc;
     font-weight: 800;
-    font-size: 1.25rem;
-    margin-bottom: 1.75rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.2px;
+    margin-bottom: 1.25rem;
     position: relative;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    display: inline-block;
   }
 
   .footer-title::after {
@@ -351,254 +359,223 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 40px;
+    width: 28px;
     height: 3px;
-    background: #4f46e5;
+    background: #2874f0;
     border-radius: 2px;
   }
 
-  .footer-card {
-    background: rgba(255, 255, 255, 0.02) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 1.5rem !important;
-    padding: 2rem !important;
-    transition: all 0.3s ease !important;
-    height: 100%;
-  }
-
-  .footer-card:hover {
-    background: rgba(255, 255, 255, 0.04) !important;
-    border-color: rgba(99, 102, 241, 0.2) !important;
-    transform: translateY(-5px);
-  }
-
-  .footer-link-item {
-    margin-bottom: 0.85rem;
+  .footer-links-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: all 0.2s ease;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .footer-link-item a {
     color: #94a3b8;
     text-decoration: none;
+    font-size: 0.92rem;
     font-weight: 500;
-    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
     transition: all 0.2s ease;
   }
 
-  .footer-link-item:hover a {
-    color: #f8fafc;
-    transform: translateX(5px);
+  .footer-link-item a:hover {
+    color: #60a5fa;
+    transform: translateX(4px);
   }
 
   .footer-link-item i {
-    color: #6366f1;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    color: #3b82f6;
     opacity: 0.8;
+  }
+
+  /* Quick Access Pills (Mobile First) */
+  .footer-quick-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .footer-pill {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .footer-pill:hover {
+    background: rgba(40, 116, 240, 0.2);
+    border-color: #2874f0;
+    color: #fff;
+    transform: translateY(-2px);
   }
 
   .social-icons {
     display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
   }
 
   .social-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.05);
-    color: #f8fafc;
+    color: #e2e8f0;
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
   }
 
   .social-btn:hover {
-    background: #4f46e5;
-    transform: translateY(-5px) rotate(8deg);
-    border-color: #6366f1;
-    color: white;
-  }
-
-  .footer-bottom {
-    background: rgba(2, 6, 23, 0.8);
-    padding: 1.5rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.03);
-    margin-bottom: 0;
-  }
-
-  .footer-legal a {
-    color: #64748b;
-    text-decoration: none;
-    font-size: 0.85rem;
-    margin-left: 1.5rem;
-    transition: color 0.2s;
-  }
-
-  .footer-legal a:hover {
-    color: #f8fafc;
+    background: #2874f0;
+    border-color: #2874f0;
+    color: #fff;
+    transform: translateY(-3px);
   }
 
   .whatsapp-badge-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 10px;
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 1rem;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
     font-weight: 700;
+    font-size: 14px;
     text-decoration: none;
-    margin-top: 1.25rem;
-    box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4);
-    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 260px;
   }
 
   .whatsapp-badge-btn:hover {
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 15px 30px -5px rgba(34, 197, 94, 0.5);
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.4);
+    color: #fff;
   }
 
-  /* Ensure the footer stays at the bottom of the viewport even on short pages */
-  body {
+  .footer-bottom {
+    background: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px 0;
+    margin-top: 36px;
+  }
+
+  .footer-legal-links {
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
-  body > main,
-  body > .main-content,
-  body > .pomo-page,
-  body > .blog-post-page,
-  body > .clock-hub-page,
-  body > .order-main,
-  body > .cart-main,
-  body > .store-main,
-  body > .fk-product-page {
-    flex: 1 0 auto;
+  .footer-legal-links a {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
   }
 
-  /* Student Safety & other pages: hero section + main are direct body children.
-     Give ALL direct body sections grow so footer is always pushed down. */
-  body > section {
-    flex: 1 0 auto;
-  }
-  body > main {
-    flex: 1 0 auto;
+  .footer-legal-links a:hover {
+    color: #93c5fd;
   }
 
-
-  body>footer.site-footer {
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 991px) {
+  /* Phone and Mobile Specific Optimizations (< 768px) */
+  @media (max-width: 767.98px) {
     .site-footer {
-      padding-bottom: 100px;
+      padding-top: 36px;
+      padding-bottom: 90px; /* buffer for floating mobile cart */
+      text-align: left;
     }
-  }
 
-  @media (max-width: 767px) {
     .footer-brand-section {
       text-align: center;
-      margin-bottom: 2rem;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .footer-brand-section p {
+      text-align: center;
+      margin: 0 auto 12px;
     }
 
     .social-icons {
       justify-content: center;
     }
 
+    .whatsapp-badge-btn {
+      margin: 0 auto;
+    }
+
     .footer-title {
-      display: inline-block;
+      font-size: 1rem;
+      margin-bottom: 1rem;
     }
 
-    .footer-title::after {
-      left: 50%;
-      transform: translateX(-50%);
+    .footer-links-list {
+      gap: 8px;
+    }
+
+    .footer-link-item a {
+      font-size: 0.88rem;
+      padding: 6px 0; /* tap target friendly */
+    }
+
+    .footer-quick-pills {
+      justify-content: center;
+    }
+
+    .footer-legal-links {
+      justify-content: center;
+      margin-top: 12px;
+      gap: 12px;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding: 16px 0;
     }
   }
-  /* ── Store Cart Bubble Styles ── */
-  .store-cart-container {
-    position: fixed;
-    bottom: 110px; /* Elevated above the bot */
-    right: 25px;
-    z-index: 10000;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: none; /* Controlled by JS */
-  }
 
-  .store-cart-bubble {
-    width: 65px;
-    height: 65px;
-    background: linear-gradient(135deg, #fb641b, #ff7531);
-    border-radius: 50%;
+  /* Ensure footer sticky bottom */
+  body {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.8rem;
-    cursor: pointer;
-    box-shadow: 0 10px 25px rgba(251, 100, 27, 0.4);
-    transition: all 0.3s ease;
-    position: relative;
-    border: 2px solid rgba(255,255,255,0.2);
+    flex-direction: column;
+    min-height: 100vh;
   }
-
-  .store-cart-bubble:hover {
-    transform: scale(1.1) translateY(-5px) rotate(5deg);
-    box-shadow: 0 15px 35px rgba(251, 100, 27, 0.6);
+  body > main, body > section, body > .main-content {
+    flex: 1 0 auto;
   }
-
-  .cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #fff;
-    color: #fb641b;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    border: 2px solid #fb641b;
-  }
-
-  .store-cart-bubble .pulse {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: #fb641b;
-    opacity: 0.5;
-    animation: cartPulse 2s infinite;
-    z-index: -1;
-  }
-
-  @keyframes cartPulse {
-    0% { transform: scale(1); opacity: 0.5; }
-    100% { transform: scale(1.6); opacity: 0; }
-  }
-
-  @media (max-width: 576px) {
-    .store-cart-container {
-      right: 20px;
-      bottom: 100px;
-    }
+  body > footer.site-footer {
+    flex-shrink: 0;
   }
 </style>
-
-
 
 <!-- Store Cart Bubble -->
 <div class="store-cart-container" id="storeCartContainer">
@@ -610,96 +587,107 @@
 </div>
 
 <footer class="site-footer">
-  <div class="container pb-5 pt-4">
-    <div class="row gy-5">
-      <!-- Brand Section -->
-      <div class="col-lg-4 col-md-6">
+  <div class="container">
+    
+    <!-- Mobile Quick Touch Shortcuts (Hiii Nishant Style) -->
+    <div class="footer-quick-pills">
+      <a href="/timer" class="footer-pill"><i class="fa-solid fa-clock text-primary"></i> Focus Timer</a>
+      <a href="/store" class="footer-pill"><i class="fa-solid fa-store text-warning"></i> Store</a>
+      <a href="/blog" class="footer-pill"><i class="fa-solid fa-pen-nib text-info"></i> Blog</a>
+      <a href="/faqs" class="footer-pill"><i class="fa-solid fa-circle-question text-success"></i> FAQs (Q&amp;A)</a>
+      <a href="/resources" class="footer-pill"><i class="fa-solid fa-book text-danger"></i> Notes Hub</a>
+      <a href="/behind-2am-study" class="footer-pill"><i class="fa-solid fa-heart text-danger"></i> Our Story</a>
+    </div>
+
+    <div class="row g-4">
+      <!-- Brand & Community Column -->
+      <div class="col-lg-4 col-md-12">
         <div class="footer-brand-section">
           <img src="/assets/images/logo.jpg" alt="2AM Study Logo"
-            style="height: 60px; border-radius: 12px; margin-bottom: 1.5rem; filter: drop-shadow(0 0 10px rgba(79, 70, 229, 0.2));">
-          <h5 class="footer-title">2AM Study Hub</h5>
-          <p class="mb-4" style="max-width: 320px;">We bridge the gap from college life to a successful future.
-            Empowering students with the tools, knowledge, and community to excel.</p>
+            style="height: 52px; border-radius: 12px; filter: drop-shadow(0 0 10px rgba(40, 116, 240, 0.2));">
+          <div style="font-size: 1.15rem; font-weight: 800; color: #fff;">2AM Study Hub</div>
+          <p class="small text-muted" style="max-width: 340px; margin-bottom: 8px;">
+            From classrooms to life goals — empowering students with smart focus techniques, study essentials, and an inclusive community.
+          </p>
+
+          <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="whatsapp-badge-btn">
+            <i class="fa-brands fa-whatsapp fa-lg"></i>
+            <span>Join Student Community</span>
+          </a>
+
           <div class="social-icons">
-            <a href="https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL" target="_blank" class="social-btn"
-              title="YouTube"><i class="fa-brands fa-youtube"></i></a>
-            <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="social-btn"
-              title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-            <a href="#" class="social-btn" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
-            <a href="https://www.linkedin.com/in/hiinishant/" class="social-btn" title="LinkedIn"><i
-                class="fa-brands fa-linkedin-in"></i></a>
-          </div>
-          <div class="mt-3" style="max-width: 100%; overflow: hidden;">
-            <a href="https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL" target="_blank" style="color: #cbd5e1; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: inline-block; transition: color 0.2s;" onmouseover="this.style.color='#ff4757';" onmouseout="this.style.color='#cbd5e1';">
-              🎥 Follow for daily study motivation — 2 AM Study ❤️
-            </a>
+            <a href="https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL" target="_blank" class="social-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="social-btn" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="http://pinterest.com/2amstudy" target="_blank" class="social-btn" title="Pinterest"><i class="fa-brands fa-pinterest"></i></a>
+            <a href="https://hiiinishant.com" target="_blank" class="social-btn" title="Nishant"><i class="fa-solid fa-user-astronaut"></i></a>
           </div>
         </div>
       </div>
 
-      <!-- Quick Links -->
-      <div class="col-lg-2 col-md-6">
-        <h5 class="footer-title">Navigation</h5>
-        <ul class="list-unstyled">
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/">Home</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/about">About 2 AM Study</a>
-          </li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/behind-2am-study">Behind 2 AM
-              Study</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/blog">Our Blog</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/contact">Contact</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/terms">Terms &amp;
-              Conditions</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-chevron-right"></i><a href="/privacy-policy">Privacy
-              Policy</a></li>
+      <!-- Quick 2-Column Mobile Links (Navigation & Tools) -->
+      <div class="col-6 col-lg-2 col-md-3">
+        <h5 class="footer-title">Company</h5>
+        <ul class="footer-links-list">
+          <li class="footer-link-item"><a href="/"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+          <li class="footer-link-item"><a href="/about"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
+          <li class="footer-link-item"><a href="/behind-2am-study"><i class="fa-solid fa-chevron-right"></i> Behind 2 AM</a></li>
+          <li class="footer-link-item"><a href="/blog"><i class="fa-solid fa-chevron-right"></i> Blog Posts</a></li>
+          <li class="footer-link-item"><a href="/faqs"><i class="fa-solid fa-chevron-right"></i> FAQs (Q&amp;A)</a></li>
+          <li class="footer-link-item"><a href="/contact"><i class="fa-solid fa-chevron-right"></i> Contact Us</a></li>
         </ul>
       </div>
 
-      <!-- Study Tools -->
-      <div class="col-lg-3 col-md-6">
-        <h5 class="footer-title">Success Tools</h5>
-        <ul class="list-unstyled">
-          <li class="footer-link-item"><i class="fa-solid fa-clock"></i><a href="/timer">Focus Timer</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-calendar-check"></i><a href="/tasks">Academic Planner</a>
-          </li>
-          <li class="footer-link-item"><i class="fa-solid fa-brain"></i><a href="/study-tools">Flashcard Hub</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-graduation-cap"></i><a href="/college-student">Student
-              Support</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-store"></i><a href="/store">Student Store</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-shield-halved"></i><a href="/student-safety">Student Safety</a></li>
-          <li class="footer-link-item"><i class="fa-solid fa-book-open-reader"></i><a href="/resources">Exam Resource Center</a></li>
+      <!-- Study Tools Column -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <h5 class="footer-title">Study Tools</h5>
+        <ul class="footer-links-list">
+          <li class="footer-link-item"><a href="/timer"><i class="fa-solid fa-clock"></i> Focus Timer</a></li>
+          <li class="footer-link-item"><a href="/store"><i class="fa-solid fa-store"></i> Student Store</a></li>
+          <li class="footer-link-item"><a href="/resources"><i class="fa-solid fa-book-open"></i> Exam Resources</a></li>
+          <li class="footer-link-item"><a href="/tasks"><i class="fa-solid fa-calendar-check"></i> Study Planner</a></li>
+          <li class="footer-link-item"><a href="/student-safety"><i class="fa-solid fa-shield-halved"></i> Safety Hub</a></li>
+          <li class="footer-link-item"><a href="/music"><i class="fa-solid fa-headphones"></i> LoFi Beats</a></li>
         </ul>
       </div>
 
-      <!-- Community/Connect -->
-      <div class="col-lg-3 col-md-6">
-        <h5 class="footer-title">Join Us</h5>
-        <p class="small mb-3">Join our thriving community of motivated students across the globe.</p>
-        <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="whatsapp-badge-btn">
-          <i class="fa-brands fa-whatsapp fa-xl"></i>
-          <span>Join Community</span>
-        </a>
-        <div class="mt-4">
-          <p class="small mb-2" style="color: #f43f5e; font-weight: 600;">Need Help?</p>
-          <a href="mailto:support@2amstudy.online"
-            class="text-white text-decoration-none fw-semibold">support@2amstudy.online</a>
+      <!-- Help & Support Column -->
+      <div class="col-12 col-lg-3 col-md-5">
+        <h5 class="footer-title">Student Support</h5>
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 16px;">
+          <div style="color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 6px;">Have Doubts or Feedback?</div>
+          <p class="small text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
+            Our team and AI assistant are available 24/7 to solve study challenges.
+          </p>
+          <a href="mailto:support@2amstudy.online" class="d-inline-flex align-items-center gap-2 text-primary text-decoration-none fw-semibold small">
+            <i class="fa-solid fa-envelope"></i> support@2amstudy.online
+          </a>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Bottom Legal & Copyright Bar -->
   <div class="footer-bottom">
     <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start mb-0">
-          <p class="mb-0 small opacity-75">© 2026 Transformation Bridge | Built for Excellence 🎓</p>
+      <div class="row align-items-center gy-2">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="mb-0 small text-muted">© 2026 <strong>2 AM Study</strong> • Student-First Always 🎓</p>
         </div>
-        <div class="col-md-6 text-center text-md-end footer-legal">
-          <a href="/music">Study Music</a>
-          <a href="/quotes">Daily Quotes</a>
-          <a href="/privacy-policy">Privacy</a>
-          <a href="/terms">Terms</a>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="footer-legal-links">
+            <a href="/faqs">FAQs</a>
+            <span>•</span>
+            <a href="/store">Store</a>
+            <span>•</span>
+            <a href="/privacy-policy">Privacy Policy</a>
+            <span>•</span>
+            <a href="/terms">Terms &amp; Conditions</a>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+</footer>v>
       </div>
     </div>
   </div>

@@ -1,0 +1,625 @@
+<%- include('partials/header') %>
+
+<style>
+  :root {
+    --faq-primary: #2874f0;
+    --faq-primary-hover: #1d4ed8;
+    --faq-primary-subtle: rgba(40, 116, 240, 0.08);
+    --faq-dark: #0f172a;
+    --faq-muted: #64748b;
+  }
+
+  .faq-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+    color: #fff;
+    padding: 90px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .faq-hero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(40, 116, 240, 0.2) 0%, rgba(139, 92, 246, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .faq-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(40, 116, 240, 0.2);
+    border: 1px solid rgba(40, 116, 240, 0.4);
+    color: #93c5fd;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+  }
+
+  .faq-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+
+  .faq-subtitle {
+    font-size: 1.2rem;
+    color: #cbd5e1;
+    max-width: 680px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  .faq-search-wrap {
+    max-width: 580px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .faq-search-input {
+    width: 100%;
+    padding: 16px 20px 16px 52px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.25s;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .faq-search-input::placeholder { color: #94a3b8; }
+
+  .faq-search-input:focus {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.25);
+  }
+
+  .faq-search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 18px;
+  }
+
+  /* Filter Navigation */
+  .faq-filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 40px 0 30px;
+  }
+
+  .faq-filter-btn {
+    padding: 9px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: var(--faq-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .faq-filter-btn:hover {
+    background: #f8fafc;
+    color: var(--faq-dark);
+    border-color: #cbd5e1;
+  }
+
+  .faq-filter-btn.active {
+    background: var(--faq-primary);
+    color: #fff;
+    border-color: var(--faq-primary);
+    box-shadow: 0 4px 12px rgba(40, 116, 240, 0.25);
+  }
+
+  /* Accordion Styling */
+  .faq-container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .faq-category-section {
+    margin-bottom: 40px;
+  }
+
+  .faq-category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .faq-category-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--faq-primary-subtle);
+    color: var(--faq-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .faq-category-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--faq-dark);
+    margin: 0;
+  }
+
+  .faq-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .faq-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  }
+
+  .faq-item.active {
+    border-color: #93c5fd;
+    box-shadow: 0 8px 20px rgba(40, 116, 240, 0.08);
+  }
+
+  .faq-question {
+    padding: 20px 24px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--faq-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    user-select: none;
+  }
+
+  .faq-toggle-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: var(--faq-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: transform 0.25s, background 0.25s, color 0.25s;
+    flex-shrink: 0;
+  }
+
+  .faq-item.active .faq-toggle-icon {
+    transform: rotate(180deg);
+    background: var(--faq-primary);
+    color: #fff;
+  }
+
+  .faq-answer {
+    padding: 0 24px 22px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #475569;
+    display: none;
+  }
+
+  .faq-answer p { margin-bottom: 12px; }
+  .faq-answer p:last-child { margin-bottom: 0; }
+
+  .faq-answer ul {
+    margin: 10px 0 12px;
+    padding-left: 24px;
+  }
+
+  .faq-answer li { margin-bottom: 6px; }
+
+  .faq-highlight-box {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    padding: 12px 16px;
+    border-radius: 0 10px 10px 0;
+    margin: 12px 0 4px;
+    font-size: 14px;
+    color: #166534;
+  }
+
+  /* Support Card */
+  .faq-cta-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    border-radius: 20px;
+    padding: 40px;
+    color: #fff;
+    text-align: center;
+    margin: 50px 0 20px;
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.2);
+  }
+
+  .faq-cta-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .faq-cta-desc {
+    color: #bfdbfe;
+    font-size: 15px;
+    max-width: 540px;
+    margin: 0 auto 24px;
+  }
+
+  .no-faq-results {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--faq-muted);
+  }
+</style>
+
+<!-- Hero Section -->
+<section class="faq-hero text-center">
+  <div class="container">
+    <div class="faq-pill-badge">
+      <i class="fa-solid fa-heart"></i> Student-First Support
+    </div>
+    <h1 class="faq-title">How I Can Help You – Q&amp;A</h1>
+    <p class="faq-subtitle">
+      From classrooms to life goals — here’s how we make it happen. Get clear answers to your study routines, focus techniques, store essentials, and student safety questions.
+    </p>
+
+    <div class="faq-search-wrap">
+      <i class="fa-solid fa-magnifying-glass faq-search-icon"></i>
+      <input type="text" id="faqSearchInput" class="faq-search-input" placeholder="Search questions by keyword, topic, or exam..." oninput="filterFaqs()">
+    </div>
+  </div>
+</section>
+
+<!-- Filter Category Pills -->
+<main class="container py-4">
+  <div class="faq-filter-bar">
+    <button class="faq-filter-btn active" onclick="setFaqCategory('all', this)">
+      <i class="fa-solid fa-layer-group"></i> All Questions
+    </button>
+    <button class="faq-filter-btn" onclick="setFaqCategory('academics', this)">
+      🎓 Academics &amp; Focus
+    </button>
+    <button class="faq-filter-btn" onclick="setFaqCategory('tools', this)">
+      ⚡ Study Tools
+    </button>
+    <button class="faq-filter-btn" onclick="setFaqCategory('store', this)">
+      🛍️ Store &amp; Essentials
+    </button>
+    <button class="faq-filter-btn" onclick="setFaqCategory('safety', this)">
+      🛡️ Student Safety
+    </button>
+    <button class="faq-filter-btn" onclick="setFaqCategory('mentorship', this)">
+      🤝 Mentorship
+    </button>
+  </div>
+
+  <div class="faq-container">
+    <!-- Category 1: Academics & Focus -->
+    <div class="faq-category-section" data-cat="academics">
+      <div class="faq-category-header">
+        <div class="faq-category-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <h2 class="faq-category-title">Academics &amp; Study Strategies</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How do I overcome fatigue and stay focused during late-night study sessions?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>Studying late at night (especially around 2 AM) is powerful because the world goes quiet and notifications stop. However, maintaining high focus requires a disciplined physical protocol:</p>
+          <ul>
+            <li><strong>Directional Lighting:</strong> Keep a warm, focused desk lamp right over your books instead of glaring overhead white LEDs.</li>
+            <li><strong>Hydration Over Sugar:</strong> Drink cold water steadily. High-sugar snacks cause insulin spikes followed by severe energy crashes.</li>
+            <li><strong>50/10 Focus Intervals:</strong> Study intensely for 50 minutes, then do light physical stretches away from screens for 10 minutes.</li>
+          </ul>
+          <div class="faq-highlight-box">
+            <strong>Pro Tip:</strong> If your eyes feel strained, splash cold water and do 2 minutes of box-breathing to reset cognitive alertness.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>What is the best strategy for the final 7 days before semester or competitive exams?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>In the final 7 days, your goal is <strong>retrieval practice</strong> rather than passive reading. Never start brand-new heavy chapters that create panic.</p>
+          <ul>
+            <li><strong>Solve PYQs Under Timed Conditions:</strong> Treat mock papers like the real examination.</li>
+            <li><strong>Active Recall Sheets:</strong> Write down core formulas, diagrams, and definitions from memory onto blank paper.</li>
+            <li><strong>Protect Your Sleep:</strong> Get at least 6.5–7 hours of sleep; memory consolidation occurs primarily during deep REM cycles.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How can I break my smartphone addiction while studying?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>Willpower alone fails against algorithms designed to hijack attention. You need <strong>environmental friction</strong>:</p>
+          <ul>
+            <li>Place your smartphone in another room or inside a drawer before you begin your study session.</li>
+            <li>Use the 2 AM Study Distraction Blocker and fullscreen timer to anchor your workstation.</li>
+            <li>Schedule 15 minutes of guilt-free phone time only AFTER completing 3 full study blocks.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category 2: Study Tools -->
+    <div class="faq-category-section" data-cat="tools">
+      <div class="faq-category-header">
+        <div class="faq-category-icon"><i class="fa-solid fa-bolt"></i></div>
+        <h2 class="faq-category-title">Student-First Productivity Tools</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Are the 2 AM Study digital tools, timers, and revision notes free?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Yes, 100% free!</strong> Our core mission is student empowerment. All web tools—including the Pomodoro Timer, Syllabus Tracker, Exam Countdown, Notes Hub, Calculators, LoFi Music, and PDF Tools—are accessible to every student without any mandatory paywalls.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How does the Study Streak &amp; Habit Tracker help me build consistency?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>The Streak Tracker provides visual reinforcement for every daily study milestone you achieve. Building a visible chain of uninterrupted study days creates psychological momentum, making it significantly harder to skip sessions.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How can I download subject revision notes and formulas?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>Head over to our <a href="/notes" class="fw-bold text-primary">Notes Hub</a> or the <a href="/resources" class="fw-bold text-primary">Exam Resource Center</a> to browse chapter-wise summaries, handwritten mind maps, and past year question compilations.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category 3: Store & Essentials -->
+    <div class="faq-category-section" data-cat="store">
+      <div class="faq-category-header">
+        <div class="faq-category-icon"><i class="fa-solid fa-store"></i></div>
+        <h2 class="faq-category-title">2 AM Study Store &amp; Essentials</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>What makes 2 AM Study notebooks and accessories unique?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>Every product in the <strong>2 AM Study Store</strong> is thoughtfully designed for intense academic life:</p>
+          <ul>
+            <li><strong>80–100 GSM Non-Bleed Paper:</strong> Perfect for fountain pens, gel inks, and highlighters.</li>
+            <li><strong>Lay-Flat Spiral &amp; Hardcover Bindings:</strong> Lies 180° flat on cramped library desks.</li>
+            <li><strong>Insulated Stainless Steel Bottles:</strong> Keeps water icy cold during long night study sprints.</li>
+            <li><strong>Ergonomic Student Backpacks:</strong> Engineered with dedicated laptop sleeves and weight-distributing straps.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>What are the shipping durations and delivery areas in India?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>We deliver nationwide across all major PIN codes in India. Standard delivery typically takes <strong>3 to 5 business days</strong> for metro cities and 4 to 7 business days for regional college campuses. You receive live SMS/Email tracking updates upon dispatch.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How can I download the official tax invoice for my purchase?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>Once your order is confirmed via Razorpay, you receive an instant digital invoice on the order completion screen (`/store/invoice/:orderId`) with complete itemized breakdown and printable PDF receipt.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category 4: Student Safety -->
+    <div class="faq-category-section" data-cat="safety">
+      <div class="faq-category-header">
+        <div class="faq-category-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h2 class="faq-category-title">Student Safety &amp; Identity Shield</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How does Student Identity Shield protect me against fake social media profiles?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Student Identity Shield</strong> is our dedicated community defense initiative to protect students from impersonation, fake college accounts, and harassment. When you submit a report with screenshot evidence, our verification team validates the threat, issues a warning badge, and coordinates community takedown reporting.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Is my identity and reporting information kept confidential?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Yes, absolutely.</strong> Your personal contact details and student IDs are strictly encrypted and never made public. Only verified case details and warning alerts for other students are displayed on the public safety feed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category 5: Mentorship -->
+    <div class="faq-category-section" data-cat="mentorship">
+      <div class="faq-category-header">
+        <div class="faq-category-icon"><i class="fa-solid fa-handshake-angle"></i></div>
+        <h2 class="faq-category-title">Mentorship &amp; Connecting with Nishant</h2>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How can I ask Nishant a question or request academic guidance?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>You can connect directly through our <a href="/contact" class="fw-bold text-primary">Contact Page</a> or ask academic queries on our AI Doubt Solver. You can also explore our founder's journey and mission at <a href="/behind-2am-study" class="fw-bold text-primary">Behind 2 AM Study</a> or check out <a href="https://hiiinishant.com" target="_blank" class="fw-bold text-primary">Hiii Nishant</a>.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How can my college club or study group partner with 2 AM Study?</span>
+          <div class="faq-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="faq-answer">
+          <p>We actively collaborate with student clubs, college societies, and campus ambassadors. Drop us an email via <a href="/contact" class="fw-bold text-primary">Contact Us</a> with your college details, and our campus outreach team will get in touch!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Search Results Found -->
+    <div id="noFaqResults" class="no-faq-results">
+      <i class="fa-solid fa-circle-question fa-3x mb-3 text-muted"></i>
+      <h4>No matching questions found</h4>
+      <p>Try searching with different keywords or browse our question categories above.</p>
+    </div>
+
+    <!-- Support CTA Card -->
+    <div class="faq-cta-card">
+      <h3 class="faq-cta-title">Still Have a Question?</h3>
+      <p class="faq-cta-desc">
+        Can’t find the answer you’re looking for? Reach out to our student support team or connect with Nishant directly.
+      </p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="/contact" class="btn btn-light rounded-pill px-4 py-2 fw-bold text-primary">
+          <i class="fa-solid fa-envelope me-2"></i> Contact Support
+        </a>
+        <a href="/store" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">
+          <i class="fa-solid fa-store me-2"></i> Explore Store
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Toggle accordion item
+  function toggleFaq(el) {
+    const item = el.parentElement;
+    const answer = item.querySelector('.faq-answer');
+    const isActive = item.classList.contains('active');
+
+    // Close all other open items in the same section for smooth UX
+    document.querySelectorAll('.faq-item.active').forEach(openItem => {
+      if (openItem !== item) {
+        openItem.classList.remove('active');
+        openItem.querySelector('.faq-answer').style.display = 'none';
+      }
+    });
+
+    if (isActive) {
+      item.classList.remove('active');
+      answer.style.display = 'none';
+    } else {
+      item.classList.add('active');
+      answer.style.display = 'block';
+    }
+  }
+
+  // Filter FAQs by Category
+  function setFaqCategory(cat, btn) {
+    document.querySelectorAll('.faq-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.faq-category-section').forEach(sec => {
+      if (cat === 'all' || sec.getAttribute('data-cat') === cat) {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = 'none';
+      }
+    });
+
+    document.getElementById('faqSearchInput').value = '';
+    document.getElementById('noFaqResults').style.display = 'none';
+  }
+
+  // Search Filter
+  function filterFaqs() {
+    const query = document.getElementById('faqSearchInput').value.toLowerCase().trim();
+    let visibleCount = 0;
+
+    document.querySelectorAll('.faq-category-section').forEach(sec => {
+      let sectionHasMatches = false;
+      sec.querySelectorAll('.faq-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (!query || text.includes(query)) {
+          item.style.display = 'block';
+          sectionHasMatches = true;
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      if (sectionHasMatches) {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = 'none';
+      }
+    });
+
+    const noResults = document.getElementById('noFaqResults');
+    if (visibleCount === 0) {
+      noResults.style.display = 'block';
+    } else {
+      noResults.style.display = 'none';
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>
