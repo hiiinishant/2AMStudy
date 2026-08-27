@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cl-1bb6dc4d",
+    "title": "2 AM Study With Me",
+    "description": "Study With Me CU",
+    "category": "Campus Vibe",
+    "duration": "",
+    "youtubeUrl": "https://www.youtube.com/live/94hXyaOHxwU?si=b6BnUtcqw5Vf_tRO",
+    "youtubeVideoId": "94hXyaOHxwU",
+    "thumbnail": "https://img.youtube.com/vi/94hXyaOHxwU/maxresdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-08-27T08:57:51.031Z"
+  },
+  {
+    "id": "cl-001",
+    "title": "College Life & Campus Fest Vibes - 2 AM Study",
+    "category": "Campus Vibe",
+    "description": "Experience the energy of college fests, campus hangouts, and student memories.",
+    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+    "youtubeVideoId": "jfKfPfyJRdk",
+    "thumbnail": "https://img.youtube.com/vi/jfKfPfyJRdk/maxresdefault.jpg",
+    "duration": "10 Min",
+    "isFeatured": true,
+    "createdAt": "2026-08-27T00:00:00.000Z"
+  },
+  {
+    "id": "cl-002",
+    "title": "Hostel Life Fun & Late Night Chai Stories",
+    "category": "Hostel Fun",
+    "description": "Late night discussions, midnight Maggi sessions, and unforgettable hostel friendships.",
+    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+    "youtubeVideoId": "jfKfPfyJRdk",
+    "thumbnail": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&h=340&q=80",
+    "duration": "8 Min",
+    "isFeatured": false,
+    "createdAt": "2026-08-26T18:00:00.000Z"
+  },
+  {
+    "id": "cl-003",
+    "title": "Study Break & College Hangout Memories",
+    "category": "Study Break",
+    "description": "Recharging between heavy lecture schedules with friends on campus lawns.",
+    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+    "youtubeVideoId": "jfKfPfyJRdk",
+    "thumbnail": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=340&q=80",
+    "duration": "12 Min",
+    "isFeatured": false,
+    "createdAt": "2026-08-26T15:00:00.000Z"
+  }
+]

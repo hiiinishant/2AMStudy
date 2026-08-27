@@ -3,185 +3,368 @@
   <style>
     /* ── Page Layout ── */
     .pomo-page {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      background: #f8fafc;
       min-height: 100vh;
-      padding-top: 90px;
+      padding-top: 40px;
+      padding-bottom: 80px;
+      color: #0f172a;
     }
 
-    /* ── Ring ── */
-    .pomo-ring {
-      width: 240px;
-      height: 240px;
+    /* Ambient background glow */
+    .pomo-ambient-glow {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 400px;
       border-radius: 50%;
-      background: conic-gradient(#6366f1 0deg, #1e293b 0deg);
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08) 0%, rgba(220, 38, 38, 0.04) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Clean Brand Card Container ── */
+    .pomo-glass-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pomo-glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #4f46e5, #dc2626, transparent);
+    }
+
+    /* ── Segmented Layout Controls ── */
+    .pomo-segmented-ctrl {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .pomo-segmented-btn {
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .pomo-segmented-btn:hover {
+      color: #0f172a;
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .pomo-segmented-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    }
+
+    /* ── Mode Switcher Pills ── */
+    .pomo-mode-pill {
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 8px 18px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+
+    .pomo-mode-pill:hover {
+      transform: translateY(-1px);
+    }
+
+    /* ── Main Timer Display ── */
+    .pomo-ring {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: conic-gradient(#4f46e5 0deg, #e2e8f0 0deg);
       display: grid;
       place-items: center;
-      box-shadow: 0 0 60px rgba(99, 102, 241, 0.35);
-      transition: background 0.4s;
+      box-shadow: 0 10px 40px rgba(79, 70, 229, 0.15);
+      transition: background 0.4s ease;
       margin: 0 auto;
     }
 
     .pomo-ring-inner {
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
       background: #0f172a;
       display: grid;
       place-items: center;
+      border: 4px solid #ffffff;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
     }
 
     .pomo-time {
-      font-size: 3.2rem;
+      font-size: 3.6rem;
       font-weight: 800;
-      letter-spacing: 0.06em;
-      color: #f8fafc;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1;
     }
 
     .pomo-mode-badge {
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      margin-top: 2px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* Quick Preset Pills */
+    .preset-pill {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .preset-pill:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: #c7d2fe;
+      color: #4f46e5;
+      transform: translateY(-1px);
+    }
+
+    /* ── Main Action Buttons ── */
+    .pomo-action-btn {
+      min-width: 125px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 11px 24px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .pomo-action-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
     /* ── Stat Cards ── */
-    .stat-card {
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .stat-card-modern {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       border-radius: 1rem;
       padding: 1rem;
-      color: #e2e8f0;
+      color: #0f172a;
+      text-align: center;
+      transition: all 0.2s ease;
     }
 
-    .stat-card .stat-val {
-      font-size: 1.5rem;
-      font-weight: 800;
-    }
-
-    .stat-card .stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      opacity: 0.6;
-    }
-
-    /* ── Buttons ── */
-    .pomo-btn {
-      min-width: 110px;
-      font-weight: 700;
-      border-radius: 999px;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .pomo-btn:hover {
+    .stat-card-modern:hover {
+      background: #ffffff;
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
       transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
     }
 
-    /* ── Sound panel ── */
-    .sound-panel {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-      padding: 1rem 1.25rem;
+    .stat-card-modern .stat-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.2;
     }
 
-    .sound-panel label {
-      color: #cbd5e1;
-      font-size: 0.88rem;
+    .stat-card-modern .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-top: 4px;
+      font-weight: 600;
     }
 
-    .sound-panel select,
-    .sound-panel input[type=range] {
-      background: #1e293b;
-      color: #f1f5f9;
-      border-color: #334155;
+    /* ── Sound & Settings Panel ── */
+    .pomo-settings-panel {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 1.25rem;
+      padding: 1.25rem;
     }
 
-    .sound-panel select option {
-      background: #1e293b;
+    .pomo-settings-panel select,
+    .pomo-settings-panel input[type=number] {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
     }
 
-    /* ── Session log ── */
-    .session-log {
-      max-height: 200px;
+    .pomo-settings-panel select option {
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    /* ── Session Log ── */
+    .session-log-box {
+      max-height: 190px;
       overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .session-log-box::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .session-log-box::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
     }
 
     .log-item {
       font-size: 0.82rem;
-      padding: 0.35rem 0.6rem;
-      border-radius: 0.5rem;
-      margin-bottom: 4px;
+      padding: 0.5rem 0.8rem;
+      border-radius: 0.6rem;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
     }
 
-    /* ── Fullscreen override ── */
+    /* ── Fullscreen Override ── */
     #pomoTimerCard:fullscreen {
-      background-color: #0f172a;
+      background-color: #090d16 !important;
       display: flex !important;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #pomoTimerCard:fullscreen .pomo-ring {
-      width: min(85vw, 85vh);
-      height: min(85vw, 85vh);
-      display: flex !important;
-      align-items: center;
-      justify-content: center;
-      margin: 0 !important;
-      box-shadow: 0 0 100px rgba(99, 102, 241, 0.5);
-    }
-
-    #pomoTimerCard:fullscreen .pomo-ring-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      display: flex !important;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      padding: 2rem !important;
+      border: none !important;
     }
 
     #pomoTimerCard:fullscreen .pomo-time {
-      font-size: min(18vw, 18vh);
+      color: #ffffff !important;
     }
 
     #pomoTimerCard:fullscreen .pomo-mode-badge {
-      font-size: min(3vw, 3vh);
+      font-size: min(2.5vw, 2.5vh) !important;
     }
 
-    /* ── Fullscreen Refinements for Layouts ── */
-    #pomoTimerCard:fullscreen.layout-rectangular .pomo-ring,
-    #pomoTimerCard:fullscreen.layout-minimal .pomo-ring {
+    /* Fullscreen: Circular Layout */
+    #pomoTimerCard:fullscreen.layout-circular .pomo-ring {
+      width: min(75vw, 75vh) !important;
+      height: min(75vw, 75vh) !important;
+      display: grid !important;
+      place-items: center !important;
+      margin: 0 auto !important;
+      box-shadow: 0 0 100px rgba(99, 102, 241, 0.4) !important;
+    }
+
+    #pomoTimerCard:fullscreen.layout-circular .pomo-ring-inner {
+      width: calc(100% - 30px) !important;
+      height: calc(100% - 30px) !important;
+      border-radius: 50% !important;
+      display: grid !important;
+      place-items: center !important;
+      background: #0f172a !important;
+      border: 4px solid #ffffff !important;
+    }
+
+    #pomoTimerCard:fullscreen.layout-circular .pomo-time {
+      font-size: min(15vw, 15vh) !important;
+    }
+
+    /* Fullscreen: Rectangular Layout */
+    #pomoTimerCard:fullscreen.layout-rectangular .pomo-ring {
+      width: min(85vw, 850px) !important;
+      height: auto !important;
+      display: block !important;
+      background: #0f172a !important;
+      padding: 3rem 2rem !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    #pomoTimerCard:fullscreen.layout-rectangular .pomo-ring-inner {
+      width: 100% !important;
+      height: auto !important;
       background: transparent !important;
       border: none !important;
-      box-shadow: none !important;
-      width: 100vw;
-      height: 100vh;
+      display: block !important;
     }
 
     #pomoTimerCard:fullscreen.layout-rectangular .pomo-time {
-      font-size: 15vw;
+      font-size: min(14vw, 14vh) !important;
+    }
+
+    /* Fullscreen: Minimal Layout */
+    #pomoTimerCard:fullscreen.layout-minimal .pomo-ring {
+      width: auto !important;
+      height: auto !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      display: block !important;
+    }
+
+    #pomoTimerCard:fullscreen.layout-minimal .pomo-ring-inner {
+      width: auto !important;
+      height: auto !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: block !important;
     }
 
     #pomoTimerCard:fullscreen.layout-minimal .pomo-time {
-      font-size: 20vw;
+      font-size: min(22vw, 22vh) !important;
+      color: #ffffff !important;
+      font-weight: 200 !important;
+      letter-spacing: -0.04em !important;
+      line-height: 1 !important;
     }
 
-    /* ── Layout Styles ── */
+    #pomoTimerCard:fullscreen.layout-minimal .minimal-progress-line {
+      width: min(60vw, 450px) !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      margin-top: 2rem !important;
+    }
+
+    #pomoTimerCard:fullscreen.layout-minimal .minimal-progress-fill {
+      background: #818cf8 !important;
+      box-shadow: 0 0 16px rgba(129, 140, 248, 0.8) !important;
+    }
+
+    /* Layout specific base styling */
     .layout-rectangular .pomo-ring {
       width: 100%;
       height: auto;
-      border-radius: 1.5rem;
-      background: rgba(25, 33, 49, 0.6) !important;
-      backdrop-filter: blur(10px);
-      padding: 3.5rem 2rem;
+      border-radius: 1.25rem;
+      background: #0f172a !important;
+      padding: 2.5rem 1.5rem;
       display: block;
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      border: 1px solid #334155;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
     }
 
     .layout-rectangular .pomo-ring-inner {
@@ -189,65 +372,56 @@
       height: auto;
       background: transparent;
       display: block;
+      border: none;
+      box-shadow: none;
     }
 
     .layout-rectangular .pomo-time {
-      font-size: 6rem;
+      font-size: 5rem;
       line-height: 1;
       font-weight: 800;
-      text-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+      color: #ffffff;
     }
 
     .layout-rectangular .progress-bar-container {
-      height: 12px;
-      background: rgba(0, 0, 0, 0.3);
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 999px;
-      margin-top: 2.5rem;
+      margin-top: 1.75rem;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .layout-rectangular .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6366f1, #818cf8);
+      background: linear-gradient(90deg, #4f46e5, #38bdf8);
       transition: width 0.3s ease;
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
     }
 
-    .layout-minimal .pomo-ring {
+    .layout-minimal .pomo-ring,
+    .layout-minimal .pomo-ring-inner {
       background: transparent !important;
       box-shadow: none !important;
       height: auto;
       width: auto;
-    }
-
-    .layout-minimal .pomo-ring-inner {
-      background: transparent !important;
-      height: auto;
-      width: auto;
+      border: none;
     }
 
     .layout-minimal .pomo-time {
-      font-size: 8rem;
-      font-weight: 200;
-      letter-spacing: -0.05em;
-      color: #f8fafc;
-    }
-
-    .layout-minimal .pomo-mode-badge {
-      font-size: 1.15rem;
-      opacity: 0.5;
-      letter-spacing: 0.2rem;
-      margin-top: -10px;
+      font-size: 6.5rem;
+      font-weight: 300;
+      color: #0f172a;
+      letter-spacing: -0.04em;
     }
 
     .layout-minimal .minimal-progress-line {
-      height: 2px;
-      width: 220px;
-      background: rgba(255, 255, 255, 0.05);
-      margin: 2.5rem auto;
+      height: 3px;
+      width: 240px;
+      background: #e2e8f0;
+      margin: 1.5rem auto 0;
       position: relative;
       overflow: hidden;
+      border-radius: 99px;
     }
 
     .layout-minimal .minimal-progress-fill {
@@ -255,215 +429,111 @@
       left: 0;
       top: 0;
       height: 100%;
-      background: #6366f1;
+      background: #4f46e5;
       transition: width 0.3s ease;
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
-    }
-
-    /* Base Ring override for Circular */
-    .layout-circular .pomo-ring {
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
   </style>
 
-  <main class="pomo-page py-5" id="pomoPage">
-    <div class="container" style="max-width:720px;">
+  <main class="pomo-page position-relative" id="pomoPage">
+    <div class="pomo-ambient-glow"></div>
 
-      <!-- Header -->
+    <div class="container position-relative" style="max-width: 960px; z-index: 1;">
+
+      <!-- Header Section -->
       <div class="text-center mb-4">
-        <h1 class="fw-bold text-white display-6"><i class="fa-solid fa-stopwatch me-2" style="color:#6366f1;"></i>Online Pomodoro Focus Timer for Study Productivity</h1>
-        <p class="text-slate-400" id="pomo-subtitle" style="color:#94a3b8;">Boost your focus. Track every minute.
-          Dominate your study session with the ultimate productivity tool.</p>
-      </div>
-
-      <!-- Session status banner -->
-      <div id="pomoBanner" class="alert text-center fw-semibold mb-4 d-none" role="alert"></div>
-
-      <!-- ── Layout Switcher ── -->
-      <div class="d-flex justify-content-center gap-2 mb-3 no-print">
-        <button class="btn btn-dark btn-sm rounded-pill px-3" onclick="setTimerLayout('circular')">⭕ Circular</button>
-        <button class="btn btn-dark btn-sm rounded-pill px-3" onclick="setTimerLayout('rectangular')">▭
-          Rectangular</button>
-        <button class="btn btn-dark btn-sm rounded-pill px-3" onclick="setTimerLayout('minimal')">✨ Minimal</button>
-      </div>
-
-      <!-- ── Display Toggles ── -->
-      <div class="d-flex justify-content-center mb-4 no-print text-light small">
-        <div class="form-check form-switch" style="cursor: pointer;">
-          <input class="form-check-input" type="checkbox" role="switch" id="showSessionToggle" style="cursor: pointer;">
-          <label class="form-check-label text-slate-300" for="showSessionToggle" style="cursor: pointer;">Show Session
-            Number on Timer</label>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2 border" style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25) !important;">
+          <i class="fa-solid fa-bolt text-danger small"></i>
+          <span class="small fw-semibold" style="color: #4338ca;">Smart Pomodoro Study Engine</span>
         </div>
+        <h1 class="fw-bold mb-1" style="color: #0f172a; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em;">
+          <i class="fa-solid fa-stopwatch me-2 text-danger"></i>Online Pomodoro Focus Timer
+        </h1>
+        <p class="small mb-0" id="pomo-subtitle" style="color: #64748b; max-width: 540px; margin: 0 auto; font-size: 0.94rem;">
+          Boost concentration, track study streaks, and conquer exam goals with rhythmic focus intervals.
+        </p>
       </div>
 
-      <!-- ── Main Timer Ring ── -->
-      <div id="pomoTimerCard" class="text-center mb-4 layout-circular">
-        <div class="pomo-ring" id="pomoRing">
-          <div class="pomo-ring-inner">
-            <div class="timer-content-wrapper">
-              <div class="pomo-time"><span id="pomoMin">25</span>:<span id="pomoSec">00</span></div>
-              <div class="pomo-mode-badge-container d-flex flex-column align-items-center gap-2">
-                <div class="pomo-mode-badge" id="pomoModeBadge" style="color:#818cf8;">STUDY</div>
-                <div id="pomoSessionBadge" class="pomo-mode-badge d-none" style="color:#38bdf8; font-weight:700;">
-                  SESSION #1</div>
-              </div>
+      <!-- Live Session Notification Banner -->
+      <div id="pomoBanner" class="alert text-center fw-semibold mb-4 d-none shadow-sm rounded-4" role="alert"></div>
 
-              <!-- Rectangular Progress -->
-              <div class="progress-bar-container d-none" id="rectProgress">
-                <div class="progress-bar-fill" id="rectFill" style="width: 0%"></div>
-              </div>
+      <!-- ── HERO TIMER STAGE ── -->
+      <div class="pomo-glass-card p-4 p-md-5 mb-4 text-center">
 
-              <!-- Minimal Progress -->
-              <div class="minimal-progress-line d-none" id="minProgress">
-                <div class="minimal-progress-fill" id="minFill" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Duration Settings ── -->
-      <div class="card bg-transparent border-0 mb-3">
-        <div class="row g-3">
-          <div class="col-6">
-            <label class="form-label text-light fw-semibold small">Study (min)</label>
-            <div class="input-group input-group-sm">
-              <input id="studyDurInput" type="number" min="1" max="180" value="25"
-                class="form-control bg-dark text-white border-secondary">
-              <span class="input-group-text bg-dark text-secondary border-secondary">min</span>
-            </div>
-            <input id="studyDurRange" type="range" min="1" max="180" value="25" class="form-range mt-1">
-          </div>
-          <div class="col-6">
-            <label class="form-label text-light fw-semibold small">Break (min)</label>
-            <div class="input-group input-group-sm">
-              <input id="breakDurInput" type="number" min="1" max="60" value="5"
-                class="form-control bg-dark text-white border-secondary">
-              <span class="input-group-text bg-dark text-secondary border-secondary">min</span>
-            </div>
-            <input id="breakDurRange" type="range" min="1" max="60" value="5" class="form-range mt-1">
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Mode Selector ── -->
-      <div class="d-flex justify-content-center gap-2 mb-4">
-        <button class="btn btn-primary btn-sm pomo-btn" id="btnModeStudy" onclick="setPomoMode('study')">📚
-          Study</button>
-        <button class="btn btn-outline-warning btn-sm pomo-btn" id="btnModeBreak" onclick="setPomoMode('break')">☕
-          Break</button>
-      </div>
-
-      <!-- ── Control Buttons ── -->
-      <div class="d-flex justify-content-center flex-wrap gap-3 mb-4">
-        <button id="btnStart" class="btn btn-success btn-lg pomo-btn" onclick="startPomo()">
-          <i class="fa-solid fa-play me-1"></i>Start
-        </button>
-        <button id="btnPause" class="btn btn-secondary btn-lg pomo-btn" onclick="pausePomo()" disabled>
-          <i class="fa-solid fa-pause me-1"></i>Pause
-        </button>
-        <button id="btnStop" class="btn btn-danger btn-lg pomo-btn" onclick="stopPomo()">
-          <i class="fa-solid fa-stop me-1"></i>Stop
-        </button>
-        <button id="btnFullscreen" class="btn btn-outline-light btn-lg pomo-btn" onclick="toggleFullscreen()">
-          <i class="fa-solid fa-expand me-1"></i>Fullscreen
-        </button>
-      </div>
-
-
-
-      <!-- ── Sound Panel ── -->
-      <div class="sound-panel mb-4">
-        <div class="row g-2 align-items-center">
-          <div class="col-auto">
-            <button id="muteBtn" class="btn btn-sm btn-outline-info rounded-pill fw-bold" onclick="toggleMute()"
-              title="Mute / Unmute">
-              <i class="fa-solid fa-volume-high me-1"></i><span id="muteBtnText">Sound ON</span>
+        <!-- Top Stage Bar (Modes & Layout Controls) -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+          <!-- Mode Switcher -->
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-primary btn-sm pomo-mode-pill" id="btnModeStudy" onclick="setPomoMode('study')">
+              📚 Study Mode
+            </button>
+            <button class="btn btn-outline-warning btn-sm pomo-mode-pill" id="btnModeBreak" onclick="setPomoMode('break')">
+              ☕ Break Time
             </button>
           </div>
-          <div class="col-6 col-md">
-            <label class="mb-1">Study Alert</label>
-            <select id="soundSelect" class="form-select form-select-sm">
-              <option value="bell">🔔 Bell</option>
-              <option value="chime">🎵 Chime</option>
-              <option value="gong">🪘 Gong</option>
-              <option value="digital">📟 Digital Beep</option>
-              <option value="success">✅ Success Tone</option>
-            </select>
-          </div>
-          <div class="col-6 col-md">
-            <label class="mb-1">Break Alert</label>
-            <select id="breakSoundSelect" class="form-select form-select-sm">
-              <option value="bell">🔔 Bell</option>
-              <option value="chime">🎵 Chime</option>
-              <option value="gong">🪘 Gong</option>
-              <option value="digital">📟 Digital Beep</option>
-              <option value="success" selected>✅ Success Tone</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <label class="mb-1 d-block small opacity-0">-</label>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="previewAlert()">
-              <i class="fa-solid fa-play me-1"></i>Preview
+
+          <!-- Layout & Fullscreen -->
+          <div class="d-flex align-items-center gap-2 ms-auto">
+            <!-- Layout Switcher Tabs -->
+            <div class="pomo-segmented-ctrl no-print">
+              <button class="pomo-segmented-btn" id="layoutBtnCircular" onclick="setTimerLayout('circular')">⭕ Circle</button>
+              <button class="pomo-segmented-btn" id="layoutBtnRectangular" onclick="setTimerLayout('rectangular')">▭ Bar</button>
+              <button class="pomo-segmented-btn" id="layoutBtnMinimal" onclick="setTimerLayout('minimal')">✨ Minimal</button>
+            </div>
+
+            <!-- Fullscreen Trigger -->
+            <button id="btnFullscreen" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold" onclick="toggleFullscreen()" title="Toggle Fullscreen Focus">
+              <i class="fa-solid fa-expand me-1"></i> Fullscreen
             </button>
           </div>
-          <div class="col-12">
-            <label class="mb-1 small">Volume</label>
-            <input id="volumeRange" type="range" min="0" max="1" step="0.05" value="0.7" class="form-range">
-          </div>
         </div>
-      </div>
 
-      <!-- ── Stats ── -->
-      <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-          <div class="stat-card text-center">
-            <div class="stat-val text-success" id="statStudy">0m</div>
-            <div class="stat-label">Study Time</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card text-center">
-            <div class="stat-val text-warning" id="statBreak">0m</div>
-            <div class="stat-label">Break Time</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card text-center">
-            <div class="stat-val text-info" id="statSessions">0</div>
-            <div class="stat-label">Sessions Done</div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="stat-card text-center">
-            <div class="stat-val text-purple" id="statGoal" style="color:#a78bfa;">0%</div>
-            <div class="stat-label">Daily Goal</div>
-            <button onclick="setDailyGoal()"
-              class="btn btn-sm btn-link text-decoration-none p-0 text-purple opacity-75 mt-1 no-print"
-              style="font-size: 0.7rem; color: #a78bfa;">Change Goal</button>
-          </div>
-        </div>
-      </div>
+        <!-- Timer Centerpiece -->
+        <div id="pomoTimerCard" class="text-center my-3 layout-circular">
+          <div class="pomo-ring" id="pomoRing">
+            <div class="pomo-ring-inner">
+              <div class="timer-content-wrapper">
+                <div class="pomo-time"><span id="pomoMin">25</span>:<span id="pomoSec">00</span></div>
+                <div class="pomo-mode-badge-container d-flex flex-column align-items-center gap-1">
+                  <div class="pomo-mode-badge" id="pomoModeBadge" style="color:#818cf8;">STUDY</div>
+                  <div id="pomoSessionBadge" class="pomo-mode-badge d-none" style="color:#38bdf8; font-weight:700;">SESSION #1</div>
+                </div>
 
-      <!-- ── Session Log ── -->
-      <div class="sound-panel mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="text-light fw-bold mb-0"><i class="fa-solid fa-list-check me-2 text-info"></i>Session Log</h6>
-          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="clearLog()">Clear</button>
-        </div>
-        <div id="sessionLog" class="session-log">
-          <p class="text-muted small mb-0">No sessions yet. Start your first session!</p>
-        </div>
-      </div>
+                <!-- Rectangular Progress -->
+                <div class="progress-bar-container d-none" id="rectProgress">
+                  <div class="progress-bar-fill" id="rectFill" style="width: 0%"></div>
+                </div>
 
-      <p class="text-center small" style="color:#64748b;">
-        Tip: Focus Mode blocks social media links while a session is running. Complete a full session to unlock the
-        Study Game.
-      </p>
-      <div class="text-center mt-3">
-        <a href="/" class="btn btn-sm btn-outline-light rounded-pill">← Back to Home</a>
-      </div>
+                <!-- Minimal Progress -->
+                <div class="minimal-progress-line d-none" id="minProgress">
+                  <div class="minimal-progress-fill" id="minFill" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Quick Interval Presets -->
+        <div class="d-flex justify-content-center flex-wrap gap-2 my-3">
+          <span class="preset-pill" onclick="applyPreset(15, 3)">⚡ 15m Sprint</span>
+          <span class="preset-pill" onclick="applyPreset(25, 5)">🎯 25m Classic</span>
+          <span class="preset-pill" onclick="applyPreset(45, 10)">🧠 45m Deep Work</span>
+          <span class="preset-pill" onclick="applyPreset(60, 15)">🔥 60m Marathon</span>
+        </div>
+
+        <!-- Primary Control Action Buttons -->
+        <div class="d-flex justify-content-center flex-wrap gap-3 mt-4">
+          <button id="btnStart" class="btn btn-success pomo-action-btn" onclick="startPomo()">
+            <i class="fa-solid fa-play"></i> Start
+          </button>
+          <button id="btnPause" class="btn btn-warning text-dark pomo-action-btn" onclick="pausePomo()" disabled>
+            <i class="fa-solid fa-pause"></i> Pause
+          </button>
+          <button id="btnStop" class="btn btn-outline-danger pomo-action-btn" onclick="stopPomo()">
+            <i class="fa-solid fa-rotate-right"></i> Reset
+          </button>
+        </div>
+
+      </div>
     </div>
   </main>
 
@@ -477,8 +547,6 @@
       let remaining = studySec;
       let interval = null;
       let isRunning = false;
-      let isMuted = false;
-      let alertNode = null;      // oscillator keeping sound alive
       let alertCtx = null;
       let currentLayout = localStorage.getItem('pomoTimerLayout') || 'circular';
       let wakeLock = null;
@@ -488,8 +556,6 @@
         if ('wakeLock' in navigator) {
           try {
             wakeLock = await navigator.wakeLock.request('screen');
-            document.getElementById('wakeLockBadge')?.classList.remove('d-none');
-            console.log('Wake Lock acquired');
           } catch (err) {
             console.error(`${err.name}, ${err.message}`);
           }
@@ -498,12 +564,7 @@
 
       function releaseWakeLock() {
         if (wakeLock !== null) {
-          wakeLock.release()
-            .then(() => {
-              wakeLock = null;
-              document.getElementById('wakeLockBadge')?.classList.add('d-none');
-              console.log('Wake Lock released');
-            });
+          wakeLock.release().then(() => { wakeLock = null; });
         }
       }
 
@@ -523,6 +584,11 @@
         card.classList.remove('layout-circular', 'layout-rectangular', 'layout-minimal');
         card.classList.add(`layout-${layout}`);
 
+        // Update active class on segmented buttons
+        document.getElementById('layoutBtnCircular')?.classList.toggle('active', layout === 'circular');
+        document.getElementById('layoutBtnRectangular')?.classList.toggle('active', layout === 'rectangular');
+        document.getElementById('layoutBtnMinimal')?.classList.toggle('active', layout === 'minimal');
+
         // Toggle visibility of specific progress elements
         document.getElementById('rectProgress')?.classList.toggle('d-none', layout !== 'rectangular');
         document.getElementById('minProgress')?.classList.toggle('d-none', layout !== 'minimal');
@@ -530,13 +596,20 @@
         updateDisplay();
       };
 
+      // ── Preset Applier ──
+      window.applyPreset = function (studyM, breakM) {
+        if (isRunning) return;
+        studySec = studyM * 60;
+        breakSec = breakM * 60;
+        remaining = mode === 'study' ? studySec : breakSec;
+        updateDisplay();
+      };
+
       // Tracked totals (seconds)
       let totalStudySec = parseInt(localStorage.getItem('PomTotalStudy') || '0', 10);
       let totalBreakSec = parseInt(localStorage.getItem('PomTotalBreak') || '0', 10);
       let totalSessions = parseInt(localStorage.getItem('PomSessions') || '0', 10);
-      const DAILY_GOAL = 3 * 3600; // 3 hours study = 100%
       let sessionStartTs = null;
-      let log = JSON.parse(localStorage.getItem('PomLog') || '[]');
 
       // ── Audio Context ──
       const getCtx = () => {
@@ -544,109 +617,56 @@
         return window._pomoAudioCtx;
       };
 
-      function getVolume() {
-        return parseFloat(document.getElementById('volumeRange').value);
+      // Sound alerts: Study Complete (Crisp Bell/Chime) & Break Complete (Deep Resonant Gong)
+      function playStudyAlertSound(ctx) {
+        // Crisp high-energy 4-note bell chime (880Hz -> 1046Hz -> 1318Hz -> 1760Hz)
+        [[880, 0], [1046, 0.18], [1318, 0.36], [1760, 0.54]].forEach(([f, d]) => {
+          const osc = ctx.createOscillator(), g = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = f;
+          const t = ctx.currentTime + d;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.4, t + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+          osc.start(t); osc.stop(t + 1.3);
+        });
       }
 
-      // Sound generators
-      const sounds = {
-        bell(ctx, vol, when = 0) {
+      function playBreakDeepSound(ctx) {
+        // Deep rich low-frequency resonant soundwave (110Hz + 82Hz sub-bass harmonic)
+        [110, 82, 164].forEach((f, i) => {
           const osc = ctx.createOscillator(), g = ctx.createGain();
           osc.connect(g); g.connect(ctx.destination);
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(880, ctx.currentTime + when);
-          osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + when + 1.5);
-          g.gain.setValueAtTime(vol, ctx.currentTime + when);
-          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + when + 2);
-          osc.start(ctx.currentTime + when); osc.stop(ctx.currentTime + when + 2);
-        },
-        chime(ctx, vol) {
-          [523, 659, 784, 1047].forEach((f, i) => {
-            const osc = ctx.createOscillator(), g = ctx.createGain();
-            osc.connect(g); g.connect(ctx.destination);
-            osc.type = 'triangle'; osc.frequency.value = f;
-            const t = ctx.currentTime + i * 0.22;
-            g.gain.setValueAtTime(0, t);
-            g.gain.linearRampToValueAtTime(vol, t + 0.05);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-            osc.start(t); osc.stop(t + 1);
-          });
-        },
-        gong(ctx, vol) {
-          const osc = ctx.createOscillator(), g = ctx.createGain();
-          osc.connect(g); g.connect(ctx.destination);
-          osc.type = 'sine'; osc.frequency.value = 110;
-          g.gain.setValueAtTime(vol, ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 4);
-          osc.start(); osc.stop(ctx.currentTime + 4);
-        },
-        digital(ctx, vol) {
-          [0, 0.18, 0.36, 0.54].forEach(d => {
-            const osc = ctx.createOscillator(), g = ctx.createGain();
-            osc.connect(g); g.connect(ctx.destination);
-            osc.type = 'square'; osc.frequency.value = 880;
-            g.gain.setValueAtTime(vol * 0.4, ctx.currentTime + d);
-            g.gain.setValueAtTime(0, ctx.currentTime + d + 0.12);
-            osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.14);
-          });
-        },
-        success(ctx, vol) {
-          [[523, 0], [659, 0.18], [784, 0.36], [1047, 0.54], [1319, 0.72]].forEach(([f, d]) => {
-            const osc = ctx.createOscillator(), g = ctx.createGain();
-            osc.connect(g); g.connect(ctx.destination);
-            osc.type = 'sine'; osc.frequency.value = f;
-            const t = ctx.currentTime + d;
-            g.gain.setValueAtTime(vol * 0.5, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-            osc.start(t); osc.stop(t + 0.6);
-          });
-        }
-      };
+          osc.type = 'sine'; osc.frequency.value = f;
+          const t = ctx.currentTime;
+          g.gain.setValueAtTime(0.5 / (i + 1), t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 3.5);
+          osc.start(t); osc.stop(t + 3.6);
+        });
+      }
 
       function playAlert() {
-        if (isMuted) return;
-        const selId = mode === 'study' ? 'soundSelect' : 'breakSoundSelect';
-        const choice = document.getElementById(selId).value;
         const ctx = getCtx();
         if (ctx.state === 'suspended') ctx.resume();
-        (sounds[choice] || sounds.bell)(ctx, getVolume());
-        // Keep repeating bell-like every 3 seconds
+
+        if (mode === 'study') {
+          playStudyAlertSound(ctx);
+        } else {
+          playBreakDeepSound(ctx);
+        }
+
+        // Play repeat after 2.5s for clear notice
         alertCtx = ctx;
-        let rep = 0;
-        const loop = () => {
-          if (!alertCtx || rep >= 4) return;
-          setTimeout(() => { (sounds[choice] || sounds.bell)(ctx, getVolume()); rep++; loop(); }, 3000);
-        };
-        loop();
+        setTimeout(() => {
+          if (!alertCtx) return;
+          if (mode === 'study') playStudyAlertSound(ctx);
+          else playBreakDeepSound(ctx);
+        }, 2500);
       }
 
       function stopAlert() {
-        alertCtx = null; // signals loop to stop
+        alertCtx = null;
       }
-
-      window.previewAlert = function () {
-        const selId = mode === 'study' ? 'soundSelect' : 'breakSoundSelect';
-        const choice = document.getElementById(selId).value;
-        const ctx = getCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        (sounds[choice] || sounds.bell)(ctx, getVolume());
-      };
-
-      window.toggleMute = function () {
-        isMuted = !isMuted;
-        stopAlert();
-        const btn = document.getElementById('muteBtn');
-        const txt = document.getElementById('muteBtnText');
-        if (isMuted) {
-          btn.classList.replace('btn-outline-info', 'btn-outline-secondary');
-          btn.querySelector('i').className = 'fa-solid fa-volume-xmark me-1';
-          txt.textContent = 'Sound OFF';
-        } else {
-          btn.classList.replace('btn-outline-secondary', 'btn-outline-info');
-          btn.querySelector('i').className = 'fa-solid fa-volume-high me-1';
-          txt.textContent = 'Sound ON';
-        }
-      };
 
       // ── Display ──
       function fmt2(n) { return String(n).padStart(2, '0'); }
@@ -662,9 +682,9 @@
         const total = mode === 'study' ? studySec : breakSec;
         const elapsed = Math.max(0, total - remaining);
         const deg = total > 0 ? Math.min(360, (elapsed / total) * 360) : 0;
-        const color = mode === 'study' ? '#6366f1' : '#f59e0b';
+        const color = mode === 'study' ? '#4f46e5' : '#f59e0b';
         document.getElementById('pomoRing').style.background =
-          `conic-gradient(${color} ${deg}deg, #1e293b ${deg}deg)`;
+          `conic-gradient(${color} ${deg}deg, #e2e8f0 ${deg}deg)`;
 
         // Update alternative progress bars
         const pct = total > 0 ? (elapsed / total) * 100 : 0;
@@ -676,39 +696,25 @@
 
       function setBanner(msg, type) {
         const b = document.getElementById('pomoBanner');
+        if (!b) return;
         b.className = `alert alert-${type} text-center fw-semibold mb-4`;
         b.textContent = msg;
         b.classList.remove('d-none');
       }
-      function hideBanner() { document.getElementById('pomoBanner').classList.add('d-none'); }
+      function hideBanner() { document.getElementById('pomoBanner')?.classList.add('d-none'); }
 
-      // ── Session Badge ──
-      function updateSessionBadge() {
-        const showToggle = document.getElementById('showSessionToggle').checked;
-        const badge = document.getElementById('pomoSessionBadge');
-        if (showToggle) {
-          badge.classList.remove('d-none');
-          const currentSessionNum = totalSessions + 1;
-          badge.textContent = `SESSION #${currentSessionNum}`;
-        } else {
-          badge.classList.add('d-none');
-        }
-      }
-
-      document.getElementById('showSessionToggle').addEventListener('change', (e) => {
-        localStorage.setItem('PomShowSession', e.target.checked);
-        updateSessionBadge();
-      });
-
-      // ── Mode ──
+      // ── Mode Switcher ──
       window.setPomoMode = function (m) {
         if (isRunning) return;
         mode = m;
         remaining = m === 'study' ? studySec : breakSec;
-        document.getElementById('pomoModeBadge').textContent = m.toUpperCase();
-        document.getElementById('pomoModeBadge').style.color = m === 'study' ? '#818cf8' : '#fbbf24';
-        document.getElementById('btnModeStudy').className = `btn btn-sm pomo-btn ${m === 'study' ? 'btn-primary' : 'btn-outline-primary'}`;
-        document.getElementById('btnModeBreak').className = `btn btn-sm pomo-btn ${m === 'break' ? 'btn-warning' : 'btn-outline-warning'}`;
+        const badge = document.getElementById('pomoModeBadge');
+        if (badge) {
+          badge.textContent = m.toUpperCase();
+          badge.style.color = m === 'study' ? '#818cf8' : '#fbbf24';
+        }
+        document.getElementById('btnModeStudy').className = `btn btn-sm pomo-mode-pill ${m === 'study' ? 'btn-primary' : 'btn-outline-primary'}`;
+        document.getElementById('btnModeBreak').className = `btn btn-sm pomo-mode-pill ${m === 'break' ? 'btn-warning text-dark' : 'btn-outline-warning'}`;
         updateDisplay();
         hideBanner();
       };
@@ -716,7 +722,6 @@
       // ── Controls ──
       window.startPomo = function () {
         if (isRunning) return;
-        // Unlock audio context on user gesture
         const ctx = getCtx();
         if (ctx.state === 'suspended') ctx.resume();
 
@@ -772,41 +777,36 @@
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnPause').disabled = true;
 
-        // Commit time
         const elapsed = mode === 'study' ? studySec : breakSec;
         if (mode === 'study') {
           totalStudySec += elapsed;
           totalSessions++;
           localStorage.setItem('PomSessions', totalSessions);
           localStorage.setItem('PomTotalStudy', totalStudySec);
-          localStorage.setItem('studyGameUnlocked', 'true');
         } else {
           totalBreakSec += elapsed;
           localStorage.setItem('PomTotalBreak', totalBreakSec);
         }
         sessionStartTs = null;
 
-        addLog(mode, elapsed);
-        updateStats();
         playAlert();
 
-        const msg = mode === 'study'
-          ? `🎉 Study session complete! You studied for ${fmtMin(elapsed)}. Time for a break!`
-          : `✅ Break done! Ready to study?`;
-        setBanner(msg, mode === 'study' ? 'success' : 'info');
+        const currentMode = mode;
+        const msg = currentMode === 'study'
+          ? `🎉 Study session complete! Time for a break!`
+          : `✅ Break done! Ready for the next focus sprint?`;
+        setBanner(msg, currentMode === 'study' ? 'success' : 'info');
 
-        const next = mode === 'study' ? 'break' : 'study';
-        setTimeout(() => setPomoMode(next), 800);
-        updateSessionBadge();
+        const next = currentMode === 'study' ? 'break' : 'study';
+        setTimeout(() => setPomoMode(next), 1200);
       }
 
-      // ── Accumulate live time for stats ──
       function accumulateLive() {
         if (!sessionStartTs) return;
         const live = Math.floor((Date.now() - sessionStartTs) / 1000);
-        const studyDisplay = mode === 'study' ? totalStudySec + live : totalStudySec;
-        const breakDisplay = mode === 'break' ? totalBreakSec + live : totalBreakSec;
-        updateStatDisplay(studyDisplay, breakDisplay, totalSessions, totalStudySec + live);
+        if (mode === 'study') {
+          localStorage.setItem('PomTotalStudy', totalStudySec + live);
+        }
       }
 
       function saveElapsed() {
@@ -820,51 +820,7 @@
           localStorage.setItem('PomTotalBreak', totalBreakSec);
         }
         sessionStartTs = null;
-        updateStats();
       }
-
-      function updateStats() {
-        updateStatDisplay(totalStudySec, totalBreakSec, totalSessions, totalStudySec);
-      }
-
-      function updateStatDisplay(study, brk, sessions, forGoal) {
-        document.getElementById('statStudy').textContent = fmtMin(study);
-        document.getElementById('statBreak').textContent = fmtMin(brk);
-        document.getElementById('statSessions').textContent = sessions;
-        const pct = Math.min(100, Math.round((forGoal / DAILY_GOAL) * 100));
-        document.getElementById('statGoal').textContent = pct + '%';
-      }
-
-      function fmtMin(sec) {
-        const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
-        return h > 0 ? `${h}h ${m}m` : `${m}m`;
-      }
-
-      // ── Log ──
-      function addLog(mode, sec) {
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        log.unshift({ mode, sec, time: now });
-        if (log.length > 20) log.pop();
-        localStorage.setItem('PomLog', JSON.stringify(log));
-        renderLog();
-      }
-
-      function renderLog() {
-        const el = document.getElementById('sessionLog');
-        if (!log.length) { el.innerHTML = '<p class="text-muted small mb-0">No sessions yet.</p>'; return; }
-        el.innerHTML = log.map(l => `
-      <div class="log-item d-flex justify-content-between ${l.mode === 'study' ? 'bg-primary bg-opacity-10 text-info' : 'bg-warning bg-opacity-10 text-warning'}">
-        <span>${l.mode === 'study' ? '📚 Study' : '☕ Break'} — ${fmtMin(l.sec)}</span>
-        <span class="opacity-60">${l.time}</span>
-      </div>`).join('');
-      }
-
-      window.clearLog = function () {
-        log = []; localStorage.removeItem('PomLog');
-        totalStudySec = 0; totalBreakSec = 0; totalSessions = 0;
-        localStorage.removeItem('PomTotalStudy'); localStorage.removeItem('PomTotalBreak'); localStorage.removeItem('PomSessions');
-        updateStats(); renderLog();
-      };
 
       // ── Fullscreen ──
       window.toggleFullscreen = function () {
@@ -877,28 +833,14 @@
       };
       document.addEventListener('fullscreenchange', () => {
         const fs = !!document.fullscreenElement;
-        document.getElementById('btnFullscreen').innerHTML =
-          `<i class="fa-solid fa-${fs ? 'compress' : 'expand'} me-1"></i>${fs ? 'Exit' : 'Fullscreen'}`;
+        const btn = document.getElementById('btnFullscreen');
+        if (btn) {
+          btn.innerHTML = `<i class="fa-solid fa-${fs ? 'compress' : 'expand'} me-1"></i>${fs ? 'Exit' : 'Fullscreen'}`;
+        }
       });
 
-      // ── Duration sliders ──
-      function syncInputRange(inputId, rangeId, setter) {
-        const inp = document.getElementById(inputId), rng = document.getElementById(rangeId);
-        const sync = () => { if (isRunning) return; setter(parseInt(inp.value, 10) || 1); updateDisplay(); };
-        inp.addEventListener('input', () => { rng.value = inp.value; sync(); });
-        rng.addEventListener('input', () => { inp.value = rng.value; sync(); });
-      }
-      syncInputRange('studyDurInput', 'studyDurRange', v => { studySec = v * 60; if (mode === 'study') remaining = studySec; });
-      syncInputRange('breakDurInput', 'breakDurRange', v => { breakSec = v * 60; if (mode === 'break') remaining = breakSec; });
-
       // ── Init ──
-      if (localStorage.getItem('PomShowSession') === 'true') {
-        document.getElementById('showSessionToggle').checked = true;
-      }
-      updateSessionBadge();
       updateDisplay();
-      updateStats();
-      renderLog();
       setPomoMode('study');
       setTimerLayout(currentLayout);
     })();

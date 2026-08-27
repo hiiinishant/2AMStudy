@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Admin Dashboard | 2AM Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --sidebar-bg: #0d121f;
+      --card-bg: #131b2e;
+      --card-bg-subtle: #1a233a;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent: #f59e0b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f9fafb;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Layout Wrapper */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .admin-sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+
+    .brand-logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #dc2626, #6366f1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .sidebar-nav {
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .sidebar-btn:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+
+    .sidebar-btn.active {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #fff;
+    }
+
+    .sidebar-btn.active i {
+      color: #818cf8 !important;
+    }
+
+    /* Main Area */
+    .admin-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-topbar {
+      height: 64px;
+      background: rgba(13, 18, 31, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 990;
+    }
+
+    /* Content Cards */
+    .admin-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .stat-pill-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .stat-pill-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    /* Tables */
+    .table-custom {
+      color: var(--text);
+      vertical-align: middle;
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+    .table-custom thead th {
+      background: var(--card-bg-subtle);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 14px;
+    }
+    .table-custom tbody td {
+      padding: 12px 14px;
+      background: transparent;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.88rem;
+    }
+    .table-custom tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Live Badge */
+    .badge-live-pulse {
+      background: rgba(220, 38, 38, 0.18);
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      color: #f87171;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.05em;
+    }
+    .live-dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* Form Controls */
+    .form-control-dark, .form-select-dark {
+      background: #090d16 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      color: #fff !important;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-size: 0.88rem;
+    }
+    .form-control-dark:focus, .form-select-dark:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+    }
+    .form-control-dark::placeholder { color: var(--text-dim); }
+
+    /* Buttons */
+    .btn-gradient-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 12px var(--primary-glow);
+      transition: all 0.15s ease;
+      font-size: 0.88rem;
+    }
+    .btn-gradient-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px var(--primary-glow);
+      color: #fff;
+    }
+    .btn-gradient-danger {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 8px 18px;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      transition: all 0.15s ease;
+      font-size: 0.88rem;
+    }
+    .btn-gradient-danger:hover {
+      transform: translateY(-1px);
+      color: #fff;
+    }
+
+    /* Modal styling */
+    .modal-content-dark {
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      color: #fff;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    }
+    .modal-header-dark {
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 1.25rem;
+    }
+    .modal-footer-dark {
+      border-top: 1px solid var(--card-border);
+      padding: 1rem 1.25rem;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1090;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 991px) {
+      .admin-sidebar {
+        display: none;
+      }
+      .admin-sidebar.show-mobile {
+        display: flex;
+        position: fixed;
+        inset: 0 auto 0 0;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- 1. AUTH GATE (IF NOT LOGGED IN) -->
+  <!-- ========================================== -->
+  <% if (!isAuthed) { %>
+  <div class="d-flex align-items-center justify-content-center min-vh-100 px-3"
+    style="background: radial-gradient(ellipse at 50% 0%, #1e1b4b 0%, #0c0a18 60%, #03020a 100%);">
+    <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 text-center position-relative overflow-hidden"
+      style="max-width: 420px; width: 100%; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(99, 102, 241, 0.3) !important;">
+      
+      <div class="mb-3">
+        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle"
+          style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35);">
+          <i class="fa-solid fa-shield-halved fs-2 text-primary"></i>
+        </div>
+      </div>
+
+      <h2 class="fw-bold text-white mb-1 fs-4">2 AM Study Admin</h2>
+      <p class="text-muted small mb-4">Enter master passcode to manage all features.</p>
+
+      <div id="loginErrorAlert" class="alert alert-danger py-2 small d-none" role="alert"></div>
+
+      <form id="adminLoginForm">
+        <div class="mb-3 text-start">
+          <label class="form-label text-white-50 small fw-semibold">Master Admin Passcode</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-white-50"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" class="form-control form-control-dark" id="masterPassInput" placeholder="Enter password" required autofocus>
+            <button class="btn btn-outline-secondary border-secondary text-white-50" type="button" onclick="togglePassVisibility()">
+              <i class="fa-solid fa-eye" id="togglePassIcon"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-gradient-primary w-100 py-2" id="loginSubmitBtn">
+          <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 text-center">
+        <a href="/" class="text-decoration-none text-white-50 small hover-white">← Return to Website</a>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+
+  <!-- ========================================== -->
+  <!-- 2. SIMPLIFIED MASTER ADMIN DASHBOARD -->
+  <!-- ========================================== -->
+  <div class="admin-layout">
+
+    <!-- Left Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <!-- Brand -->
+      <div class="p-3 border-bottom border-white border-opacity-10 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2.5">
+          <span class="brand-logo-badge">2A</span>
+          <div>
+            <div class="fw-bold text-white fs-6 lh-1">2 AM Study</div>
+            <span class="text-muted" style="font-size: 11px;">Admin Control</span>
+          </div>
+        </div>
+        <button class="btn btn-sm text-white-50 d-lg-none" onclick="toggleMobileSidebar()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Navigation Items -->
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn active" data-section="live">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-video text-danger"></i>
+            <span>Live Study</span>
+          </div>
+          <% if (liveSession) { %>
+            <span class="badge rounded-pill bg-danger" style="font-size: 9px;">LIVE</span>
+          <% } else { %>
+            <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= allStudySessions.length %></span>
+          <% } %>
+        </button>
+
+        <button class="sidebar-btn" data-section="products">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-bag-shopping text-primary"></i>
+            <span>Store Products</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= products.length %></span>
+        </button>
+
+        <button class="sidebar-btn" data-section="orders">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-receipt text-success"></i>
+            <span>Customer Orders</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= orders.length %></span>
+        </button>
+
+        <button class="sidebar-btn" data-section="blogs">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-newspaper text-info"></i>
+            <span>Blog Articles</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= blogs.length %></span>
+        </button>
+
+        <button class="sidebar-btn" data-section="safety">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-shield-halved text-warning"></i>
+            <span>Student Safety</span>
+          </div>
+          <% const pendingCount = safetyCases.filter(c => c.status === 'Pending').length; %>
+          <% if (pendingCount > 0) { %>
+            <span class="badge rounded-pill bg-warning text-dark" style="font-size: 10px;"><%= pendingCount %> new</span>
+          <% } else { %>
+            <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= safetyCases.length %></span>
+          <% } %>
+        </button>
+
+        <button class="sidebar-btn" data-section="reviews">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-star text-warning"></i>
+            <span>Shopper Reviews</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= feedbacks.length %></span>
+        </button>
+
+        <button class="sidebar-btn" data-section="college">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-graduation-cap" style="color: #fb923c;"></i>
+            <span>College Life</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= typeof collegeVideos !== 'undefined' ? collegeVideos.length : 0 %></span>
+        </button>
+
+        <button class="sidebar-btn" data-section="resources">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="fa-solid fa-book-open text-info"></i>
+            <span>Exam Resources</span>
+          </div>
+          <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;"><%= typeof resources !== 'undefined' ? resources.length : 0 %></span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="p-3 border-top border-white border-opacity-10 d-flex align-items-center justify-content-between">
+        <a href="/" target="_blank" class="text-decoration-none text-white-50 small hover-white d-flex align-items-center gap-1.5">
+          <i class="fa-solid fa-arrow-up-right-from-square small"></i> Visit Site
+        </a>
+        <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none small" onclick="logoutAdmin()">
+          <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      
+      <!-- Top Bar -->
+      <div class="admin-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
+          <div class="fw-bold text-white fs-6" id="currentSectionTitle">🔴 Live Study Manager</div>
+        </div>
+        <div class="d-flex align-items-center gap-2.5">
+          <% if (liveSession) { %>
+            <span class="badge-live-pulse"><span class="live-dot-pulse"></span> STREAM ACTIVE</span>
+          <% } else { %>
+            <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill px-2.5 py-1" style="font-size: 11px;">STREAM OFFLINE</span>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Main Body Container -->
+      <div class="p-3 p-md-4">
+
+        <!-- ========================================== -->
+        <!-- SECTION 1: LIVE STUDY -->
+        <!-- ========================================== -->
+        <div class="admin-section active" id="sec-live">
+          
+          <!-- Stream Controller Card -->
+          <div class="admin-card mb-4">
+            <% if (liveSession) { %>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pb-3 border-bottom border-white border-opacity-10 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge-live-pulse"><span class="live-dot-pulse"></span> LIVE NOW</span>
+                  <span class="fw-bold text-white"><%= liveSession.title %></span>
+                </div>
+                <button class="btn btn-gradient-danger btn-sm" onclick="endLiveStream()">
+                  <i class="fa-solid fa-stop me-1"></i> End Current Live Stream
+                </button>
+              </div>
+              <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                  <div class="ratio ratio-16x9 rounded-3 overflow-hidden border border-secondary border-opacity-25">
+                    <iframe src="https://www.youtube-nocookie.com/embed/<%= liveSession.youtubeVideoId %>?autoplay=0&rel=0&modestbranding=1" allowfullscreen></iframe>
+                  </div>
+                </div>
+                <div class="col-md-7">
+                  <p class="text-white-50 small mb-2"><%= liveSession.description || 'No session description.' %></p>
+                  <div class="text-muted small mb-2"><i class="fa-regular fa-clock me-1"></i>Started: <%= new Date(liveSession.startedAt).toLocaleTimeString('en-IN') %></div>
+                  <a href="<%= liveSession.youtubeUrl %>" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3"><i class="fa-brands fa-youtube me-1"></i>Open on YouTube</a>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                  <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-tower-broadcast text-danger me-2"></i>Go Live on YouTube</h4>
+                  <span class="text-muted small">Start a live study session to display on the homepage &amp; study room.</span>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addPastModal">
+                  <i class="fa-solid fa-plus me-1"></i> Add Past Recorded Session
+                </button>
+              </div>
+              <form id="activateLiveForm" onsubmit="activateLive(event)">
+                <div class="row g-3">
+                  <div class="col-md-5">
+                    <input type="text" class="form-control form-control-dark" id="liveYtUrl" placeholder="Paste YouTube Live URL or Video ID *" required>
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" class="form-control form-control-dark" id="liveTitle" placeholder="Session Title (e.g. 5 Hour Focus Session) *" required>
+                  </div>
+                  <div class="col-md-3">
+                    <button type="submit" class="btn btn-gradient-danger w-100">
+                      <i class="fa-solid fa-tower-broadcast me-1"></i> Start Live Now
+                    </button>
+                  </div>
+                </div>
+              </form>
+            <% } %>
+          </div>
+
+          <!-- Recorded Sessions List -->
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-list text-primary me-2"></i>All Study Sessions (<%= allStudySessions.length %>)</h4>
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addPastModal">
+                <i class="fa-solid fa-plus me-1"></i> Add Past Recording
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Video Preview</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% allStudySessions.forEach(function(s) { %>
+                  <tr id="session-row-<%= s.id %>">
+                    <td style="width: 100px;">
+                      <img src="<%= s.thumbnail || 'https://img.youtube.com/vi/' + s.youtubeVideoId + '/hqdefault.jpg' %>" alt="" class="rounded-2" style="width: 80px; height: 45px; object-fit: cover;">
+                    </td>
+                    <td>
+                      <div class="fw-bold text-white"><%= s.title %></div>
+                      <div class="text-muted small" style="font-size: 11px;"><%= s.duration || 'Session' %> &bull; <a href="<%= s.youtubeUrl %>" target="_blank" class="text-primary text-decoration-none">YouTube Link</a></div>
+                    </td>
+                    <td>
+                      <% if (s.status === 'LIVE') { %>
+                        <span class="badge-live-pulse"><span class="live-dot-pulse"></span> LIVE</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill px-2" style="font-size: 10px;">COMPLETED</span>
+                      <% } %>
+                    </td>
+                    <td class="text-muted small"><%= new Date(s.createdAt || s.startedAt).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+                    <td class="text-end">
+                      <a href="/live-study/<%= s.id %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-eye"></i></a>
+                      <% if (s.status !== 'LIVE') { %>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteStudySession('<%= s.id %>')" style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
+                      <% } %>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: STORE PRODUCTS -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-products">
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+              <div>
+                <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-store text-primary me-2"></i>Store Catalog (<%= products.length %> Items)</h4>
+                <span class="text-muted small">Update stock with instant 1-click controls, create new products.</span>
+              </div>
+              <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fa-solid fa-plus me-1"></i> Add Product
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock Inventory</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% products.forEach(function(p) { %>
+                  <tr id="prod-row-<%= p.id %>">
+                    <td>
+                      <div class="d-flex align-items-center gap-2.5">
+                        <img src="<%= p.images && p.images[0] ? p.images[0] : (p.image || '/assets/images/logo.jpg') %>" alt="" class="rounded-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <div>
+                          <div class="fw-bold text-white"><%= p.name %></div>
+                          <% if (p.badge) { %><span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2 py-0" style="font-size: 9px;"><%= p.badge %></span><% } %>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="badge bg-secondary bg-opacity-25 text-white-50 text-uppercase" style="font-size: 10px;"><%= p.cat || 'Store' %></span></td>
+                    <td class="fw-bold text-success">₹<%= p.price %></td>
+                    <td>
+                      <div class="d-flex align-items-center gap-1.5">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2 text-white" onclick="adjustStock('<%= p.id %>', -1)">-</button>
+                        <span class="fw-bold text-white px-2" id="stock-val-<%= p.id %>"><%= p.stock %></span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2 text-white" onclick="adjustStock('<%= p.id %>', 1)">+</button>
+                      </div>
+                    </td>
+                    <td class="text-end">
+                      <a href="/store/product/<%= p.id %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-eye"></i></a>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteProduct('<%= p.id %>')" style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 3: STORE ORDERS -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-orders">
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-receipt text-success me-2"></i>Customer Purchases (<%= orders.length %>)</h4>
+            </div>
+
+            <% if (orders.length === 0) { %>
+            <div class="text-center py-5 text-muted">
+              <div class="fs-2 mb-2">📦</div>
+              <p class="small mb-0">No customer orders yet.</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th class="text-end">Invoice</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach(function(ord) { %>
+                  <tr>
+                    <td class="fw-bold text-white">#<%= ord.orderId || ord.id %></td>
+                    <td>
+                      <div class="fw-bold text-white"><%= ord.customer?.name || ord.name || 'Student' %></div>
+                      <div class="text-muted small" style="font-size: 11px;"><%= ord.customer?.phone || ord.phone || '' %></div>
+                    </td>
+                    <td><span class="text-white-50"><%= ord.items ? ord.items.length : 1 %> item(s)</span></td>
+                    <td class="fw-bold text-success">₹<%= ord.amount || ord.total || 0 %></td>
+                    <td class="text-muted small"><%= new Date(ord.createdAt || Date.now()).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+                    <td class="text-end">
+                      <a href="/store/invoice/<%= ord.orderId || ord.id %>" target="_blank" class="btn btn-sm btn-outline-light rounded-pill py-0 px-2.5" style="font-size: 11px;">
+                        <i class="fa-solid fa-file-invoice me-1"></i> Invoice
+                      </a>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 4: BLOG POSTS -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-blogs">
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+              <div>
+                <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-newspaper text-info me-2"></i>Published Articles (<%= blogs.length %>)</h4>
+              </div>
+              <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addBlogModal">
+                <i class="fa-solid fa-plus me-1"></i> New Article
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Article</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% blogs.forEach(function(b) { %>
+                  <tr id="blog-row-<%= b.id %>">
+                    <td>
+                      <div class="d-flex align-items-center gap-2.5">
+                        <img src="<%= b.coverImage || '/assets/images/logo.jpg' %>" alt="" class="rounded-2" style="width: 48px; height: 32px; object-fit: cover;">
+                        <div>
+                          <div class="fw-bold text-white"><%= b.title %></div>
+                          <div class="text-muted small" style="font-size: 11px;">/blog/<%= b.slug %></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="badge bg-info bg-opacity-25 text-info rounded-pill px-2 py-0" style="font-size: 10px;"><%= b.category || 'Study' %></span></td>
+                    <td class="text-muted small"><%= new Date(b.createdAt || Date.now()).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+                    <td class="text-end">
+                      <a href="/blog/<%= b.slug %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-eye"></i></a>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteBlog('<%= b.id %>')" style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 5: STUDENT SAFETY -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-safety">
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-shield-halved text-warning me-2"></i>Student Safety Reports (<%= safetyCases.length %>)</h4>
+              </div>
+              <a href="/api/student-safety/admin/export-csv" class="btn btn-sm btn-outline-light rounded-pill px-3" style="font-size: 11px;">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+              </a>
+            </div>
+
+            <% if (safetyCases.length === 0) { %>
+            <div class="text-center py-5 text-muted">
+              <div class="fs-2 mb-2">🛡️</div>
+              <p class="small mb-0">No impersonation cases reported.</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Case ID</th>
+                    <th>Reported Target</th>
+                    <th>College</th>
+                    <th>Status</th>
+                    <th class="text-end">Moderate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% safetyCases.forEach(function(c) { %>
+                  <tr>
+                    <td class="fw-bold text-white">#<%= c.caseId %></td>
+                    <td>
+                      <div class="fw-bold text-white"><%= c.platform %>: <%= c.fakeProfileUsername || c.targetName || 'Profile' %></div>
+                      <a href="<%= c.fakeProfileUrl %>" target="_blank" class="text-primary text-decoration-none small" style="font-size: 11px;">View Link</a>
+                    </td>
+                    <td class="text-white-50 small"><%= c.college || '—' %></td>
+                    <td>
+                      <% if (c.status === 'Verified') { %>
+                        <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-0" style="font-size: 10px;">Verified</span>
+                      <% } else if (c.status === 'Pending') { %>
+                        <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2 py-0" style="font-size: 10px;">Pending</span>
+                      <% } else { %>
+                        <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill px-2 py-0" style="font-size: 10px;"><%= c.status %></span>
+                      <% } %>
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-success rounded-pill py-0 px-2" onclick="moderateCase('<%= c.caseId %>', 'approve')" style="font-size: 11px;">Verify</button>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="moderateCase('<%= c.caseId %>', 'reject')" style="font-size: 11px;">Reject</button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 6: REVIEWS -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-reviews">
+          <div class="admin-card">
+            <h4 class="fw-bold text-white fs-6 mb-3"><i class="fa-solid fa-star text-warning me-2"></i>Shopper Reviews (<%= feedbacks.length %>)</h4>
+            <div class="row g-3">
+              <% feedbacks.forEach(function(fb) { %>
+              <div class="col-md-6 col-lg-4" id="fb-card-<%= fb.id %>">
+                <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background: var(--card-bg-subtle); border: 1px solid var(--card-border);">
+                  <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <div class="fw-bold text-white small"><%= fb.name %></div>
+                      <div class="text-warning small"><% for(let i=0; i < (fb.rating || 5); i++) { %>★<% } %></div>
+                    </div>
+                    <p class="text-white-50 small mb-2">"<%= fb.comment %>"</p>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between pt-2 border-top border-white border-opacity-10 text-muted" style="font-size: 11px;">
+                    <span><%= fb.product || 'Store Item' %></span>
+                    <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="deleteFeedback('<%= fb.id %>')"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 7: COLLEGE LIFE ENJOY -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-college">
+          <!-- Add Video Form -->
+          <div class="admin-card mb-4">
+            <div class="mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-graduation-cap me-2" style="color: #fb923c;"></i>Add College Life Video</h4>
+              <span class="text-muted small">Add a YouTube link with title for the 🎉 College Life Enjoy section.</span>
+            </div>
+            <form id="addCollegeVideoForm" onsubmit="addCollegeVideo(event)">
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <input type="text" class="form-control form-control-dark" id="clYtUrl" placeholder="YouTube Video URL *" required>
+                </div>
+                <div class="col-md-4">
+                  <input type="text" class="form-control form-control-dark" id="clTitle" placeholder="Video Title *" required>
+                </div>
+                <div class="col-md-3">
+                  <button type="submit" class="btn btn-gradient-primary w-100">
+                    <i class="fa-solid fa-plus me-1"></i> Add Video
+                  </button>
+                </div>
+              </div>
+              <div class="row g-3 mt-1">
+                <div class="col-md-3">
+                  <select class="form-select form-select-dark" id="clCategory">
+                    <option value="Campus Vibe">Campus Vibe</option>
+                    <option value="Hostel Fun">Hostel Fun</option>
+                    <option value="Study Break">Study Break</option>
+                    <option value="College Fest">College Fest</option>
+                    <option value="Friends & Fun">Friends & Fun</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <input type="text" class="form-control form-control-dark" id="clDuration" placeholder="Duration (e.g. 5 Min)">
+                </div>
+                <div class="col-md-5">
+                  <input type="text" class="form-control form-control-dark" id="clDescription" placeholder="Short description (optional)">
+                </div>
+                <div class="col-md-2 d-flex align-items-center gap-2">
+                  <input class="form-check-input mt-0" type="checkbox" id="clFeatured">
+                  <label class="form-check-label text-white-50 small" for="clFeatured">Set as Featured</label>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Videos List -->
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0">
+                <i class="fa-solid fa-list text-primary me-2"></i>All College Life Videos
+                (<%= typeof collegeVideos !== 'undefined' ? collegeVideos.length : 0 %>)
+              </h4>
+              <a href="/college-life" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3" style="font-size: 11px;">
+                <i class="fa-solid fa-eye me-1"></i> View Public Page
+              </a>
+            </div>
+
+            <% if (typeof collegeVideos !== 'undefined' && collegeVideos.length) { %>
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Thumbnail</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Duration</th>
+                    <th>Featured</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% collegeVideos.forEach(function(v) { %>
+                  <tr id="cv-row-<%= v.id %>">
+                    <td style="width: 90px;">
+                      <img src="<%= v.thumbnail || 'https://img.youtube.com/vi/' + v.youtubeVideoId + '/default.jpg' %>" alt="" class="rounded-2" style="width: 78px; height: 44px; object-fit: cover;">
+                    </td>
+                    <td>
+                      <div class="fw-bold text-white"><%= v.title %></div>
+                      <a href="<%= v.youtubeUrl %>" target="_blank" class="text-primary text-decoration-none small" style="font-size: 11px;">YouTube Link</a>
+                    </td>
+                    <td>
+                      <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2" style="font-size: 10px;"><%= v.category || 'College Life' %></span>
+                    </td>
+                    <td class="text-white-50 small"><%= v.duration || '—' %></td>
+                    <td>
+                      <% if (v.isFeatured) { %>
+                        <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2" style="font-size: 10px;">⭐ Featured</span>
+                      <% } else { %>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2" onclick="setCollegeFeatured('<%= v.id %>')" style="font-size: 10px;">Set Featured</button>
+                      <% } %>
+                    </td>
+                    <td class="text-end">
+                      <a href="/college-life/<%= v.id %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-eye"></i></a>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteCollegeVideo('<%= v.id %>')" style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% } else { %>
+            <div class="text-center py-5 text-muted">
+              <div class="fs-2 mb-2">🎓</div>
+              <p class="small mb-0">No college life videos yet. Use the form above to add the first one.</p>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 8: EXAM RESOURCES -->
+        <!-- ========================================== -->
+        <div class="admin-section d-none" id="sec-resources">
+          <!-- Add Resource Card Form -->
+          <div class="admin-card mb-4">
+            <div class="mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-book-open text-info me-2"></i>Add Exam Resource Card</h4>
+              <span class="text-muted small">Add a new resource card that will display on the /resources page.</span>
+            </div>
+            <form id="addResourceForm" onsubmit="addResourceCard(event)">
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <input type="text" class="form-control form-control-dark" id="resTitle" placeholder="Resource Title (e.g. 2026 Official Syllabus PDF) *" required>
+                </div>
+                <div class="col-md-4">
+                  <input type="text" class="form-control form-control-dark" id="resExam" placeholder="Exam Name (e.g. GATE CSE, JEE Main, UPSC) *" required>
+                </div>
+                <div class="col-md-3">
+                  <button type="submit" class="btn btn-gradient-primary w-100">
+                    <i class="fa-solid fa-plus me-1"></i> Add Card
+                  </button>
+                </div>
+              </div>
+              <div class="row g-3 mt-1">
+                <div class="col-md-3">
+                  <select class="form-select form-select-dark" id="resCategory">
+                    <option value="PYQ">Previous Year Papers (PYQ)</option>
+                    <option value="SYLLABUS">Official Syllabus</option>
+                    <option value="NOTIFICATION">Exam Notification</option>
+                    <option value="ANSWER_KEY">Answer Key</option>
+                    <option value="NOTES">Study Notes & Material</option>
+                    <option value="CUTOFF">Cut-offs & Stats</option>
+                    <option value="RESULT">Results & Scorecard</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <input type="number" class="form-control form-control-dark" id="resYear" placeholder="Year (e.g. 2026)" value="2026">
+                </div>
+                <div class="col-md-4">
+                  <input type="url" class="form-control form-control-dark" id="resUrl" placeholder="Official / Download URL *" required>
+                </div>
+                <div class="col-md-3">
+                  <input type="text" class="form-control form-control-dark" id="resDesc" placeholder="Short description (optional)">
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Resources List Table -->
+          <div class="admin-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <h4 class="fw-bold text-white fs-6 mb-0">
+                <i class="fa-solid fa-list text-primary me-2"></i>All Active Resource Cards
+                (<%= typeof resources !== 'undefined' ? resources.length : 0 %>)
+              </h4>
+              <a href="/resources" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3" style="font-size: 11px;">
+                <i class="fa-solid fa-eye me-1"></i> View /resources Page
+              </a>
+            </div>
+
+            <% if (typeof resources !== 'undefined' && resources.length) { %>
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Exam</th>
+                    <th>Category</th>
+                    <th>Year</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% resources.forEach(function(r) { %>
+                  <tr id="res-row-<%= r.id %>">
+                    <td>
+                      <div class="fw-bold text-white"><%= r.title %></div>
+                      <a href="<%= r.officialUrl %>" target="_blank" class="text-info text-decoration-none small" style="font-size: 11px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i><%= r.officialUrl %>
+                      </a>
+                    </td>
+                    <td>
+                      <span class="badge bg-secondary bg-opacity-25 text-white rounded-pill px-2" style="font-size: 10px;"><%= r.exam %></span>
+                    </td>
+                    <td>
+                      <span class="badge bg-primary bg-opacity-25 text-primary rounded-pill px-2" style="font-size: 10px;"><%= r.category %></span>
+                    </td>
+                    <td class="text-white-50 small"><%= r.latestYear || '-' %></td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteResourceCard('<%= r.id %>')" style="font-size: 11px;">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% } else { %>
+            <div class="text-center py-5 text-muted">
+              <div class="fs-2 mb-2">📚</div>
+              <p class="small mb-0">No resource cards added yet. Use the form above to add the first card.</p>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODALS -->
+  <!-- ========================================== -->
+
+  <!-- Modal: Add Past Session -->
+  <div class="modal fade" id="addPastModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-dark">
+        <div class="modal-header modal-header-dark">
+          <h5 class="modal-title fw-bold text-white fs-6"><i class="fa-solid fa-film text-primary me-2"></i>Add Past Recorded Session</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="addPastSessionForm" onsubmit="addPastSession(event)">
+          <div class="modal-body p-3">
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">YouTube Video URL *</label>
+              <input type="text" class="form-control form-control-dark" id="pastYtUrl" placeholder="https://www.youtube.com/watch?v=..." required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Title *</label>
+              <input type="text" class="form-control form-control-dark" id="pastTitle" placeholder="e.g. 10 Hours All Night Study Challenge" required>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Duration</label>
+                <input type="text" class="form-control form-control-dark" id="pastDuration" placeholder="e.g. 5 Hours">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Custom Thumbnail URL</label>
+                <input type="text" class="form-control form-control-dark" id="pastThumbnail" placeholder="Leave empty for auto">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-dark">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-gradient-primary btn-sm rounded-pill px-4">Save Session</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Product -->
+  <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-dark">
+        <div class="modal-header modal-header-dark">
+          <h5 class="modal-title fw-bold text-white fs-6"><i class="fa-solid fa-plus text-primary me-2"></i>Create Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="createProductForm" onsubmit="createProduct(event)">
+          <div class="modal-body p-3">
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Product Name *</label>
+              <input type="text" class="form-control form-control-dark" id="prodName" required placeholder="e.g. Smart Thermal Bottle">
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Category</label>
+                <select class="form-select form-select-dark" id="prodCat">
+                  <option value="bottles">Smart Bottles</option>
+                  <option value="notebooks">Notebooks</option>
+                  <option value="bags">Study Bags</option>
+                  <option value="stationery">Stationery</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Price (₹) *</label>
+                <input type="number" class="form-control form-control-dark" id="prodPrice" required placeholder="699">
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Stock Quantity *</label>
+                <input type="number" class="form-control form-control-dark" id="prodStock" required value="25">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Image URL *</label>
+                <input type="text" class="form-control form-control-dark" id="prodImage" required placeholder="https://images.unsplash.com/...">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-dark">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-gradient-primary btn-sm rounded-pill px-4">Create Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Blog -->
+  <div class="modal fade" id="addBlogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-dark">
+        <div class="modal-header modal-header-dark">
+          <h5 class="modal-title fw-bold text-white fs-6"><i class="fa-solid fa-plus text-info me-2"></i>New Blog Article</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="createBlogForm" onsubmit="createBlog(event)">
+          <div class="modal-body p-3">
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Article Title *</label>
+              <input type="text" class="form-control form-control-dark" id="blogTitle" required placeholder="e.g. Study Techniques for Toppers">
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Category</label>
+                <input type="text" class="form-control form-control-dark" id="blogCategory" value="Study Tips">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-white-50 small fw-semibold">Cover Image URL</label>
+                <input type="text" class="form-control form-control-dark" id="blogImage" placeholder="https://images.unsplash.com/...">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Summary / Excerpt *</label>
+              <textarea class="form-control form-control-dark" id="blogExcerpt" rows="2" required placeholder="Brief intro for the article card..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Content (HTML/Text) *</label>
+              <textarea class="form-control form-control-dark" id="blogContent" rows="5" required placeholder="<p>Write your article here...</p>"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-dark">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-gradient-primary btn-sm rounded-pill px-4">Publish Article</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <% } %>
+
+  <!-- Global Toast -->
+  <div class="toast-container">
+    <div id="adminToast" class="toast align-items-center text-white bg-primary border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body py-2.5 px-3 fw-semibold small" id="toastMessage">Action performed successfully!</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showToast(msg, isError = false) {
+      const toastEl = document.getElementById('adminToast');
+      const msgEl = document.getElementById('toastMessage');
+      if (toastEl && msgEl) {
+        msgEl.textContent = msg;
+        toastEl.className = 'toast align-items-center text-white border-0 rounded-3 shadow-lg ' + (isError ? 'bg-danger' : 'bg-success');
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+      }
+    }
+
+    function togglePassVisibility() {
+      const input = document.getElementById('masterPassInput');
+      const icon = document.getElementById('togglePassIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('adminSidebar');
+      if (sb) sb.classList.toggle('show-mobile');
+    }
+
+    // Section Switching
+    const sectionTitles = {
+      live: '🔴 Live Study Manager',
+      products: '🛒 Store Products & Inventory',
+      orders: '📦 Customer Orders & Sales',
+      blogs: '📝 Blog & Content Guides',
+      safety: '🛡️ Student Safety Moderation',
+      reviews: '⭐ Shopper Reviews & Feedback',
+      college: '🎉 College Life Videos',
+      resources: '📚 Exam Resources'
+    };
+
+    function switchSection(secKey) {
+      document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`.sidebar-btn[data-section="${secKey}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.add('d-none'));
+      const activeSec = document.getElementById(`sec-${secKey}`);
+      if (activeSec) activeSec.classList.remove('d-none');
+
+      const titleEl = document.getElementById('currentSectionTitle');
+      if (titleEl && sectionTitles[secKey]) titleEl.textContent = sectionTitles[secKey];
+
+      window.location.hash = secKey;
+      const sb = document.getElementById('adminSidebar');
+      if (sb) sb.classList.remove('show-mobile');
+    }
+
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchSection(btn.dataset.section));
+    });
+
+    // Handle Hash on Load
+    document.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.replace('#', '').replace('tab-', '');
+      if (hash && sectionTitles[hash]) {
+        switchSection(hash);
+      }
+    });
+
+    // Login Form
+    const loginForm = document.getElementById('adminLoginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const pass = document.getElementById('masterPassInput').value;
+        const errAlert = document.getElementById('loginErrorAlert');
+        const btn = document.getElementById('loginSubmitBtn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying...';
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pass })
+          });
+          const data = await res.json();
+          if (data.success) {
+            window.location.reload();
+          } else {
+            errAlert.textContent = data.error || 'Incorrect passcode. Please try again.';
+            errAlert.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard';
+          }
+        } catch(err) {
+          errAlert.textContent = 'Server connection error.';
+          errAlert.classList.remove('d-none');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard';
+        }
+      });
+    }
+
+    // Logout
+    async function logoutAdmin() {
+      if (!confirm('Sign out of Admin?')) return;
+      try {
+        await fetch('/api/admin/logout', { method: 'POST' });
+        window.location.href = '/admin';
+      } catch(e) {
+        window.location.reload();
+      }
+    }
+
+    // Live Stream Actions
+    async function activateLive(e) {
+      e.preventDefault();
+      const youtubeUrl = document.getElementById('liveYtUrl').value.trim();
+      const title = document.getElementById('liveTitle').value.trim();
+
+      try {
+        const res = await fetch('/api/live-study/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ youtubeUrl, title })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🔴 Live Stream is ACTIVE!');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Failed to activate live stream.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function endLiveStream() {
+      if (!confirm('End the current live stream?')) return;
+      try {
+        const res = await fetch('/api/live-study/end', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Live stream ended.');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Failed to end stream.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function addPastSession(e) {
+      e.preventDefault();
+      const youtubeUrl = document.getElementById('pastYtUrl').value.trim();
+      const title = document.getElementById('pastTitle').value.trim();
+      const duration = document.getElementById('pastDuration').value.trim();
+      const thumbnail = document.getElementById('pastThumbnail').value.trim();
+
+      try {
+        const res = await fetch('/api/live-study/add-past', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ youtubeUrl, title, duration, thumbnail })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Recorded study session saved!');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Failed to add session.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function deleteStudySession(id) {
+      if (!confirm('Delete this recorded study session?')) return;
+      try {
+        const res = await fetch('/api/live-study/delete/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const row = document.getElementById('session-row-' + id);
+          if (row) row.remove();
+          showToast('Session deleted.');
+        } else {
+          showToast(data.message || 'Failed to delete.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    // Product Actions
+    async function createProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('prodName').value.trim();
+      const cat = document.getElementById('prodCat').value;
+      const price = Number(document.getElementById('prodPrice').value);
+      const stock = Number(document.getElementById('prodStock').value) || 10;
+      const image = document.getElementById('prodImage').value.trim();
+
+      try {
+        const res = await fetch('/api/store/admin/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, cat, price, stock, images: [image] })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Product added successfully!');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.error || 'Failed to create product.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function adjustStock(id, delta) {
+      const stockEl = document.getElementById('stock-val-' + id);
+      const current = Number(stockEl.textContent) || 0;
+      const newStock = Math.max(0, current + delta);
+
+      try {
+        const res = await fetch('/api/store/admin/products/' + id + '/stock', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stock: newStock })
+        });
+        const data = await res.json();
+        if (data.success) {
+          stockEl.textContent = newStock;
+          showToast('Stock updated: ' + newStock);
+        } else {
+          showToast(data.error || 'Failed to update stock.', true);
+        }
+      } catch(err) {
+        showToast('Error updating stock.', true);
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete this product?')) return;
+      try {
+        const res = await fetch('/api/store/admin/products/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const row = document.getElementById('prod-row-' + id);
+          if (row) row.remove();
+          showToast('Product deleted.');
+        } else {
+          showToast(data.error || 'Failed to delete.', true);
+        }
+      } catch(err) {
+        showToast('Error deleting product.', true);
+      }
+    }
+
+    // Blog Actions
+    async function createBlog(e) {
+      e.preventDefault();
+      const title = document.getElementById('blogTitle').value.trim();
+      const category = document.getElementById('blogCategory').value.trim();
+      const coverImage = document.getElementById('blogImage').value.trim();
+      const excerpt = document.getElementById('blogExcerpt').value.trim();
+      const content = document.getElementById('blogContent').value.trim();
+
+      try {
+        const res = await fetch('/api/store/admin/blogs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, category, coverImage, excerpt, content, status: 'published' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Blog article published!');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.error || 'Failed to publish.', true);
+        }
+      } catch(err) {
+        showToast('Error publishing blog.', true);
+      }
+    }
+
+    async function deleteBlog(id) {
+      if (!confirm('Delete this blog post?')) return;
+      try {
+        const res = await fetch('/api/store/admin/blogs/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const row = document.getElementById('blog-row-' + id);
+          if (row) row.remove();
+          showToast('Blog deleted.');
+        } else {
+          showToast(data.error || 'Failed to delete blog.', true);
+        }
+      } catch(err) {
+        showToast('Error deleting blog.', true);
+      }
+    }
+
+    // Safety Case Moderate
+    async function moderateCase(caseId, action) {
+      const reason = action === 'reject' ? prompt('Rejection reason:') : 'Approved by Admin';
+      if (action === 'reject' && !reason) return;
+
+      try {
+        const res = await fetch('/api/student-safety/admin/moderate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caseId, action, note: reason, moderatorUid: 'MASTER-ADMIN', moderatorName: 'Master Admin' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Case #' + caseId + ' ' + (action === 'approve' ? 'verified' : 'rejected'));
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast(data.message || 'Action failed.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    // Feedback Actions
+    async function deleteFeedback(id) {
+      if (!confirm('Remove review?')) return;
+      try {
+        const res = await fetch('/api/admin/feedbacks/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const card = document.getElementById('fb-card-' + id);
+          if (card) card.remove();
+          showToast('Review removed.');
+        } else {
+          showToast('Failed to remove review.', true);
+        }
+      } catch(err) {
+        showToast('Error deleting review.', true);
+      }
+    }
+
+    // College Life Video Actions
+    async function addCollegeVideo(e) {
+      e.preventDefault();
+      const youtubeUrl = document.getElementById('clYtUrl').value.trim();
+      const title = document.getElementById('clTitle').value.trim();
+      const category = document.getElementById('clCategory').value;
+      const duration = document.getElementById('clDuration').value.trim();
+      const description = document.getElementById('clDescription').value.trim();
+      const isFeatured = document.getElementById('clFeatured').checked;
+
+      try {
+        const res = await fetch('/api/college-life/videos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ youtubeUrl, title, category, duration, description, isFeatured })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('College Life video added!');
+          setTimeout(() => {
+            window.location.hash = 'college';
+            window.location.reload();
+          }, 1000);
+        } else {
+          showToast(data.error || 'Failed to add video.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function deleteCollegeVideo(id) {
+      if (!confirm('Delete this college life video?')) return;
+      try {
+        const res = await fetch('/api/college-life/videos/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const row = document.getElementById('cv-row-' + id);
+          if (row) row.remove();
+          showToast('Video deleted.');
+        } else {
+          showToast(data.error || 'Failed to delete video.', true);
+        }
+      } catch(err) {
+        showToast('Error deleting video.', true);
+      }
+    }
+
+    async function setCollegeFeatured(id) {
+      try {
+        const res = await fetch('/api/college-life/videos/' + id + '/feature', { method: 'PATCH' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Featured video updated!');
+          setTimeout(() => {
+            window.location.hash = 'college';
+            window.location.reload();
+          }, 800);
+        } else {
+          showToast(data.error || 'Failed to update.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    // Exam Resources Actions
+    async function addResourceCard(e) {
+      e.preventDefault();
+      const title = document.getElementById('resTitle').value.trim();
+      const exam = document.getElementById('resExam').value.trim();
+      const category = document.getElementById('resCategory').value;
+      const latestYear = document.getElementById('resYear').value;
+      const officialUrl = document.getElementById('resUrl').value.trim();
+      const description = document.getElementById('resDesc').value.trim();
+
+      try {
+        const res = await fetch('/api/resources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, exam, category, latestYear, officialUrl, description })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Resource Card added!');
+          setTimeout(() => {
+            window.location.hash = 'resources';
+            window.location.reload();
+          }, 1000);
+        } else {
+          showToast(data.error || 'Failed to add card.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
+      }
+    }
+
+    async function deleteResourceCard(id) {
+      if (!confirm('Delete this resource card?')) return;
+      try {
+        const res = await fetch('/api/resources/' + id, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          const row = document.getElementById('res-row-' + id);
+          if (row) row.remove();
+          showToast('Resource card deleted.');
+        } else {
+          showToast(data.error || 'Failed to delete card.', true);
+        }
+      } catch(err) {
+        showToast('Error deleting card.', true);
+      }
+    }
+  </script>
+</body>
+</html>

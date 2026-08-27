@@ -1,248 +1,30 @@
 <%- include('partials/header') %>
 
 <style>
-  /* ═══════════════════════════════════════
-     Exam Resource Center — Page Styles
-  ═══════════════════════════════════════ */
   .erc-hero {
-    background: linear-gradient(135deg, #eef2ff 0%, #fafbff 55%, #ecfdf5 100%);
-    border-bottom: 1px solid #e0e7ff;
-    padding: 3rem 0 2.5rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 2.5rem 0 2rem;
   }
 
   .erc-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: rgba(79,70,229,0.08);
+    background: rgba(99, 102, 241, 0.1);
     color: #4f46e5;
-    border: 1px solid rgba(79,70,229,0.18);
-    padding: 0.42rem 1.1rem;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    padding: 0.4rem 1.1rem;
     border-radius: 100px;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
-
-  /* ── Search autocomplete wrapper ── */
-  .erc-search-wrapper {
-    position: relative;
-    max-width: 580px;
-    margin: 0 auto;
-  }
-
-  .erc-search-icon {
-    position: absolute;
-    left: 1.1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #a5b4fc;
-    font-size: 0.95rem;
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  #resourceSearch {
-    padding-left: 2.8rem;
-    padding-right: 3.5rem;
-    height: 52px;
-    border-radius: 14px;
-    border: 1.5px solid #c7d2fe;
-    font-size: 0.95rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 12px rgba(79,70,229,0.08);
-    background: #fff;
-  }
-
-  #resourceSearch:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
-    outline: none;
-  }
-
-  #clearSearch {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 0.25rem;
-    z-index: 5;
-    transition: color 0.15s;
-    display: none;
-  }
-
-  #clearSearch:hover { color: #4f46e5; }
-
-  /* ── Suggestion Dropdown ── */
-  #searchSuggestions {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    background: #fff;
-    border: 1.5px solid #e0e7ff;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(79,70,229,0.12);
-    z-index: 300;
-    overflow: hidden;
-    display: none;
-    max-height: 260px;
-    overflow-y: auto;
-  }
-
-  .suggestion-header {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #94a3b8;
-    padding: 0.6rem 1rem 0.3rem;
-  }
-
-  .suggestion-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.55rem 1rem;
-    cursor: pointer;
-    transition: background 0.15s;
-    text-decoration: none;
-    color: #1e293b;
-  }
-
-  .suggestion-item:hover,
-  .suggestion-item.focused {
-    background: #eef2ff;
-  }
-
-  .suggestion-exam {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #1e293b;
-  }
-
-  .suggestion-count {
-    font-size: 0.72rem;
-    color: #64748b;
-    margin-left: auto;
-  }
-
-  .suggestion-arrow {
-    color: #a5b4fc;
-    font-size: 0.7rem;
-    margin-left: 0.25rem;
-  }
-
-  /* ── Filter Bar ── */
-  .erc-filter-bar {
-    background: #fff;
-    border-bottom: 1px solid #e0e7ff;
-    padding: 0.85rem 0;
-    position: sticky;
-    top: 68px;
-    z-index: 200;
-  }
-
-  .erc-filter-scroll {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    align-items: center;
-  }
-
-  .erc-filter-scroll::-webkit-scrollbar { display: none; }
-
-  .filter-label {
-    color: #94a3b8;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    padding-right: 0.3rem;
-    flex-shrink: 0;
-  }
-
-  .filter-pill {
-    border: 1.5px solid #e2e8f0;
-    background: #f8fafc;
-    color: #64748b;
-    border-radius: 100px;
-    padding: 0.3rem 0.85rem;
-    font-size: 0.76rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.18s;
-    flex-shrink: 0;
-    user-select: none;
-  }
-
-  .filter-pill:hover {
-    border-color: #4f46e5;
-    color: #4f46e5;
-    background: rgba(79,70,229,0.05);
-  }
-
-  .filter-pill.active {
-    background: #4f46e5;
-    border-color: #4f46e5;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(79,70,229,0.28);
-  }
-
-  /* ── Quick exam chips ── */
-  .exam-chips-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-top: 0.85rem;
-  }
-
-  .exam-chip {
-    background: rgba(255,255,255,0.75);
-    border: 1.5px solid #c7d2fe;
-    color: #4f46e5;
-    border-radius: 100px;
-    padding: 0.28rem 0.85rem;
-    font-size: 0.73rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.18s;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .exam-chip:hover,
-  .exam-chip.active {
-    background: #4f46e5;
-    border-color: #4f46e5;
-    color: #fff;
-  }
-
-  /* ── Resource Cards ── */
-  .erc-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-  }
-
-  @media (max-width: 1024px) { .erc-grid { grid-template-columns: repeat(2,1fr); } }
-  @media (max-width: 640px)  { .erc-grid { grid-template-columns: 1fr; } }
 
   .resource-card {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 1.35rem;
@@ -252,12 +34,13 @@
     position: relative;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    animation: cardIn 0.28s ease both;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
   }
 
-  @keyframes cardIn {
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0);    }
+  .resource-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
   }
 
   .resource-card::before {
@@ -265,32 +48,8 @@
     position: absolute;
     top: 0; left: 0;
     width: 4px; height: 100%;
+    background: #4f46e5;
     border-radius: 16px 0 0 16px;
-  }
-
-  .resource-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(79,70,229,0.1);
-    border-color: #c7d2fe;
-  }
-
-  /* Category stripe colors */
-  .card-cat-PYQ::before          { background: #4f46e5; }
-  .card-cat-SYLLABUS::before     { background: #059669; }
-  .card-cat-NOTIFICATION::before { background: #d97706; }
-  .card-cat-ANSWER_KEY::before   { background: #0891b2; }
-  .card-cat-EXAM_CALENDAR::before{ background: #7c3aed; }
-  .card-cat-CUTOFF::before       { background: #dc2626; }
-  .card-cat-BROCHURE::before     { background: #64748b; }
-  .card-cat-ADMIT_CARD::before   { background: #db2777; }
-  .card-cat-RESULT::before       { background: #059669; }
-
-  .card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    flex-wrap: wrap;
   }
 
   .cat-badge {
@@ -302,81 +61,23 @@
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    background: rgba(99, 102, 241, 0.1);
+    color: #4338ca;
   }
-
-  .cat-PYQ          { background:rgba(79,70,229,.1);  color:#4f46e5; }
-  .cat-SYLLABUS     { background:rgba(5,150,105,.1);  color:#059669; }
-  .cat-NOTIFICATION { background:rgba(217,119,6,.1);  color:#b45309; }
-  .cat-ANSWER_KEY   { background:rgba(8,145,178,.1);  color:#0891b2; }
-  .cat-EXAM_CALENDAR{ background:rgba(124,58,237,.1); color:#7c3aed; }
-  .cat-CUTOFF       { background:rgba(220,38,38,.1);  color:#dc2626; }
-  .cat-BROCHURE     { background:rgba(100,116,139,.1);color:#64748b; }
-  .cat-ADMIT_CARD   { background:rgba(219,39,119,.1); color:#db2777; }
-  .cat-RESULT       { background:rgba(5,150,105,.12); color:#059669; }
 
   .exam-pill {
-    background: #eef2ff;
-    color: #4f46e5;
-    border: 1px solid #c7d2fe;
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
     padding: 0.18rem 0.6rem;
     border-radius: 100px;
-    font-size: 0.67rem;
+    font-size: 0.68rem;
     font-weight: 700;
-  }
-
-  .card-title {
-    font-size: 0.93rem;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.35;
-    margin: 0;
-  }
-
-  .card-desc {
-    font-size: 0.79rem;
-    color: #64748b;
-    line-height: 1.55;
-    margin: 0;
-    flex-grow: 1;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .card-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    font-size: 0.71rem;
-    color: #94a3b8;
-    flex-wrap: wrap;
-  }
-
-  .official-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: rgba(5,150,105,0.08);
-    color: #059669;
-    border: 1px solid rgba(5,150,105,0.2);
-    padding: 0.18rem 0.55rem;
-    border-radius: 6px;
-    font-size: 0.67rem;
-    font-weight: 700;
-  }
-
-  /* ── Buttons (Change 8 ── better labels) ── */
-  .card-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.1rem;
   }
 
   .btn-visit {
     flex: 1;
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -388,15 +89,13 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
-    box-shadow: 0 2px 8px rgba(79,70,229,0.2);
+    transition: all 0.2s ease;
   }
 
   .btn-visit:hover {
-    opacity: 0.92;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
     color: #fff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(79,70,229,0.3);
   }
 
   .btn-copy {
@@ -413,7 +112,6 @@
     justify-content: center;
     gap: 0.35rem;
     transition: all 0.18s;
-    white-space: nowrap;
   }
 
   .btn-copy:hover {
@@ -421,382 +119,126 @@
     border-color: #c7d2fe;
     color: #4f46e5;
   }
-
-  .btn-copy.copied {
-    background: #dcfce7;
-    border-color: #86efac;
-    color: #15803d;
-  }
-
-  /* ── Sort / count bar ── */
-  .erc-sort-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-
-  #sortSelect {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.8rem;
-    color: #475569;
-    background: #fff;
-    cursor: pointer;
-  }
-
-  /* ── Empty state ── */
-  .erc-empty {
-    text-align: center;
-    padding: 4rem 1rem;
-    display: none;
-  }
 </style>
 
-<!-- ── Hero ── -->
+<!-- ── Hero Section ── -->
 <section class="erc-hero">
-  <div class="container">
-    <div class="text-center">
-      <div class="erc-badge">
-        <i class="fa-solid fa-graduation-cap"></i>
-        Official Exam Resources
+  <div class="container text-center">
+    <span class="erc-badge">
+      <i class="fa-solid fa-graduation-cap"></i> Exam Resource Center
+    </span>
+    <h1 class="fw-bold mb-2" style="color: #0f172a; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em;">
+      Official Exam Study Resources
+    </h1>
+    <p class="text-muted mx-auto mb-3" style="max-width: 580px; font-size: 0.95rem;">
+      Previous year papers, official syllabi, exam notifications &amp; curated student notes.
+    </p>
+
+    <!-- Simple Search -->
+    <div style="max-width: 500px; margin: 0 auto;">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3.5 text-muted">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <input type="text" id="resSearchInput" class="form-control border-start-0 rounded-end-pill py-2 shadow-none"
+          placeholder="Search by exam name, paper or topic..." oninput="filterResources(this.value)">
       </div>
-      <h1 class="fw-bold mb-2" style="font-size:clamp(1.75rem,4vw,2.4rem);color:#0f172a;">
-        📚 Exam Resource Center
-      </h1>
-      <p class="text-muted mb-4" style="font-size:1rem;max-width:520px;margin:0 auto 1.5rem;">
-        Official PYQs, syllabi, notifications, answer keys &amp; more — across 13 major exams.
-        Every link goes directly to the official source.
-      </p>
-
-      <!-- Search with autocomplete -->
-      <div class="erc-search-wrapper">
-        <i class="fa-solid fa-magnifying-glass erc-search-icon"></i>
-        <input
-          type="text"
-          id="resourceSearch"
-          class="form-control"
-          placeholder="Search exam or resource type, e.g. GATE, UPSC, PYQ…"
-          autocomplete="off"
-          spellcheck="false"
-          aria-label="Search resources"
-          aria-autocomplete="list"
-          aria-controls="searchSuggestions"
-        >
-        <button id="clearSearch" aria-label="Clear search">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <!-- Suggestion dropdown -->
-        <div id="searchSuggestions" role="listbox" aria-label="Exam suggestions">
-          <div class="suggestion-header">Exams</div>
-          <!-- filled by JS -->
-        </div>
-      </div>
-
-      <!-- Quick exam chips -->
-      <div class="exam-chips-wrap" id="quickExamChips"></div>
     </div>
   </div>
 </section>
 
-<!-- ── Filter Bar ── -->
-<div class="erc-filter-bar">
-  <div class="container">
-    <div class="erc-filter-scroll" id="categoryFilters">
-      <!-- filled by JS -->
-    </div>
-  </div>
-</div>
-
-<!-- ── Main ── -->
-<main style="background:#f8fafc;min-height:60vh;padding:2rem 0;">
+<!-- ── Main Grid ── -->
+<main class="py-5" style="background: #f8fafc; min-height: 60vh;">
   <div class="container">
 
-    <div class="erc-sort-row">
-      <p class="mb-0 small text-muted" id="resultCount">Loading…</p>
-      <select id="sortSelect" aria-label="Sort resources">
-        <option value="alpha-asc">A → Z</option>
-        <option value="alpha-desc">Z → A</option>
-        <option value="date-desc">Latest Updated</option>
-        <option value="date-asc">Oldest First</option>
-      </select>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 pb-1">
+      <span class="small fw-bold text-muted" id="resCountLabel">
+        <%= (typeof resources !== 'undefined' && resources.length) ? `${resources.length} Resource Card${resources.length > 1 ? 's' : ''}` : '0 Resource Cards' %>
+      </span>
     </div>
 
-    <div class="erc-grid" id="resourceGrid"></div>
+    <!-- Cards Grid -->
+    <div class="row g-4" id="resCardsGrid">
+      <% if (typeof resources !== 'undefined' && resources.length) { %>
+        <% resources.forEach(function(r) { %>
+        <div class="col-md-6 col-lg-4 res-card-item"
+          data-text="<%= (r.title + ' ' + r.exam + ' ' + (r.category || '') + ' ' + (r.description || '')).toLowerCase() %>">
+          <div class="resource-card h-100">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+              <span class="cat-badge">📄 <%= r.category || 'PYQ' %></span>
+              <span class="exam-pill"><%= r.exam %></span>
+            </div>
 
-    <div class="erc-empty" id="emptyState">
-      <div style="font-size:3rem;opacity:.35;margin-bottom:1rem;">🎓</div>
-      <h5 class="fw-semibold text-dark mb-1">No resources found</h5>
-      <p class="text-muted small mb-3">Try a different search term or clear the filters.</p>
-      <button class="btn btn-outline-primary rounded-pill px-4" onclick="clearAllFilters()">
-        <i class="fa-solid fa-rotate-left me-2"></i>Clear All Filters
-      </button>
+            <h3 class="fw-bold fs-6 mb-1 text-dark" style="line-height: 1.35;">
+              <%= r.title %>
+            </h3>
+
+            <p class="text-muted small mb-2 flex-grow-1" style="font-size: 0.83rem; line-height: 1.55;">
+              <%= r.description || 'Official verified study resource for exam preparation.' %>
+            </p>
+
+            <div class="d-flex align-items-center gap-2 small text-muted mb-2" style="font-size: 11px;">
+              <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0.5">
+                <i class="fa-solid fa-circle-check me-1"></i>Official Link
+              </span>
+              <% if (r.latestYear) { %>
+                <span>&bull; <%= r.latestYear %></span>
+              <% } %>
+            </div>
+
+            <div class="d-flex gap-2 pt-2 border-top">
+              <a href="<%= r.officialUrl %>" target="_blank" rel="noopener noreferrer" class="btn-visit">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Resource
+              </a>
+              <button class="btn-copy" onclick="copyLink(this, '<%= r.officialUrl %>')" title="Copy link">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <!-- Clean Empty State (When no cards exist or no match) -->
+    <div id="resEmptyState" class="text-center py-5 <%= (typeof resources !== 'undefined' && resources.length) ? 'd-none' : '' %>">
+      <div style="font-size: 3rem; opacity: 0.4; margin-bottom: 1rem;">📚</div>
+      <h4 class="fw-bold text-dark mb-1">No Resource Cards Added Yet</h4>
+      <p class="text-muted small mb-0">Resource cards added by the admin will appear here.</p>
     </div>
 
   </div>
 </main>
 
-<!-- ── Trust bar ── -->
-<div style="background:#fff;border-top:1px solid #e0e7ff;padding:.75rem 0;font-size:.78rem;color:#94a3b8;text-align:center;">
-  <i class="fa-solid fa-shield-halved me-1 text-success"></i>
-  All links are official — no third-party mirrors. Resources are verified and updated regularly.
-  &nbsp;|&nbsp;
-  <a href="/resources" class="text-decoration-none text-primary fw-semibold">View All Resources</a>
-</div>
-
-<!-- ── Data + JS ── -->
 <script>
-  /* Injected server data */
-  const ALL_RESOURCES = <%- JSON.stringify(resources) %>;
+  function filterResources(q) {
+    const query = (q || '').trim().toLowerCase();
+    const items = document.querySelectorAll('.res-card-item');
+    let visibleCount = 0;
 
-  /* Category display config */
-  const CAT_CONFIG = {
-    PYQ:           { label:'Previous Year Papers', icon:'📄' },
-    SYLLABUS:      { label:'Syllabus',             icon:'📘' },
-    NOTIFICATION:  { label:'Notification',         icon:'📢' },
-    ANSWER_KEY:    { label:'Answer Key',           icon:'📝' },
-    EXAM_CALENDAR: { label:'Exam Calendar',        icon:'📅' },
-    CUTOFF:        { label:'Cut-offs',             icon:'📊' },
-    BROCHURE:      { label:'Brochure',             icon:'📋' },
-    ADMIT_CARD:    { label:'Admit Card',           icon:'🎫' },
-    RESULT:        { label:'Results',              icon:'📈' },
-  };
+    items.forEach(item => {
+      const text = item.getAttribute('data-text') || '';
+      const match = !query || text.includes(query);
+      item.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
 
-  /* Unique exam list */
-  const EXAM_MAP = {};
-  ALL_RESOURCES.forEach(r => {
-    if (!EXAM_MAP[r.examSlug]) EXAM_MAP[r.examSlug] = { name: r.exam, slug: r.examSlug, count: 0 };
-    EXAM_MAP[r.examSlug].count++;
-  });
-  const EXAMS = Object.values(EXAM_MAP);
-  const EXAM_NAMES = EXAMS.map(e => e.name);
-  const CAT_LIST  = [...new Set(ALL_RESOURCES.map(r => r.category))];
+    const countLabel = document.getElementById('resCountLabel');
+    if (countLabel) countLabel.textContent = `${visibleCount} Resource Card${visibleCount !== 1 ? 's' : ''}`;
 
-  /* ── State ── */
-  let state = { search:'', category:'ALL', exam:'ALL', sort:'alpha-asc' };
-
-  /* ── Helpers ── */
-  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const fmtDate = d => { try { return new Date(d).toLocaleDateString('en-IN',{month:'short',year:'numeric'}); } catch{return d;} };
-
-  /* ── Filter ── */
-  function getFiltered() {
-    const q = state.search.trim().toLowerCase();
-    return ALL_RESOURCES
-      .filter(r => {
-        if (r.active === false) return false;
-        if (state.category !== 'ALL' && r.category !== state.category) return false;
-        if (state.exam     !== 'ALL' && r.exam     !== state.exam)     return false;
-        if (q && !(r.title.toLowerCase().includes(q) || r.exam.toLowerCase().includes(q) ||
-                   r.description.toLowerCase().includes(q) || r.category.toLowerCase().includes(q))) return false;
-        return true;
-      })
-      .sort((a,b) => {
-        switch (state.sort) {
-          case 'alpha-asc':  return a.title.localeCompare(b.title);
-          case 'alpha-desc': return b.title.localeCompare(a.title);
-          case 'date-desc':  return (b.lastUpdated||'').localeCompare(a.lastUpdated||'');
-          case 'date-asc':   return (a.lastUpdated||'').localeCompare(b.lastUpdated||'');
-          default: return 0;
-        }
-      });
+    const empty = document.getElementById('resEmptyState');
+    if (empty) empty.style.display = visibleCount === 0 ? '' : 'none';
   }
 
-  /* ── Render grid ── */
-  function renderGrid() {
-    const list  = getFiltered();
-    const grid  = document.getElementById('resourceGrid');
-    const empty = document.getElementById('emptyState');
-    document.getElementById('resultCount').textContent =
-      `Showing ${list.length} resource${list.length!==1?'s':''}`;
-
-    if (!list.length) { grid.innerHTML=''; empty.style.display='block'; return; }
-    empty.style.display = 'none';
-
-    grid.innerHTML = list.map((r,i) => {
-      const cat   = CAT_CONFIG[r.category] || { label:r.category, icon:'📎' };
-      const delay = Math.min(i*0.03, 0.45);
-      return `
-        <div class="resource-card card-cat-${esc(r.category)}" style="animation-delay:${delay}s">
-          <div class="card-top">
-            <span class="cat-badge cat-${esc(r.category)}">${cat.icon} ${cat.label}</span>
-            <span class="exam-pill">${esc(r.exam)}</span>
-          </div>
-          <h2 class="card-title">${esc(r.title)}</h2>
-          <p class="card-desc">${esc(r.description)}</p>
-          <div class="card-meta">
-            <span class="official-badge">
-              <i class="fa-solid fa-circle-check" style="font-size:.6rem"></i> Official Source
-            </span>
-            ${r.lastUpdated ? `<span>Updated ${fmtDate(r.lastUpdated)}</span>` : ''}
-            ${r.latestYear  ? `<span>· ${r.latestYear}</span>` : ''}
-          </div>
-          <div class="card-actions">
-            <a href="${esc(r.officialUrl)}" target="_blank" rel="noopener noreferrer"
-               class="btn-visit" aria-label="Visit official website for ${esc(r.title)}">
-              🌐 Visit Official Website
-            </a>
-            <button class="btn-copy" onclick="copyLink(this,'${esc(r.officialUrl)}')"
-                    aria-label="Copy official link for ${esc(r.title)}" title="Copy link">
-              🔗 Copy Official Link
-            </button>
-          </div>
-          <a href="/resources/${esc(r.examSlug)}" class="text-decoration-none"
-             style="font-size:.72rem;color:#6366f1;font-weight:600;margin-top:-0.2rem;">
-            <i class="fa-solid fa-layer-group" style="font-size:.65rem"></i>
-            View all ${esc(r.exam)} resources →
-          </a>
-        </div>
-      `;
-    }).join('');
-  }
-
-  /* ── Build filter UI ── */
-  function buildFilters() {
-    /* Category pills */
-    document.getElementById('categoryFilters').innerHTML = `
-      <span class="filter-label">Category:</span>
-      <button class="filter-pill active" onclick="setCategory('ALL',this)">All</button>
-      ${CAT_LIST.map(c => {
-        const cfg = CAT_CONFIG[c]||{label:c,icon:''};
-        return `<button class="filter-pill" data-cat="${esc(c)}" onclick="setCategory('${esc(c)}',this)">
-          ${cfg.icon} ${cfg.label}</button>`;
-      }).join('')}
-    `;
-
-    /* Exam chips */
-    document.getElementById('quickExamChips').innerHTML = EXAMS.map(e =>
-      `<a href="/resources/${esc(e.slug)}" class="exam-chip" title="View all ${esc(e.name)} resources">
-         ${esc(e.name)}
-       </a>`
-    ).join('');
-  }
-
-  /* ── Search Suggestions (Change 6) ── */
-  const suggBox = document.getElementById('searchSuggestions');
-  let focusedIdx = -1;
-
-  function showSuggestions(q) {
-    if (!q || q.length < 1) { suggBox.style.display='none'; focusedIdx=-1; return; }
-    const lower = q.toLowerCase();
-    const matches = EXAMS.filter(e => e.name.toLowerCase().includes(lower));
-    if (!matches.length) { suggBox.style.display='none'; return; }
-
-    const items = matches.slice(0,6).map((e,i) => `
-      <div class="suggestion-item" role="option" data-exam="${esc(e.name)}" data-slug="${esc(e.slug)}"
-           tabindex="-1" onclick="applySuggestion('${esc(e.name)}')">
-        <i class="fa-solid fa-graduation-cap" style="color:#a5b4fc;font-size:.75rem"></i>
-        <span class="suggestion-exam">${esc(e.name)}</span>
-        <span class="suggestion-count">${e.count} resource${e.count!==1?'s':''}</span>
-        <span class="suggestion-arrow">→</span>
-      </div>
-    `).join('');
-
-    suggBox.innerHTML = `<div class="suggestion-header">Exams matching "${esc(q)}"</div>${items}`;
-    suggBox.style.display = 'block';
-    focusedIdx = -1;
-  }
-
-  function applySuggestion(examName) {
-    document.getElementById('resourceSearch').value = examName;
-    state.search = examName;
-    document.getElementById('clearSearch').style.display = 'block';
-    suggBox.style.display = 'none';
-    renderGrid();
-  }
-
-  function navigateSuggestions(dir) {
-    const items = suggBox.querySelectorAll('.suggestion-item');
-    if (!items.length) return;
-    items.forEach(i => i.classList.remove('focused'));
-    focusedIdx = (focusedIdx + dir + items.length) % items.length;
-    items[focusedIdx]?.classList.add('focused');
-  }
-
-  /* ── Set filters ── */
-  function setCategory(cat, btn) {
-    state.category = cat;
-    document.querySelectorAll('#categoryFilters .filter-pill').forEach(b => b.classList.remove('active'));
-    btn?.classList.add('active');
-    renderGrid();
-  }
-
-  function clearAllFilters() {
-    state = { search:'', category:'ALL', exam:'ALL', sort:state.sort };
-    document.getElementById('resourceSearch').value = '';
-    document.getElementById('clearSearch').style.display = 'none';
-    suggBox.style.display = 'none';
-    document.querySelectorAll('#categoryFilters .filter-pill').forEach(b => b.classList.remove('active'));
-    document.querySelector('#categoryFilters .filter-pill')?.classList.add('active');
-    renderGrid();
-  }
-
-  /* ── Copy link ── */
   function copyLink(btn, url) {
-    const reset = () => setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = '🔗 Copy Official Link';
-    }, 2000);
-
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
-        btn.classList.add('copied'); btn.innerHTML='✅ Link Copied!'; reset();
-      }).catch(() => fallbackCopy(btn, url, reset));
-    } else { fallbackCopy(btn, url, reset); }
-  }
-
-  function fallbackCopy(btn, url, reset) {
-    const ta = document.createElement('textarea');
-    ta.value = url; ta.style.cssText='position:fixed;opacity:0';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); } catch{}
-    document.body.removeChild(ta);
-    btn.classList.add('copied'); btn.innerHTML='✅ Link Copied!'; reset();
-  }
-
-  /* ── Event Listeners ── */
-  const searchInput = document.getElementById('resourceSearch');
-
-  searchInput.addEventListener('input', function() {
-    state.search = this.value;
-    document.getElementById('clearSearch').style.display = this.value ? 'block' : 'none';
-    showSuggestions(this.value.trim());
-    renderGrid();
-  });
-
-  searchInput.addEventListener('keydown', e => {
-    if (suggBox.style.display !== 'block') return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); navigateSuggestions(1); }
-    if (e.key === 'ArrowUp')   { e.preventDefault(); navigateSuggestions(-1); }
-    if (e.key === 'Enter') {
-      const f = suggBox.querySelector('.suggestion-item.focused');
-      if (f) { e.preventDefault(); applySuggestion(f.dataset.exam); }
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+        setTimeout(() => { btn.innerHTML = orig; }, 1500);
+      });
     }
-    if (e.key === 'Escape') { suggBox.style.display='none'; focusedIdx=-1; }
-  });
-
-  document.getElementById('clearSearch').addEventListener('click', function() {
-    searchInput.value=''; state.search='';
-    this.style.display='none'; suggBox.style.display='none';
-    renderGrid();
-  });
-
-  document.getElementById('sortSelect').addEventListener('change', function() {
-    state.sort = this.value; renderGrid();
-  });
-
-  /* Close suggestions on outside click */
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.erc-search-wrapper')) suggBox.style.display='none';
-  });
-
-  /* ── Init ── */
-  buildFilters();
-  renderGrid();
+  }
 </script>
 
 <%- include('partials/footer') %>

@@ -18,9 +18,12 @@
       }
     ],
     "anonymous": false,
-    "status": "Pending Review",
+    "status": "Verified",
     "supportCount": 0,
     "createdAt": "2026-08-03T13:12:00.491Z",
-    "updatedAt": "2026-08-03T13:12:00.491Z"
+    "updatedAt": "2026-08-27T00:25:44.297Z",
+    "verifiedBy": "MASTER-ADMIN",
+    "verifiedByName": "Master Admin",
+    "verifiedAt": "2026-08-27T00:25:44.244Z"
   }
 ]

@@ -52,9 +52,24 @@
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
     gtag('config', 'G-0HF04M8D2K');
   </script>
+  <!-- Live Study nav dot animation -->
+  <style>
+    @keyframes liveNavPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.35;
+        transform: scale(0.65);
+      }
+    }
+  </style>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -85,9 +100,6 @@
             <div class="offcanvas-body">
               <ul class="navbar-nav me-auto fw-semibold">
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/">Home</a>
-                </li>
-                <li class="nav-item">
                   <a class="nav-link" href="/#features-section">Features</a>
                 </li>
                 <li class="nav-item dropdown">
@@ -96,8 +108,11 @@
                     Store & Resources
                   </a>
                   <ul class="dropdown-menu mobile-dropdown border-0 shadow-sm">
-                    <li><a class="dropdown-item" href="/resources"><i class="fa-solid fa-graduation-cap me-2 opacity-75 text-primary"></i>Exam Resource Center</a></li>
-                    <li><a class="dropdown-item" href="/store"><i class="fa-solid fa-store me-2 opacity-75 text-primary"></i>Student Store</a></li>
+                    <li><a class="dropdown-item" href="/resources"><i
+                          class="fa-solid fa-graduation-cap me-2 opacity-75 text-primary"></i>Exam Resource Center</a>
+                    </li>
+                    <li><a class="dropdown-item" href="/store"><i
+                          class="fa-solid fa-store me-2 opacity-75 text-primary"></i>Student Store</a></li>
                   </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -106,9 +121,8 @@
                     Company
                   </a>
                   <ul class="dropdown-menu mobile-dropdown border-0 shadow-sm">
-                    <li><a class="dropdown-item" href="/about">About 2 AM Study</a></li>
-                    <li><a class="dropdown-item" href="/behind-2am-study">Behind 2 AM Study</a></li>
-                    <li><a class="dropdown-item" href="/faqs"><i class="fa-solid fa-circle-question me-2 opacity-75 text-primary"></i>FAQs (Q&amp;A)</a></li>
+                    <li><a class="dropdown-item" href="/about">About us</a></li>
+                    <li><a class="dropdown-item" href="/faqs">FAQs (Q&amp;A)</a></li>
                     <li><a class="dropdown-item" href="/contact">Contact Us</a></li>
                     <li><a class="dropdown-item" href="/privacy-policy">Privacy Policy</a></li>
                     <li><a class="dropdown-item" href="/terms">Terms & Conditions</a></li>
@@ -137,7 +151,6 @@
                       <h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3">Learning Tools</h6>
                     </li>
                     <li><a class="dropdown-item" href="/timer">Timer</a></li>
-                    <li><a class="dropdown-item" href="/resources">Exam Resource Center</a></li>
                     <li><a class="dropdown-item" href="/streak">Goals / Streak</a></li>
                     <li><a class="dropdown-item" href="/music">Music</a></li>
                     <li><a class="dropdown-item" href="/quotes">Quotes</a></li>
@@ -155,10 +168,14 @@
                     Student Safety
                   </a>
                   <ul class="dropdown-menu mobile-dropdown border-0 shadow-sm" style="min-width: 210px;">
-                    <li><a class="dropdown-item" href="/student-safety/report"><span class="me-2">🛡️</span>Report Fake Profile</a></li>
-                    <li><a class="dropdown-item" href="/student-safety/cases"><span class="me-2">📋</span>Active Cases</a></li>
-                    <li><a class="dropdown-item" href="/student-safety/my-reports"><span class="me-2">📄</span>My Reports</a></li>
-                    <li><a class="dropdown-item" href="/student-safety/how-it-works"><span class="me-2">ℹ️</span>How It Works</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/report"><span class="me-2">🛡️</span>Report Fake
+                        Profile</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/cases"><span class="me-2">📋</span>Active
+                        Cases</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/my-reports"><span class="me-2">📄</span>My
+                        Reports</a></li>
+                    <li><a class="dropdown-item" href="/student-safety/how-it-works"><span class="me-2">ℹ️</span>How It
+                        Works</a></li>
                   </ul>
                 </li>
               </ul>
@@ -169,8 +186,8 @@
                 <!-- Step 5: Notification Bell (only shown when logged in) -->
                 <a id="notifBellWrapper" href="/student-safety/notifications"
                   class="btn btn-light border position-relative d-flex align-items-center justify-content-center rounded-circle notif-bell-btn d-none"
-                  style="width: 42px; height: 42px; flex-shrink: 0;"
-                  data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Notifications">
+                  style="width: 42px; height: 42px; flex-shrink: 0;" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                  data-bs-title="Notifications">
                   <i class="fa-solid fa-bell text-dark fs-6"></i>
                   <span id="notifBellCount"
                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-bell-count d-none"
@@ -179,29 +196,47 @@
 
                 <!-- Guest Auth Buttons (Logged Out) -->
                 <div id="guestAuthButtons" class="d-flex align-items-center gap-2">
-                  <a href="/login" class="btn btn-outline-primary rounded-pill px-3.5 py-2 small fw-bold">Log In</a>
-                  <a href="/signup" class="btn btn-primary rounded-pill px-3.5 py-2 small fw-bold">Sign Up</a>
+                  <a href="/login" class="btn btn-outline-primary rounded-pill px-3.5 py-2 small fw-bold">Login</a>
+                  <a href="/signup" class="btn btn-primary rounded-pill px-3.5 py-2 small fw-bold">Join</a>
                 </div>
 
                 <!-- User Account Dropdown (Logged In) -->
                 <div class="dropdown d-none" id="userMenuDropdown">
-                  <button class="btn btn-outline-dark rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 12px;" id="headerUserAvatar">
+                  <button
+                    class="btn btn-outline-dark rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div
+                      class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                      style="width: 26px; height: 26px; font-size: 12px;" id="headerUserAvatar">
                       👤
                     </div>
                     <span id="headerUserName" class="small">My Account</span>
                   </button>
-                  <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-4" style="min-width: 220px;">
-                    <li><h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3 pt-2">👤 My Account</h6></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i class="fa-solid fa-gauge me-2 text-primary"></i>Dashboard</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/profile"><i class="fa-solid fa-user me-2 text-primary"></i>My Profile</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i class="fa-solid fa-file-lines me-2 text-primary"></i>My Reports</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/notifications"><i class="fa-solid fa-bell me-2 text-primary"></i>Notifications</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety"><i class="fa-solid fa-shield-halved me-2 text-primary"></i>Student Safety</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/store"><i class="fa-solid fa-bag-shopping me-2 text-primary"></i>My Orders</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/settings"><i class="fa-solid fa-gear me-2 text-primary"></i>Settings</a></li>
-                    <li><hr class="dropdown-divider my-2"></li>
-                    <li><button type="button" id="headerLogoutBtn" class="dropdown-item rounded-3 py-2 text-danger fw-semibold small"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button></li>
+                  <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2 rounded-4"
+                    style="min-width: 220px;">
+                    <li>
+                      <h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3 pt-2">👤 My Account</h6>
+                    </li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i
+                          class="fa-solid fa-gauge me-2 text-primary"></i>Dashboard</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/profile"><i
+                          class="fa-solid fa-user me-2 text-primary"></i>My Profile</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/my-reports"><i
+                          class="fa-solid fa-file-lines me-2 text-primary"></i>My Reports</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety/notifications"><i
+                          class="fa-solid fa-bell me-2 text-primary"></i>Notifications</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety"><i
+                          class="fa-solid fa-shield-halved me-2 text-primary"></i>Student Safety</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/store"><i
+                          class="fa-solid fa-bag-shopping me-2 text-primary"></i>My Orders</a></li>
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/settings"><i
+                          class="fa-solid fa-gear me-2 text-primary"></i>Settings</a></li>
+                    <li>
+                      <hr class="dropdown-divider my-2">
+                    </li>
+                    <li><button type="button" id="headerLogoutBtn"
+                        class="dropdown-item rounded-3 py-2 text-danger fw-semibold small"><i
+                          class="fa-solid fa-right-from-bracket me-2"></i>Logout</button></li>
                   </ul>
                 </div>
 
@@ -231,7 +266,7 @@
     try {
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
-    } catch(e) {}
+    } catch (e) { }
 
     document.addEventListener('DOMContentLoaded', function () {
       const offcanvasEl = document.getElementById('mobileMenuOffcanvas');
@@ -296,7 +331,7 @@
                     bellWrapper.classList.add('notif-bell-active');
                   }
                 })
-                .catch(() => {});
+                .catch(() => { });
             }
 
             // Sync to local storage

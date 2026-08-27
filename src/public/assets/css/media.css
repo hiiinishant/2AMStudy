@@ -1,43 +1,180 @@
-@media only screen and (min-width:200px) and (max-width:575px){
-    .btn-outer{
-        position: fixed;
-        bottom: 0px;
-        width: 100%;
-        background-color: white;
-        padding: 5px 0px;
-        left: 0px;
-        justify-content: center !important;
-    }
-    
-    .bannerContent h1{
-    font-size: 30px;
+/* =========================================================
+   2 AM Study — Global Responsive & Mobile Optimization Styles
+   ========================================================= */
+
+/* Prevent horizontal viewport overflow on all devices */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch friendly scrolling */
+.overflow-x-auto,
+.table-responsive,
+.filter-scroll,
+.exam-chips-wrap {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Base image & video responsiveness */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Large Screens */
+@media (min-width: 1400px) {
+  .container, .container-fluid, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+    max-width: 1170px;
+  }
+}
+
+/* Tablets and Below (max-width: 991px) */
+@media (max-width: 991px) {
+  .navbar-nav {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .mobile-action-buttons {
+    margin-top: 1.5rem;
+  }
+
+  .mobile-action-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Reduce hero section vertical padding */
+  .hero-section, .bannerSection {
+    padding: 2.5rem 0 !important;
+  }
+}
+
+/* Mobile Phones (max-width: 768px) */
+@media (max-width: 768px) {
+  h1, .h1 {
+    font-size: clamp(1.6rem, 5vw, 2.2rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  h2, .h2 {
+    font-size: clamp(1.35rem, 4.2vw, 1.8rem) !important;
+    line-height: 1.3 !important;
+  }
+
+  h3, .h3 {
+    font-size: clamp(1.15rem, 3.5vw, 1.4rem) !important;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  /* Full width cards on mobile */
+  .card, .pomo-glass-card, .admin-card {
+    border-radius: 1rem !important;
+  }
+
+  /* Two column grid to single column on mobile where needed */
+  .highlights-section .row {
+    row-gap: 1.5rem;
+  }
+
+  /* Modal responsiveness */
+  .modal-dialog {
+    margin: 0.75rem;
+  }
+}
+
+/* Small Mobile Phones (max-width: 575px) */
+@media only screen and (max-width: 575px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .btn-outer {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 8px 12px;
+    left: 0px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    justify-content: center !important;
+    z-index: 1040;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  
+  .bannerContent h1 {
+    font-size: 26px !important;
     font-weight: 700;
     text-align: center;
-    line-height: 30px;
-    }
-    .bannerContent br{
-        display: none;
-    }
-    .bannerContent p, .bannerContent u1 li{
-    font-size: 16px;
-    }
-    .bannerContentBtn {
-        flex-direction: column;
-    }
-     .bannerContentBtn button{
-        width: 100%;
-     }
-     .bannerForm{
-    padding: 20px;
-     }
-     .highlights-section h2 {
-    font-size: 26px;
-     }
+    line-height: 1.25 !important;
+  }
+  
+  .bannerContent br {
+    display: none;
+  }
+  
+  .bannerContent p, .bannerContent u1 li {
+    font-size: 15px !important;
+    text-align: center;
+  }
+  
+  .bannerContentBtn {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .bannerContentBtn button, .bannerContentBtn a {
+    width: 100% !important;
+  }
+  
+  .bannerForm {
+    padding: 18px !important;
+    margin-top: 1.5rem;
+  }
 
+  /* Compact Timer Ring on tiny screens */
+  .pomo-ring {
+    width: 230px !important;
+    height: 230px !important;
+  }
 
-}
-@media (min-width: 1400px) {
-    .container, .container-fluid, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
-        max-width: 1170ppx;
-    }
+  .pomo-ring-inner {
+    width: 195px !important;
+    height: 195px !important;
+  }
+
+  .pomo-time {
+    font-size: 3rem !important;
+  }
+
+  .pomo-segmented-ctrl {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Store mobile products grid */
+  .flipkart-product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Compact pills */
+  .preset-pill {
+    font-size: 0.72rem !important;
+    padding: 4px 10px !important;
+  }
 }

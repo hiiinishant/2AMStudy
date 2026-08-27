@@ -1,244 +1,278 @@
 <%- include('partials/header') %>
 
-  <!-- html2canvas for screenshot feature -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  .streak-page-wrapper {
+    background: #f8fafc;
+    min-height: 85vh;
+    padding: 2.5rem 0 4rem;
+  }
 
-  <section id="streak-page" class="container-fluid py-5 bg-light streak-page">
-    <div class="container">
-      <div class="bg-white shadow-lg rounded p-4" id="capture-area">
+  .leaderboard-hero {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.5rem;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
 
-        <div class="row align-items-center mb-4">
-          <div class="col-md-7">
-            <h1 class="display-6 fw-bold">Student Leaderboard & Daily Study Streak Tracker</h1>
-            <p class="lead text-muted">Build consistency, track your study hours, and stay motivated every day.</p>
+  .leaderboard-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5, #f59e0b, #dc2626);
+  }
+
+  .leaderboard-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.5rem;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+  }
+
+  .rank-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+  }
+
+  .rank-row:hover {
+    background: #fafcff;
+  }
+
+  .rank-row.rank-1 {
+    background: linear-gradient(90deg, rgba(254, 243, 199, 0.45) 0%, rgba(255, 255, 255, 0.9) 100%);
+    border-left: 4px solid #f59e0b;
+  }
+
+  .rank-row.rank-user {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.08) 0%, rgba(255, 255, 255, 0.9) 100%);
+    border-left: 4px solid #4f46e5;
+  }
+
+  .rank-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .rank-1 .rank-badge {
+    background: #f59e0b;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  }
+
+  .rank-2 .rank-badge {
+    background: #94a3b8;
+    color: #ffffff;
+  }
+
+  .rank-3 .rank-badge {
+    background: #d97706;
+    color: #ffffff;
+  }
+
+  .rank-badge-default {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .time-pill {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .streak-pill {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+</style>
+
+<main class="streak-page-wrapper">
+  <div class="container" style="max-width: 860px;">
+
+    <!-- ── Header Section ── -->
+    <div class="leaderboard-hero text-center text-md-start">
+      <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+        <div>
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2 border"
+            style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25) !important;">
+            <i class="fa-solid fa-trophy text-warning"></i>
+            <span class="small fw-bold" style="color: #b45309;">Top Performers</span>
           </div>
-          <div class="col-md-5 text-md-end text-start mt-3 mt-md-0 d-flex gap-2 justify-content-md-end flex-wrap">
-            <span class="badge bg-warning text-dark py-2 px-3 fs-6 d-flex align-items-center"><i
-                class="fa-solid fa-fire me-2"></i> Focus</span>
-            <!-- Shareable Actions -->
-            <button class="btn btn-sm btn-outline-success border-2 fw-bold no-print d-flex align-items-center"
-              onclick="shareWhatsApp()"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</button>
-            <button class="btn btn-sm btn-primary premium-btn-primary fw-bold no-print d-flex align-items-center"
-              onclick="takeScreenshot()"><i class="fa-solid fa-camera me-1"></i> Screenshot</button>
-          </div>
+          <h1 class="fw-bold mb-1" style="color: #0f172a; font-size: clamp(1.6rem, 3.5vw, 2.1rem); letter-spacing: -0.02em;">
+            Leaderboard
+          </h1>
+          <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Live ranking with your current progress.
+          </p>
         </div>
-
-        <div class="row gx-4 gy-4">
-          <div class="col-lg-6">
-            <div class="stats-card border border-warning border-opacity-25 bg-light p-4 mb-4 rounded-4 shadow-sm">
-              <div class="d-flex align-items-center justify-content-between mb-3 gap-3 flex-wrap">
-                <div>
-                  <div class="text-uppercase text-muted small mb-2 fw-bold">Current streak</div>
-                  <div class="display-4 text-warning fw-bold" id="streak-count" style="line-height: 1;">0</div>
-                  <div class="streak-subtitle text-muted fw-semibold">day streak</div>
-                </div>
-                <div id="streak-level" class="badge bg-info text-dark p-2 fs-6">New Challenger</div>
-              </div>
-              <div id="streak-message" class="fs-6 text-secondary mb-4">Your streak starts today!</div>
-
-              <div class="bg-white border p-3 rounded-3 mb-4 shadow-sm">
-                <div class="d-flex align-items-center justify-content-between">
-                  <div>
-                    <div class="small text-uppercase text-muted fw-bold">Daily Goal</div>
-                    <div class="fw-semibold"><span id="goal-target-display">3 hrs</span> | Completed: <span
-                        id="goal-completed">0.0 hrs</span></div>
-                  </div>
-                  <div class="d-flex flex-column gap-2">
-                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-bullseye"></i> Goal</span>
-                    <button onclick="setDailyGoal()"
-                      class="btn btn-sm btn-link text-decoration-none p-0 text-warning fw-bold no-print"
-                      style="font-size: 0.75rem;">Change Goal</button>
-                  </div>
-                </div>
-                <div class="progress mt-3 goal-progress-bar" style="height: 10px;">
-                  <div id="goal-progress-fill"
-                    class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar"
-                    style="width: 0%;"></div>
-                </div>
-              </div>
-
-              <div class="d-flex flex-wrap gap-2 no-print">
-                <button id="streak-activity-button" class="btn btn-outline-warning fw-bold border-2">Record
-                  Activity</button>
-                <button id="log-minutes-btn" class="btn btn-warning fw-bold">Log Study Minutes</button>
-              </div>
-            </div>
-
-            <div class="stats-card p-4 bg-white border rounded-4 shadow-sm">
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <h5 class="mb-0 fw-bold">Study Time</h5>
-                <span class="text-muted small">Today + Week</span>
-              </div>
-              <div class="d-flex justify-content-between mb-2">
-                <div>
-                  <span class="d-block text-muted small fw-bold">Today</span>
-                  <h4 class="text-primary fw-bold mb-0" id="today-study-time">0 min</h4>
-                </div>
-                <div class="text-end">
-                  <span class="d-block text-muted small fw-bold">Weekly</span>
-                  <h4 class="text-success fw-bold mb-0" id="weekly-study-time">0 min</h4>
-                </div>
-              </div>
-              <div class="progress mt-3 weekly-progress-bar" style="height: 8px;">
-                <div id="weekly-progress-fill" class="progress-bar bg-success" role="progressbar" style="width: 0%;">
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="col-lg-6">
-            <div class="leaderboard-card p-4 mb-4 border rounded-4 shadow-sm bg-white">
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <div>
-                  <h5 class="mb-0 fw-bold">Leaderboard</h5>
-                  <p class="text-muted small mb-0">Live ranking with your current progress.</p>
-                </div>
-                <span class="badge bg-warning text-dark"><i class="fa-solid fa-trophy"></i> Top</span>
-              </div>
-              <ul id="leaderboard-list" class="list-group list-group-flush mb-4">
-                <!-- Injected via original logic if it exists, otherwise static mock -->
-                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <span><span class="badge bg-light text-dark me-2">1</span> StudyMaster99</span>
-                  <span class="badge bg-warning text-dark rounded-pill">12 days</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <span><span class="badge bg-light text-dark me-2">2</span> FocusKing</span>
-                  <span class="badge bg-warning text-dark rounded-pill">9 days</span>
-                </li>
-              </ul>
-
-              <div class="p-3 rounded-4 bg-warning bg-opacity-10 border border-warning border-opacity-50">
-                <div class="fw-bold mb-2 text-dark"><i class="fa-solid fa-user me-2"></i> Your Current Rank</div>
-                <div class="row g-2 text-center text-muted mt-2">
-                  <div class="col-4 border-end">
-                    <small class="d-block fw-bold">Rank</small>
-                    <strong id="leader-rank" class="fs-5 text-dark">#1</strong>
-                  </div>
-                  <div class="col-4 border-end">
-                    <small class="d-block fw-bold">Streak</small>
-                    <strong id="leader-streak" class="fs-5 text-dark">0</strong>
-                  </div>
-                  <div class="col-4">
-                    <small class="d-block fw-bold">Today</small>
-                    <strong id="leader-today-minutes" class="fs-5 text-dark">0m</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 text-primary text-center">
-              <h5 class="fw-bold mb-3"><i class="fa-solid fa-quote-left me-2 opacity-50"></i> Motivation</h5>
-              <p id="motivation-text" class="fw-semibold fst-italic">Every day is a new chance to grow.</p>
-
-              <div class="bg-white p-3 rounded-3 mt-4 text-start shadow-sm border">
-                <strong class="text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i> Don’t break your
-                  streak!</strong>
-                <p id="streak-warning" class="mb-0 text-muted small mt-1">Come back today to maintain your progress.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="mt-4 text-center">
-        <button class="btn btn-outline-secondary rounded-pill px-4" onclick="shareNative()"><i
-            class="fa-solid fa-share-nodes me-2"></i> Share My Streak using System</button>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Screenshot Modal -->
-  <div class="modal fade" id="screenshotModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title fw-bold">Your Streak Result!</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body text-center bg-light">
-          <p class="text-muted small mb-3">Long press or right click to save the image, or use the download button
-            below.</p>
-          <img id="screenshotImage" src="" class="img-fluid rounded-4 shadow-sm border border-secondary"
-            style="max-height: 500px; object-fit: contain;">
-        </div>
-        <div class="modal-footer border-0">
-          <a id="downloadScreenshotBtn" href="#" download="my_2am_streak.png"
-            class="btn btn-primary premium-btn-primary w-100 fw-bold"><i class="fa-solid fa-download me-2"></i> Download
-            Image</a>
+        <div class="text-end">
+          <a href="/timer" class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-stopwatch"></i> Start Study Timer
+          </a>
         </div>
       </div>
     </div>
+
+    <!-- ── Main Leaderboard List ── -->
+    <div class="leaderboard-card mb-4">
+      <div class="p-3.5 px-4 bg-light border-bottom d-flex align-items-center justify-content-between">
+        <span class="small fw-bold text-uppercase text-muted" style="letter-spacing: 0.05em;">Student Rank</span>
+        <span class="small fw-bold text-uppercase text-muted" style="letter-spacing: 0.05em;">Study Time &amp; Streak</span>
+      </div>
+
+      <div id="leaderboardRows">
+        <!-- Rendered by JS based on study hours & live user stats -->
+      </div>
+    </div>
+
   </div>
+</main>
 
-  <style>
-    /* Utilities for exporting */
-    @media print {
-      .no-print {
-        display: none !important;
-      }
+<script>
+  (function () {
+    // 1. Get user focus study time from Pomodoro Timer (stored in localStorage as seconds or minutes)
+    let totalStudySec = parseInt(localStorage.getItem('PomTotalStudy') || '0', 10);
+    let totalMinutes = Math.floor(totalStudySec / 60);
+
+    // Fallback: check other streak / session keys
+    if (totalMinutes === 0) {
+      const savedMins = parseInt(localStorage.getItem('todayStudyMinutes') || '0', 10);
+      if (savedMins > 0) totalMinutes = savedMins;
     }
 
-    [data-html2canvas-ignore="true"] {
-      display: none !important;
-    }
-  </style>
-
-  <script>
-    function takeScreenshot() {
-      // Hide buttons temporarily via data attribute mapping inside html2canvas
-      const element = document.getElementById('capture-area');
-
-      // Add ignore tags to buttons dynamically so they don't show up in the image
-      const hideElements = element.querySelectorAll('.no-print');
-      hideElements.forEach(el => el.setAttribute('data-html2canvas-ignore', 'true'));
-
-      html2canvas(element, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false
-      }).then(canvas => {
-        // Remove ignore tags
-        hideElements.forEach(el => el.removeAttribute('data-html2canvas-ignore'));
-
-        const imgData = canvas.toDataURL('image/png');
-        document.getElementById('screenshotImage').src = imgData;
-        document.getElementById('downloadScreenshotBtn').href = imgData;
-
-        const modal = new bootstrap.Modal(document.getElementById('screenshotModal'));
-        modal.show();
-      }).catch(err => {
-        console.error("Screenshot failed:", err);
-        alert("Failed to capture screenshot. Make sure you are using a modern browser.");
-      });
+    // Determine Streak Days (at least 1 day if studied today)
+    let streakDays = parseInt(localStorage.getItem('userStudyStreak') || '0', 10);
+    if (totalMinutes > 0 && streakDays === 0) {
+      streakDays = 1;
+      localStorage.setItem('userStudyStreak', '1');
     }
 
-    function shareWhatsApp() {
-      const streak = document.getElementById('streak-count').textContent || "0";
-      const text = `🔥 I just hit a ${streak} day study streak on 2AM Study Tool! Join me and track your focus. https://2amstudy.online`;
-      const url = `whatsapp://send?text=${encodeURIComponent(text)}`;
-      window.location.href = url;
-    }
-
-    function shareNative() {
-      const streak = document.getElementById('streak-count').textContent || "0";
-      const title = '2AM Study Streak';
-      const text = `🔥 I just hit a ${streak} day study streak on 2AM Study Tool!`;
-      const url = window.location.origin;
-
-      if (navigator.share) {
-        navigator.share({
-          title: title,
-          text: text,
-          url: url
-        }).catch(err => console.log('Sharing rejected', err));
+    // Helper to format minutes into clean human-readable study time
+    function formatStudyTime(mins) {
+      if (!mins || mins <= 0) return '0 min';
+      const hrs = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      if (hrs > 0 && remMins > 0) {
+        return `${hrs} hr ${remMins} min`;
+      } else if (hrs > 0) {
+        return `${hrs} ${hrs === 1 ? 'hour' : 'hours'}`;
       } else {
-        alert("Native sharing is not supported on this browser. Try the WhatsApp button or take a screenshot!");
+        return `${remMins} min`;
       }
     }
-  </script>
 
-  <%- include('partials/footer') %>
+    // 2. Base Leaderboard List (Top Students ranked by study time)
+    const leaderboardData = [
+      { name: 'Priya', minutes: 390, streak: 14, isTop: true, avatar: '👩‍🎓' },
+      { name: 'Rahul Sharma', minutes: 310, streak: 9, isTop: false, avatar: '👨‍🎓' },
+      { name: 'Aarav Patel', minutes: 240, streak: 7, isTop: false, avatar: '⚡' },
+      { name: 'Sneha Verma', minutes: 180, streak: 5, isTop: false, avatar: '📚' },
+      { name: 'Kavya Nair', minutes: 120, streak: 3, isTop: false, avatar: '🎯' },
+    ];
+
+    // Add current user to leaderboard list
+    const userEntry = {
+      name: 'You (Your Progress)',
+      minutes: totalMinutes,
+      streak: streakDays,
+      isUser: true,
+      avatar: '🌟'
+    };
+
+    leaderboardData.push(userEntry);
+
+    // Sort descending by study minutes
+    leaderboardData.sort((a, b) => b.minutes - a.minutes);
+
+    // 3. Render Leaderboard Rows
+    const container = document.getElementById('leaderboardRows');
+    let userRank = 1;
+
+    let html = '';
+    leaderboardData.forEach((item, index) => {
+      const rank = index + 1;
+      if (item.isUser) userRank = rank;
+
+      let rowClass = 'rank-row';
+      let badgeClass = 'rank-badge-default';
+
+      if (rank === 1) {
+        rowClass += ' rank-1';
+        badgeClass = '';
+      } else if (rank === 2) {
+        rowClass += ' rank-2';
+        badgeClass = '';
+      } else if (rank === 3) {
+        rowClass += ' rank-3';
+        badgeClass = '';
+      }
+
+      if (item.isUser) {
+        rowClass += ' rank-user';
+      }
+
+      html += `
+        <div class="${rowClass}">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rank-badge ${badgeClass}">
+              ${rank === 1 ? '<i class="fa-solid fa-crown"></i>' : '#' + rank}
+            </div>
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span>${item.avatar} ${item.name}</span>
+                ${item.isUser ? '<span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 10px;">YOU</span>' : ''}
+                ${rank === 1 ? '<span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size: 10px;">Top #1</span>' : ''}
+              </div>
+              <div class="small text-muted">${item.streak} days consistency</div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+            <span class="time-pill">
+              <i class="fa-regular fa-clock text-primary"></i> ${formatStudyTime(item.minutes)}
+            </span>
+            <span class="streak-pill">
+              🔥 ${item.streak} ${item.streak === 1 ? 'day' : 'days'}
+            </span>
+          </div>
+        </div>
+      `;
+    });
+
+    if (container) container.innerHTML = html;
+  })();
+</script>
+
+<%- include('partials/footer') %>

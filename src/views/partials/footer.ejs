@@ -315,54 +315,195 @@
     }
   }
 
-  /* ── Enhanced Mobile-Optimized Footer (Hiii Nishant Style) ── */
+  /* ── Ultra-Premium Modern Site Footer ── */
   .site-footer {
-    background: linear-gradient(180deg, #090d16 0%, #020617 100%);
+    background: radial-gradient(circle at 50% 0%, #0d1527 0%, #030712 100%);
     color: #94a3b8;
     margin-top: auto;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
     overflow: hidden;
-    padding-top: 48px;
-    padding-bottom: 24px;
+    padding-top: 56px;
+    padding-bottom: 0;
   }
 
+  /* Glowing Top Multi-Color Gradient Line */
   .site-footer::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #2874f0, #8b5cf6, transparent);
+    height: 3px;
+    background: linear-gradient(90deg, #38bdf8 0%, #6366f1 35%, #a855f7 70%, #ec4899 100%);
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+  }
+
+  /* Ambient Glow Blobs */
+  .footer-ambient-glow-1 {
+    position: absolute;
+    top: -80px;
+    left: 10%;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .footer-ambient-glow-2 {
+    position: absolute;
+    bottom: 20px;
+    right: 5%;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Quick Access Pills Rail */
+  .footer-quick-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .footer-pill {
+    padding: 8px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .footer-pill:hover {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
   }
 
   .footer-brand-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
+  .footer-brand-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .footer-brand-logo-img {
+    height: 48px;
+    width: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .footer-brand-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-brand-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    text-transform: uppercase;
+  }
+
+  .footer-brand-desc {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 360px;
+    margin: 0;
+  }
+
+  /* Live Student Pulse Indicator */
+  .footer-live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    width: fit-content;
+  }
+
+  .footer-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: livePulse 2s infinite;
+  }
+
+  @keyframes livePulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 0.6;
+    }
+  }
+
+  /* Column Titles */
   .footer-title {
     color: #f8fafc;
-    font-weight: 800;
-    font-size: 1.05rem;
-    letter-spacing: -0.2px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    letter-spacing: 0.3px;
     margin-bottom: 1.25rem;
     position: relative;
-    padding-bottom: 0.5rem;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
   }
 
-  .footer-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 28px;
-    height: 3px;
-    background: #2874f0;
-    border-radius: 2px;
+  .footer-title-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6366f1;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
   }
 
   .footer-links-list {
@@ -377,82 +518,90 @@
   .footer-link-item a {
     color: #94a3b8;
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
-    transition: all 0.2s ease;
+    padding: 3px 0;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .footer-link-item a:hover {
-    color: #60a5fa;
-    transform: translateX(4px);
+    color: #ffffff;
+    transform: translateX(5px);
   }
 
   .footer-link-item i {
-    font-size: 0.75rem;
-    color: #3b82f6;
-    opacity: 0.8;
+    font-size: 0.72rem;
+    color: #6366f1;
+    opacity: 0.7;
+    transition: all 0.2s ease;
   }
 
-  /* Quick Access Pills (Mobile First) */
-  .footer-quick-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 24px;
+  .footer-link-item a:hover i {
+    color: #38bdf8;
+    opacity: 1;
+    transform: translateX(2px);
   }
 
-  .footer-pill {
-    padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 100px;
-    color: #cbd5e1;
-    font-size: 12px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-  }
-
-  .footer-pill:hover {
-    background: rgba(40, 116, 240, 0.2);
-    border-color: #2874f0;
-    color: #fff;
-    transform: translateY(-2px);
-  }
-
+  /* Social Icons */
   .social-icons {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 14px;
+    margin-top: 4px;
   }
 
   .social-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
     text-decoration: none;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    font-size: 1.05rem;
   }
 
   .social-btn:hover {
-    background: #2874f0;
-    border-color: #2874f0;
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
     color: #fff;
     transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  }
+
+  .social-btn.social-yt:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+  }
+
+  .social-btn.social-wa:hover {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+  }
+
+  .social-btn.social-pin:hover {
+    background: rgba(244, 63, 94, 0.2);
+    border-color: #f43f5e;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
+  }
+
+  .social-btn.social-ig:hover {
+    background: linear-gradient(135deg, rgba(225, 48, 108, 0.25), rgba(131, 58, 180, 0.25));
+    border-color: #e1306c;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(225, 48, 108, 0.35);
   }
 
   .whatsapp-badge-btn {
@@ -460,30 +609,125 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff;
-    padding: 12px 20px;
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    color: #ffffff !important;
+    padding: 12px 22px;
     border-radius: 12px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 0.92rem;
     text-decoration: none;
-    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
-    transition: all 0.2s ease;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     width: 100%;
-    max-width: 260px;
+    max-width: 280px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .whatsapp-badge-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.4);
-    color: #fff;
+    box-shadow: 0 12px 30px rgba(34, 197, 94, 0.45);
+    color: #ffffff !important;
   }
 
+  /* Support Card */
+  .footer-support-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 24px 20px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+  }
+
+  .footer-support-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #6366f1, #38bdf8, transparent);
+  }
+
+  .footer-support-title {
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .footer-support-desc {
+    font-size: 0.86rem;
+    color: #94a3b8;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+
+  .footer-gmail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(234, 67, 53, 0.15), rgba(99, 102, 241, 0.18));
+    border: 1px solid rgba(234, 67, 53, 0.4);
+    color: #ffffff !important;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(234, 67, 53, 0.15);
+    white-space: nowrap;
+    letter-spacing: 0.1px;
+  }
+
+  .footer-gmail-btn:hover {
+    background: linear-gradient(135deg, rgba(234, 67, 53, 0.28), rgba(99, 102, 241, 0.32));
+    border-color: #ea4335;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(234, 67, 53, 0.3);
+  }
+
+  .footer-faq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #cbd5e1 !important;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .footer-faq-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    transform: translateY(-1px);
+  }
+
+  /* Bottom Bar */
   .footer-bottom {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 20px 0;
-    margin-top: 36px;
+    padding: 22px 0;
+    margin-top: 48px;
   }
 
   .footer-legal-links {
@@ -496,33 +740,38 @@
 
   .footer-legal-links a {
     color: #64748b;
-    font-size: 13px;
+    font-size: 0.84rem;
     font-weight: 500;
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .footer-legal-links a:hover {
-    color: #93c5fd;
+    color: #a5b4fc;
   }
 
-  /* Phone and Mobile Specific Optimizations (< 768px) */
+  /* Responsive Rules */
   @media (max-width: 767.98px) {
     .site-footer {
-      padding-top: 36px;
-      padding-bottom: 90px; /* buffer for floating mobile cart */
-      text-align: left;
+      padding-top: 40px;
+      padding-bottom: 90px;
+    }
+
+    .footer-quick-pills {
+      justify-content: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
     }
 
     .footer-brand-section {
       text-align: center;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    .footer-brand-section p {
+    .footer-brand-desc {
       text-align: center;
-      margin: 0 auto 12px;
+      margin: 0 auto;
     }
 
     .social-icons {
@@ -534,32 +783,25 @@
     }
 
     .footer-title {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .footer-links-list {
-      gap: 8px;
+      font-size: 0.92rem;
+      margin-bottom: 0.85rem;
     }
 
     .footer-link-item a {
-      font-size: 0.88rem;
-      padding: 6px 0; /* tap target friendly */
-    }
-
-    .footer-quick-pills {
-      justify-content: center;
+      font-size: 0.86rem;
+      padding: 5px 0;
     }
 
     .footer-legal-links {
       justify-content: center;
-      margin-top: 12px;
+      margin-top: 10px;
       gap: 12px;
     }
 
     .footer-bottom {
-      text-align: center;
-      padding: 16px 0;
+      text-align: left;
+      padding: 18px 0;
+      margin-top: 32px;
     }
   }
 
@@ -587,79 +829,94 @@
 </div>
 
 <footer class="site-footer">
-  <div class="container">
-    
-    <!-- Mobile Quick Touch Shortcuts (Hiii Nishant Style) -->
-    <div class="footer-quick-pills">
-      <a href="/timer" class="footer-pill"><i class="fa-solid fa-clock text-primary"></i> Focus Timer</a>
-      <a href="/store" class="footer-pill"><i class="fa-solid fa-store text-warning"></i> Store</a>
-      <a href="/blog" class="footer-pill"><i class="fa-solid fa-pen-nib text-info"></i> Blog</a>
-      <a href="/faqs" class="footer-pill"><i class="fa-solid fa-circle-question text-success"></i> FAQs (Q&amp;A)</a>
-      <a href="/resources" class="footer-pill"><i class="fa-solid fa-book text-danger"></i> Notes Hub</a>
-      <a href="/behind-2am-study" class="footer-pill"><i class="fa-solid fa-heart text-danger"></i> Our Story</a>
-    </div>
-
-    <div class="row g-4">
-      <!-- Brand & Community Column -->
+  <div class="footer-ambient-glow-1"></div>
+  <div class="footer-ambient-glow-2"></div>
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row g-4 justify-content-between">
+      <!-- Brand & Community Superhub Column -->
       <div class="col-lg-4 col-md-12">
         <div class="footer-brand-section">
-          <img src="/assets/images/logo.jpg" alt="2AM Study Logo"
-            style="height: 52px; border-radius: 12px; filter: drop-shadow(0 0 10px rgba(40, 116, 240, 0.2));">
-          <div style="font-size: 1.15rem; font-weight: 800; color: #fff;">2AM Study Hub</div>
-          <p class="small text-muted" style="max-width: 340px; margin-bottom: 8px;">
-            From classrooms to life goals — empowering students with smart focus techniques, study essentials, and an inclusive community.
+          <a href="/" class="footer-brand-logo-wrap">
+            <img src="/assets/images/logo.jpg" alt="2AM Study Logo" class="footer-brand-logo-img">
+            <div>
+              <div class="footer-brand-name">
+                2AM Study
+              </div>
+              <div style="font-size: 0.85rem; font-weight: 600; color: #cbd5e1; letter-spacing: 0.3px;">Student Productivity Ecosystem</div>
+            </div>
+          </a>
+
+          <p class="footer-brand-desc">
+            From late-night study sessions to academic excellence — empowering students with smart focus tools, study gear, and an inclusive community.
           </p>
 
-          <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="whatsapp-badge-btn">
+          <div class="footer-live-badge">
+            <span class="footer-live-dot"></span>
+            <span>10,000+ Students Studying Active</span>
+          </div>
+
+          <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" rel="noopener noreferrer" class="whatsapp-badge-btn">
             <i class="fa-brands fa-whatsapp fa-lg"></i>
-            <span>Join Student Community</span>
+            <span>Join Student WhatsApp</span>
           </a>
 
           <div class="social-icons">
-            <a href="https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL" target="_blank" class="social-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
-            <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" class="social-btn" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
-            <a href="http://pinterest.com/2amstudy" target="_blank" class="social-btn" title="Pinterest"><i class="fa-brands fa-pinterest"></i></a>
-            <a href="https://hiiinishant.com" target="_blank" class="social-btn" title="Nishant"><i class="fa-solid fa-user-astronaut"></i></a>
+            <a href="https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL" target="_blank" rel="noopener noreferrer" class="social-btn social-yt" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://chat.whatsapp.com/Fq87TyqNwL4GAmxRsKUkid?mode=gi_t" target="_blank" rel="noopener noreferrer" class="social-btn social-wa" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="http://pinterest.com/2amstudy" target="_blank" rel="noopener noreferrer" class="social-btn social-pin" title="Pinterest"><i class="fa-brands fa-pinterest"></i></a>
+            <a href="https://www.instagram.com/2amstudyofficial/" target="_blank" rel="noopener noreferrer" class="social-btn social-ig" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
           </div>
         </div>
       </div>
 
-      <!-- Quick 2-Column Mobile Links (Navigation & Tools) -->
+      <!-- Quick Links / Company -->
       <div class="col-6 col-lg-2 col-md-3">
-        <h5 class="footer-title">Company</h5>
+        <h5 class="footer-title">
+          <span class="footer-title-dot"></span> Company
+        </h5>
         <ul class="footer-links-list">
           <li class="footer-link-item"><a href="/"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
           <li class="footer-link-item"><a href="/about"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
-          <li class="footer-link-item"><a href="/behind-2am-study"><i class="fa-solid fa-chevron-right"></i> Behind 2 AM</a></li>
-          <li class="footer-link-item"><a href="/blog"><i class="fa-solid fa-chevron-right"></i> Blog Posts</a></li>
+          <li class="footer-link-item"><a href="/store"><i class="fa-solid fa-chevron-right"></i> Student Store</a></li>
+          <li class="footer-link-item"><a href="/blog"><i class="fa-solid fa-chevron-right"></i> Study Blog</a></li>
           <li class="footer-link-item"><a href="/faqs"><i class="fa-solid fa-chevron-right"></i> FAQs (Q&amp;A)</a></li>
           <li class="footer-link-item"><a href="/contact"><i class="fa-solid fa-chevron-right"></i> Contact Us</a></li>
+          <li class="footer-link-item"><a href="/admin" style="opacity: 0.45; font-size: 0.78rem;"><i class="fa-solid fa-lock"></i> Admin</a></li>
         </ul>
       </div>
 
       <!-- Study Tools Column -->
-      <div class="col-6 col-lg-3 col-md-4">
-        <h5 class="footer-title">Study Tools</h5>
+      <div class="col-6 col-lg-2 col-md-3">
+        <h5 class="footer-title">
+          <span class="footer-title-dot"></span> Study Tools
+        </h5>
         <ul class="footer-links-list">
           <li class="footer-link-item"><a href="/timer"><i class="fa-solid fa-clock"></i> Focus Timer</a></li>
-          <li class="footer-link-item"><a href="/store"><i class="fa-solid fa-store"></i> Student Store</a></li>
           <li class="footer-link-item"><a href="/resources"><i class="fa-solid fa-book-open"></i> Exam Resources</a></li>
           <li class="footer-link-item"><a href="/tasks"><i class="fa-solid fa-calendar-check"></i> Study Planner</a></li>
-          <li class="footer-link-item"><a href="/student-safety"><i class="fa-solid fa-shield-halved"></i> Safety Hub</a></li>
           <li class="footer-link-item"><a href="/music"><i class="fa-solid fa-headphones"></i> LoFi Beats</a></li>
+          <li class="footer-link-item"><a href="/student-safety"><i class="fa-solid fa-shield-halved"></i> Safety Hub</a></li>
+          <li class="footer-link-item"><a href="/utilities/cgpa-calculator"><i class="fa-solid fa-calculator"></i> CGPA Calc</a></li>
         </ul>
       </div>
 
-      <!-- Help & Support Column -->
-      <div class="col-12 col-lg-3 col-md-5">
-        <h5 class="footer-title">Student Support</h5>
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 16px;">
-          <div style="color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 6px;">Have Doubts or Feedback?</div>
-          <p class="small text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
-            Our team and AI assistant are available 24/7 to solve study challenges.
+      <!-- Student Support Column -->
+      <div class="col-12 col-lg-4 col-md-6">
+        <h5 class="footer-title">
+          <span class="footer-title-dot"></span> Support &amp; Help
+        </h5>
+        <div class="footer-support-card">
+          <div class="footer-support-title">
+            <i class="fa-solid fa-headset text-warning"></i> 24/7 Academic Support
+          </div>
+          <p class="footer-support-desc">
+            Got study roadblocks or order questions? Our student support desk is ready to help you anytime.
           </p>
-          <a href="mailto:support@2amstudy.online" class="d-inline-flex align-items-center gap-2 text-primary text-decoration-none fw-semibold small">
-            <i class="fa-solid fa-envelope"></i> support@2amstudy.online
+          <a href="mailto:2amstudyofficial@gmail.com" class="footer-gmail-btn mb-2">
+            <i class="fa-solid fa-envelope" style="color: #ea4335; font-size: 1.1rem;"></i> 2amstudyofficial@gmail.com
+          </a>
+          <a href="/faqs" class="footer-faq-btn">
+            <i class="fa-solid fa-circle-question text-info"></i> Browse FAQs &amp; Help
           </a>
         </div>
       </div>
@@ -669,25 +926,10 @@
   <!-- Bottom Legal & Copyright Bar -->
   <div class="footer-bottom">
     <div class="container">
-      <div class="row align-items-center gy-2">
-        <div class="col-md-6 text-center text-md-start">
-          <p class="mb-0 small text-muted">© 2026 <strong>2 AM Study</strong> • Student-First Always 🎓</p>
+      <div class="row align-items-center">
+        <div class="col-12 text-start">
+          <p class="mb-0 small text-muted">© 2026 <strong>2 AM Study</strong>. All rights reserved. • Student-First Always 🎓</p>
         </div>
-        <div class="col-md-6 text-center text-md-end">
-          <div class="footer-legal-links">
-            <a href="/faqs">FAQs</a>
-            <span>•</span>
-            <a href="/store">Store</a>
-            <span>•</span>
-            <a href="/privacy-policy">Privacy Policy</a>
-            <span>•</span>
-            <a href="/terms">Terms &amp; Conditions</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</footer>v>
       </div>
     </div>
   </div>

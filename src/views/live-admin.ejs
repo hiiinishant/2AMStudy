@@ -1,0 +1,610 @@
+﻿<%- include('partials/header') %>
+
+<style>
+  .admin-page {
+    background: radial-gradient(ellipse at 50% 0%, #0a0d1e 0%, #0a0a14 60%, #020209 100%);
+    min-height: 100vh;
+    padding-top: 40px;
+    padding-bottom: 80px;
+    color: #f8fafc;
+  }
+  /* Password Gate */
+  .pw-gate {
+    max-width: 420px;
+    margin: 6rem auto;
+    background: rgba(15,10,30,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+  }
+  .pw-gate::before {
+    content:'';
+    position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,#6366f1,#38bdf8,transparent);
+  }
+  /* Admin Card */
+  .admin-card {
+    background: rgba(15,10,30,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 1.5rem;
+    padding: 1.75rem 2rem;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .admin-card::before {
+    content:'';
+    position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,#6366f1,#38bdf8,transparent);
+  }
+  .admin-card.red-top::before {
+    background:linear-gradient(90deg,transparent,#dc2626,#f87171,transparent);
+  }
+  .admin-card.green-top::before {
+    background:linear-gradient(90deg,transparent,#16a34a,#4ade80,transparent);
+  }
+  /* Form controls */
+  .admin-page .form-control, .admin-page .form-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+    border-radius: 0.75rem;
+  }
+  .admin-page .form-control:focus, .admin-page .form-select:focus {
+    background: #1e293b;
+    border-color: #6366f1;
+    color: #f1f5f9;
+    box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.25);
+  }
+  .admin-page .form-label {
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  /* Buttons */
+  .btn-activate {
+    background: linear-gradient(135deg,#dc2626,#b91c1c);
+    color:#fff;border:none;border-radius:999px;
+    padding:12px 32px;font-weight:800;font-size:0.95rem;
+    transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+    box-shadow:0 6px 24px rgba(220,38,38,0.4);
+  }
+  .btn-activate:hover:not(:disabled){ transform:translateY(-2px);box-shadow:0 10px 32px rgba(220,38,38,0.5);color:#fff; }
+  .btn-activate:disabled{ opacity:0.6;cursor:not-allowed; }
+  .btn-end {
+    background: rgba(234,179,8,0.15);
+    border:1px solid rgba(234,179,8,0.4);
+    color:#fbbf24;border-radius:999px;
+    padding:12px 32px;font-weight:800;font-size:0.95rem;
+    transition:all 0.2s ease;
+  }
+  .btn-end:hover:not(:disabled){ background:rgba(234,179,8,0.25);color:#fde68a; }
+  .btn-end:disabled{ opacity:0.5;cursor:not-allowed; }
+  .btn-add-past {
+    background: linear-gradient(135deg,#6366f1,#4f46e5);
+    color:#fff;border:none;border-radius:999px;
+    padding:12px 32px;font-weight:800;font-size:0.95rem;
+    transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+    box-shadow:0 6px 24px rgba(99,102,241,0.35);
+  }
+  .btn-add-past:hover{ transform:translateY(-2px);color:#fff;box-shadow:0 10px 30px rgba(99,102,241,0.5); }
+  /* Live indicator */
+  .live-badge-sm {
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(220,38,38,0.15);
+    border:1px solid rgba(220,38,38,0.35);
+    color:#f87171;font-size:0.72rem;font-weight:800;
+    letter-spacing:0.15em;text-transform:uppercase;
+    padding:4px 12px;border-radius:999px;
+  }
+  .live-dot-sm {
+    width:6px;height:6px;border-radius:50%;background:#ef4444;
+    animation:livePulse 1.4s ease-in-out infinite;
+  }
+  @keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);}}
+  /* Status badges */
+  .status-live { color:#f87171;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:700; }
+  .status-completed { color:#4ade80;background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.3);padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:700; }
+  /* Table */
+  .sessions-table {
+    width:100%;border-collapse:collapse;
+  }
+  .sessions-table th {
+    color:#64748b;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+    padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:left;
+  }
+  .sessions-table td {
+    padding:12px 12px;border-bottom:1px solid rgba(255,255,255,0.05);
+    color:#cbd5e1;font-size:0.85rem;vertical-align:middle;
+  }
+  .sessions-table tr:last-child td { border-bottom:none; }
+  .sessions-table tr:hover td { background:rgba(255,255,255,0.025); }
+  /* Toast */
+  #adminToast {
+    position:fixed;bottom:24px;right:24px;z-index:9999;
+    padding:14px 22px;border-radius:1rem;font-weight:600;font-size:0.88rem;
+    box-shadow:0 8px 30px rgba(0,0,0,0.4);
+    opacity:0;transition:opacity 0.3s ease;pointer-events:none;
+    display:flex;align-items:center;gap:10px;max-width:380px;
+  }
+  #adminToast.show{ opacity:1;pointer-events:auto; }
+  #adminToast.toast-success{ background:#14532d;border:1px solid #16a34a;color:#4ade80; }
+  #adminToast.toast-error{ background:#450a0a;border:1px solid #dc2626;color:#f87171; }
+  #adminToast.toast-info{ background:#1e1b4b;border:1px solid #6366f1;color:#a5b4fc; }
+  /* Alert box */
+  .alert-live-active {
+    background:rgba(220,38,38,0.1);
+    border:1px solid rgba(220,38,38,0.3);
+    border-radius:1rem;padding:1rem 1.25rem;
+    color:#fca5a5;font-size:0.9rem;
+  }
+</style>
+
+<!-- Toast notification -->
+<div id="adminToast"></div>
+
+<main class="admin-page" id="adminPage">
+  <div class="container" style="max-width:900px;">
+
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3"
+        style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);">
+        <i class="fa-solid fa-shield-halved text-primary small"></i>
+        <span class="small fw-semibold text-light">Admin Control Panel</span>
+      </div>
+      <h1 class="fw-bold text-white mb-1 fs-3">Live Study Manager</h1>
+      <p class="text-muted small mb-0">Activate, manage, and archive your YouTube study sessions.</p>
+    </div>
+
+    <!-- PASSWORD GATE (shown until authenticated) -->
+    <div id="pwGate" class="pw-gate">
+      <div class="text-center mb-4">
+        <div style="font-size:2.5rem;margin-bottom:8px;">🔐</div>
+        <h5 class="text-white fw-bold mb-1">Admin Access Required</h5>
+        <p class="text-muted small mb-0">Enter your admin password to manage live sessions.</p>
+      </div>
+      <div id="pwError" class="alert alert-danger rounded-3 small py-2 d-none mb-3" role="alert"></div>
+      <label class="form-label" for="adminPwInput">Admin Password</label>
+      <input type="password" id="adminPwInput" class="form-control mb-3" placeholder="Enter password..." autocomplete="current-password">
+      <button class="btn btn-activate w-100" onclick="verifyPassword()">
+        <i class="fa-solid fa-unlock me-2"></i> Unlock Panel
+      </button>
+    </div>
+
+    <!-- ADMIN CONTENT (hidden until authenticated) -->
+    <div id="adminContent" class="d-none">
+
+      <!-- Current Live Status Banner -->
+      <div id="liveStatusBanner" class="d-none alert-live-active d-flex align-items-center gap-3 mb-4">
+        <span class="live-badge-sm"><span class="live-dot-sm"></span> LIVE NOW</span>
+        <span id="liveBannerTitle" class="fw-semibold"></span>
+        <span class="ms-auto small text-muted" id="liveBannerTime"></span>
+      </div>
+
+      <!-- ROW 1: Activate + End -->
+      <div class="row g-4 mb-0">
+
+        <!-- Activate Live -->
+        <div class="col-lg-7">
+          <div class="admin-card red-top">
+            <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+              <i class="fa-solid fa-circle-dot text-danger"></i> Activate Live Session
+            </h5>
+            <div id="activateBlockedMsg" class="d-none mb-3" style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:0.75rem;padding:0.75rem 1rem;color:#fca5a5;font-size:0.85rem;">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              A live session is already active. <strong>End it first</strong> before starting a new one.
+            </div>
+            <form id="activateForm" onsubmit="activateSession(event)">
+              <div class="mb-3">
+                <label class="form-label" for="actUrl">YouTube Live URL *</label>
+                <input type="url" id="actUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." required>
+                <div class="form-text" style="color:#475569;font-size:0.77rem;">Supports youtube.com/watch, youtu.be, youtube.com/live</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="actTitle">Session Title *</label>
+                <input type="text" id="actTitle" class="form-control" placeholder="e.g. 5 Hour Deep Focus Study" required maxlength="120">
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="actDesc">Description</label>
+                <textarea id="actDesc" class="form-control" rows="2" placeholder="Study with me. No distractions." maxlength="400"></textarea>
+              </div>
+              <div class="mb-4">
+                <label class="form-label" for="actDuration">Duration</label>
+                <input type="text" id="actDuration" class="form-control" placeholder="e.g. 5 Hours" maxlength="30">
+              </div>
+              <button type="submit" id="activateBtn" class="btn btn-activate w-100">
+                <i class="fa-solid fa-circle-dot me-2"></i> Activate Live
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- End Live -->
+        <div class="col-lg-5">
+          <div class="admin-card" style="height:calc(100% - 1.5rem);">
+            <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+              <i class="fa-solid fa-stop text-warning"></i> End Current Session
+            </h5>
+            <p class="text-muted small mb-3">When you end the live session, it will automatically move to <strong class="text-light">Past Sessions</strong> and become available for replay.</p>
+            <div id="endSessionInfo" class="mb-3 d-none">
+              <div class="small text-muted mb-1">Active session:</div>
+              <div id="endSessionTitle" class="fw-semibold text-white small"></div>
+            </div>
+            <div id="noLiveMsg" class="text-muted small mb-3 d-none">No active live session at the moment.</div>
+            <button class="btn btn-end w-100" id="endLiveBtn" onclick="endSession()" disabled>
+              <i class="fa-solid fa-stop me-2"></i> End Live Session
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Add Past Session -->
+      <div class="admin-card green-top mt-0">
+        <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-film text-success"></i> Add Past / Recorded Session
+        </h5>
+        <form id="addPastForm" onsubmit="addPastSession(event)">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="pastUrl">YouTube URL *</label>
+              <input type="url" id="pastUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="pastTitle">Title *</label>
+              <input type="text" id="pastTitle" class="form-control" placeholder="e.g. 10 Hour Study Challenge" required maxlength="120">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label" for="pastDesc">Description</label>
+              <input type="text" id="pastDesc" class="form-control" placeholder="A focused study session..." maxlength="400">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="pastDuration">Duration</label>
+              <input type="text" id="pastDuration" class="form-control" placeholder="5 Hours" maxlength="30">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="pastDate">Date</label>
+              <input type="date" id="pastDate" class="form-control">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-add-past">
+                <i class="fa-solid fa-plus me-2"></i> Add Past Session
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Sessions Table -->
+      <div class="admin-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="text-white fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-table-list text-info"></i> All Sessions
+          </h5>
+          <span id="sessionCountBadge" class="badge bg-secondary rounded-pill"></span>
+        </div>
+        <div id="noSessionsMsg" class="text-center py-4 text-muted d-none">
+          <i class="fa-solid fa-inbox" style="font-size:2rem;opacity:0.3;"></i>
+          <p class="small mt-2 mb-0">No sessions yet. Activate a live session or add a past one.</p>
+        </div>
+        <div class="table-responsive" id="sessionsTableWrap">
+          <table class="sessions-table" id="sessionsTable">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /adminContent -->
+
+  </div>
+</main>
+
+<script>
+(function () {
+  // ── State ──
+  let authed = false;
+  let sessions = [];
+
+  // ── Toast ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('adminToast');
+    t.className = `show toast-${type}`;
+    const icon = type === 'success' ? 'circle-check' : type === 'error' ? 'circle-xmark' : 'circle-info';
+    t.innerHTML = `<i class="fa-solid fa-${icon}"></i> ${msg}`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // ── Password verify ──
+  window.verifyPassword = async function () {
+    const pw = document.getElementById('adminPwInput').value;
+    const errEl = document.getElementById('pwError');
+    errEl.classList.add('d-none');
+    if (!pw) { errEl.textContent = 'Please enter a password.'; errEl.classList.remove('d-none'); return; }
+    try {
+      const r = await fetch('/api/live-study/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw }),
+        credentials: 'include'
+      });
+      const data = await r.json();
+      if (data.success) {
+        authed = true;
+        document.getElementById('pwGate').classList.add('d-none');
+        document.getElementById('adminContent').classList.remove('d-none');
+        loadSessions();
+        showToast('Admin panel unlocked.', 'success');
+      } else {
+        errEl.textContent = data.message || 'Incorrect password.';
+        errEl.classList.remove('d-none');
+        document.getElementById('adminPwInput').value = '';
+        document.getElementById('adminPwInput').focus();
+      }
+    } catch (e) {
+      errEl.textContent = 'Network error. Try again.';
+      errEl.classList.remove('d-none');
+    }
+  };
+
+  // Enter key on password field
+  document.getElementById('adminPwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.verifyPassword();
+  });
+
+  // ── Load sessions ──
+  async function loadSessions() {
+    try {
+      const r = await fetch('/api/live-study/status', { credentials: 'include' });
+      const data = await r.json();
+      // Re-fetch all via admin status endpoint
+      const r2 = await fetch('/api/live-study/all', { credentials: 'include' });
+      if (r2.ok) {
+        const d2 = await r2.json();
+        sessions = d2.sessions || [];
+      } else {
+        // Fallback: derive from status + nothing else
+        sessions = data.session ? [data.session] : [];
+      }
+    } catch (e) {}
+    renderAll();
+  }
+
+  // ── Render everything ──
+  function renderAll() {
+    const live = sessions.find(s => s.status === 'LIVE') || null;
+
+    // Live banner
+    const banner = document.getElementById('liveStatusBanner');
+    if (live) {
+      banner.classList.remove('d-none');
+      document.getElementById('liveBannerTitle').textContent = live.title;
+      const started = live.startedAt ? new Date(live.startedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '';
+      document.getElementById('liveBannerTime').textContent = started ? `Started at ${started}` : '';
+    } else {
+      banner.classList.add('d-none');
+    }
+
+    // Activate button + blocked msg
+    const activateBtn = document.getElementById('activateBtn');
+    const blockedMsg = document.getElementById('activateBlockedMsg');
+    if (live) {
+      activateBtn.disabled = true;
+      blockedMsg.classList.remove('d-none');
+    } else {
+      activateBtn.disabled = false;
+      blockedMsg.classList.add('d-none');
+    }
+
+    // End button
+    const endBtn = document.getElementById('endLiveBtn');
+    const endInfo = document.getElementById('endSessionInfo');
+    const noLiveMsg = document.getElementById('noLiveMsg');
+    if (live) {
+      endBtn.disabled = false;
+      endInfo.classList.remove('d-none');
+      noLiveMsg.classList.add('d-none');
+      document.getElementById('endSessionTitle').textContent = live.title;
+    } else {
+      endBtn.disabled = true;
+      endInfo.classList.add('d-none');
+      noLiveMsg.classList.remove('d-none');
+    }
+
+    // Sessions table
+    const tbody = document.getElementById('sessionsTableBody');
+    const badge = document.getElementById('sessionCountBadge');
+    const noMsg = document.getElementById('noSessionsMsg');
+    const tableWrap = document.getElementById('sessionsTableWrap');
+    badge.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
+
+    if (sessions.length === 0) {
+      noMsg.classList.remove('d-none');
+      tableWrap.classList.add('d-none');
+    } else {
+      noMsg.classList.add('d-none');
+      tableWrap.classList.remove('d-none');
+      tbody.innerHTML = sessions.map(s => {
+        const dateStr = s.endedAt
+          ? new Date(s.endedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+          : s.startedAt
+            ? new Date(s.startedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+            : '—';
+        const statusHtml = s.status === 'LIVE'
+          ? `<span class="status-live">LIVE</span>`
+          : `<span class="status-completed">Completed</span>`;
+        const canDelete = s.status !== 'LIVE';
+        return `
+          <tr>
+            <td class="fw-semibold text-white" style="max-width:220px;">
+              <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(s.title)}</div>
+            </td>
+            <td>${escHtml(s.duration || '—')}</td>
+            <td>${statusHtml}</td>
+            <td class="text-muted">${dateStr}</td>
+            <td>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="/live-study/${s.id}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" style="font-size:0.75rem;">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+                <a href="${escHtml(s.youtubeUrl)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" style="font-size:0.75rem;" title="Watch on YouTube">
+                  <i class="fa-brands fa-youtube"></i>
+                </a>
+                <button onclick="deleteSession('${s.id}', '${escHtml(s.title.replace("'","&#39;"))}', ${!canDelete})"
+                  class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size:0.75rem;"
+                  ${!canDelete ? 'title="End the live session first to delete it."' : 'title="Delete session"'}>
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Activate ──
+  window.activateSession = async function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('activateBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Activating...';
+    const payload = {
+      youtubeUrl: document.getElementById('actUrl').value.trim(),
+      title: document.getElementById('actTitle').value.trim(),
+      description: document.getElementById('actDesc').value.trim(),
+      duration: document.getElementById('actDuration').value.trim()
+    };
+    try {
+      const r = await fetch('/api/live-study/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      });
+      const data = await r.json();
+      if (data.success) {
+        showToast('Live session activated! It is now visible on /live-study.', 'success');
+        document.getElementById('activateForm').reset();
+        sessions = [data.session, ...sessions.filter(s => s.status !== 'LIVE')];
+        renderAll();
+      } else {
+        showToast(data.message || 'Failed to activate.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-circle-dot me-2"></i> Activate Live';
+      }
+    } catch (err) {
+      showToast('Network error. Try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-circle-dot me-2"></i> Activate Live';
+    }
+  };
+
+  // ── End ──
+  window.endSession = async function () {
+    if (!confirm('Are you sure you want to END the current live session?\n\nIt will be moved to Past Sessions.')) return;
+    const btn = document.getElementById('endLiveBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Ending...';
+    try {
+      const r = await fetch('/api/live-study/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+        credentials: 'include'
+      });
+      const data = await r.json();
+      if (data.success) {
+        showToast('Live session ended and moved to Past Sessions.', 'success');
+        sessions = sessions.map(s => s.status === 'LIVE' ? { ...s, status: 'COMPLETED', endedAt: new Date().toISOString() } : s);
+        renderAll();
+      } else {
+        showToast(data.message || 'Failed to end session.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-stop me-2"></i> End Live Session';
+      }
+    } catch (err) {
+      showToast('Network error. Try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-stop me-2"></i> End Live Session';
+    }
+  };
+
+  // ── Add Past ──
+  window.addPastSession = async function (e) {
+    e.preventDefault();
+    const dateVal = document.getElementById('pastDate').value;
+    const payload = {
+      youtubeUrl: document.getElementById('pastUrl').value.trim(),
+      title: document.getElementById('pastTitle').value.trim(),
+      description: document.getElementById('pastDesc').value.trim(),
+      duration: document.getElementById('pastDuration').value.trim(),
+      sessionDate: dateVal || null
+    };
+    try {
+      const r = await fetch('/api/live-study/add-past', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      });
+      const data = await r.json();
+      if (data.success) {
+        showToast('Past session added successfully!', 'success');
+        document.getElementById('addPastForm').reset();
+        sessions = [data.session, ...sessions];
+        renderAll();
+      } else {
+        showToast(data.message || 'Failed to add session.', 'error');
+      }
+    } catch (err) {
+      showToast('Network error. Try again.', 'error');
+    }
+  };
+
+  // ── Delete ──
+  window.deleteSession = async function (id, title, isLive) {
+    if (isLive) { showToast('End the live session before deleting it.', 'error'); return; }
+    if (!confirm(`Delete session:\n"${title}"?\n\nThis cannot be undone.`)) return;
+    try {
+      const r = await fetch(`/api/live-study/delete/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const data = await r.json();
+      if (data.success) {
+        showToast('Session deleted.', 'info');
+        sessions = sessions.filter(s => s.id !== id);
+        renderAll();
+      } else {
+        showToast(data.message || 'Failed to delete.', 'error');
+      }
+    } catch (err) {
+      showToast('Network error. Try again.', 'error');
+    }
+  };
+
+})();
+</script>
+
+<%- include('partials/footer') %>

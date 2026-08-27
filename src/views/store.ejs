@@ -375,6 +375,7 @@ body {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -588,6 +589,7 @@ body {
   font-weight: 400;
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.2;
@@ -995,9 +997,10 @@ body {
 
 </div>
 
+<script id="store-products-data" type="application/json"><%- JSON.stringify(storeProducts || []) %></script>
 <script>
 // Store products data from server
-const storeProducts = <%- JSON.stringify(storeProducts || []) %>;
+const storeProducts = JSON.parse(document.getElementById('store-products-data').textContent || '[]');
 
 let currentCategories = [];
 let currentSearch = '';

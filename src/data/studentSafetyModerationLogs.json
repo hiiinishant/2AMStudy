@@ -1,0 +1,15 @@
+[
+  {
+    "logId": "LOG-9F027AD3",
+    "caseId": "CASE-0F7373FC",
+    "moderatorUid": "MASTER-ADMIN",
+    "moderatorName": "Master Admin",
+    "action": "approve",
+    "previousStatus": "Pending Review",
+    "newStatus": "Verified",
+    "reason": "Approved by Admin",
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "createdAt": "2026-08-27T00:25:44.316Z"
+  }
+]

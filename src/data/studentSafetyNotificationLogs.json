@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "logId": "NLOG-E7EA4709",
+    "userId": "USER-6ikp6f6",
+    "userEmail": null,
+    "caseId": "CASE-0F7373FC",
+    "deliveryMethod": "email",
+    "status": "failed",
+    "sentAt": "2026-08-27T00:25:44.356Z",
+    "openedAt": null
+  }
+]

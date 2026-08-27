@@ -1,0 +1,107 @@
+<%- include('partials/header') %>
+
+<main class="py-5 bg-light" style="min-height: 90vh;">
+  <div class="container">
+
+    <!-- Simple Page Header -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
+      <div>
+        <h1 class="fw-bold text-dark fs-3 mb-1">🎉 College Life Enjoy</h1>
+        <p class="text-muted small mb-0">Campus fests, hostel fun, late-night walks, student vlogs and more.</p>
+      </div>
+      <!-- Category Filter Buttons -->
+      <div class="d-flex flex-wrap gap-2" id="categoryFilterGroup">
+        <button class="btn btn-sm btn-dark rounded-pill px-3 active-filter" onclick="filterCategory('all', this)">All</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="filterCategory('Campus Vibe', this)">Campus Vibe</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="filterCategory('Hostel Fun', this)">Hostel Fun</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="filterCategory('Study Break', this)">Study Break</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="filterCategory('College Fest', this)">College Fest</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="filterCategory('Friends & Fun', this)">Friends & Fun</button>
+      </div>
+    </div>
+
+    <!-- Videos Grid -->
+    <div class="row g-4" id="collegeVideosGrid">
+      <% if (typeof videos !== 'undefined' && videos.length) { %>
+        <% videos.forEach(function(v) { %>
+        <div class="col-sm-6 col-lg-4 video-item" data-category="<%= v.category || '' %>">
+          <div class="card border-0 rounded-4 overflow-hidden h-100 shadow-sm" style="transition: transform 0.2s, box-shadow 0.2s;">
+
+            <!-- Thumbnail with play button -->
+            <a href="/college-life/<%= v.id %>" class="ratio ratio-16x9 position-relative d-block overflow-hidden text-decoration-none"
+               onmouseover="this.querySelector('.play-overlay').style.opacity=1"
+               onmouseout="this.querySelector('.play-overlay').style.opacity=0">
+              <img src="<%= v.thumbnail || 'https://img.youtube.com/vi/' + v.youtubeVideoId + '/hqdefault.jpg' %>"
+                   alt="<%= v.title %>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
+              <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                   style="background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow"
+                     style="width: 48px; height: 48px;">
+                  <i class="fa-solid fa-play text-dark" style="font-size: 1rem; padding-left: 3px;"></i>
+                </div>
+              </div>
+              <% if (v.isFeatured) { %>
+              <div class="position-absolute top-0 start-0 m-2">
+                <span class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-1" style="font-size: 10px;">⭐ Featured</span>
+              </div>
+              <% } %>
+            </a>
+
+            <!-- Card Body -->
+            <div class="card-body d-flex flex-column bg-white">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="badge bg-warning bg-opacity-25 text-warning-emphasis text-uppercase fw-bold rounded-pill px-2 py-1" style="font-size: 10px;">
+                  <%= v.category || 'College Life' %>
+                </span>
+                <% if (v.duration) { %>
+                  <span class="text-muted" style="font-size: 11px;"><i class="fa-regular fa-clock me-1"></i><%= v.duration %></span>
+                <% } %>
+              </div>
+              <h5 class="fw-bold text-dark mb-1 fs-6">
+                <a href="/college-life/<%= v.id %>" class="text-dark text-decoration-none stretched-link"><%= v.title %></a>
+              </h5>
+              <p class="text-muted small flex-grow-1 mb-3" style="font-size: 0.82rem; line-height: 1.5;">
+                <%= v.description || 'Watch this college life moment on 2 AM Study.' %>
+              </p>
+            </div>
+
+          </div>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-12 text-center py-5 text-muted">
+          <div class="fs-1 mb-3">🎓</div>
+          <h5 class="fw-bold text-dark">No videos yet</h5>
+          <p class="small">Check back soon — campus stories are coming!</p>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</main>
+
+<style>
+  .active-filter {
+    background: #212529 !important;
+    color: #fff !important;
+    border-color: #212529 !important;
+  }
+</style>
+
+<script>
+  function filterCategory(cat, btn) {
+    document.querySelectorAll('#categoryFilterGroup .btn').forEach(b => {
+      b.classList.remove('btn-dark', 'active-filter');
+      b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-dark', 'active-filter');
+
+    document.querySelectorAll('#collegeVideosGrid .video-item').forEach(item => {
+      const itemCat = item.getAttribute('data-category') || '';
+      item.style.display = (cat === 'all' || itemCat === cat) ? '' : 'none';
+    });
+  }
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "d8d82cd8-2007-4cc9-ad00-9e5c8d943f20",
+    "title": "2 AM Study With Me",
+    "description": "",
+    "youtubeUrl": "https://www.youtube.com/live/bNg-3CbyWqg?si=VtMzh1Z57UgpDYpG",
+    "youtubeVideoId": "bNg-3CbyWqg",
+    "thumbnail": "https://img.youtube.com/vi/bNg-3CbyWqg/maxresdefault.jpg",
+    "duration": "",
+    "status": "COMPLETED",
+    "scheduledAt": null,
+    "startedAt": "2026-08-27T00:36:55.867Z",
+    "endedAt": "2026-08-27T00:36:55.869Z",
+    "createdAt": "2026-08-27T00:36:55.869Z"
+  },
+  {
+    "id": "882e2c71-2f91-4f18-8451-f5adc7763481",
+    "title": "2 AM Study",
+    "description": "",
+    "youtubeUrl": "https://www.youtube.com/live/vn6MfwziuQo?si=ghZtAetlSZBFrC6l",
+    "youtubeVideoId": "vn6MfwziuQo",
+    "thumbnail": "https://img.youtube.com/vi/vn6MfwziuQo/maxresdefault.jpg",
+    "duration": "2 Hours",
+    "status": "COMPLETED",
+    "scheduledAt": null,
+    "startedAt": "2026-08-27T00:22:27.759Z",
+    "endedAt": "2026-08-27T00:22:27.759Z",
+    "createdAt": "2026-08-27T00:22:27.759Z"
+  },
+  {
+    "id": "fbd6f8bc-b433-48fe-b1a8-9b38b7a1b961",
+    "title": "2 AM Study",
+    "description": "",
+    "youtubeUrl": "https://www.youtube.com/live/vn6MfwziuQo?si=ghZtAetlSZBFrC6l",
+    "youtubeVideoId": "vn6MfwziuQo",
+    "thumbnail": "https://img.youtube.com/vi/vn6MfwziuQo/maxresdefault.jpg",
+    "duration": "",
+    "status": "COMPLETED",
+    "scheduledAt": null,
+    "startedAt": "2026-08-27T00:20:10.765Z",
+    "endedAt": "2026-08-27T00:21:16.358Z",
+    "createdAt": "2026-08-27T00:20:10.765Z"
+  }
+]

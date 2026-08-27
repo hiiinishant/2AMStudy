@@ -1,0 +1,141 @@
+<%- include('partials/header') %>
+
+<main class="py-5" style="background: #f8fafc; min-height: 90vh; color: #0f172a;">
+  <div class="container" style="max-width: 1000px;">
+
+    <!-- ========================================== -->
+    <!-- HERO HEADER: 2 AM STUDY BRAND MATCHING -->
+    <!-- ========================================== -->
+    <div class="text-center mb-4 pb-1">
+      <span class="badge rounded-pill px-3.5 py-1.5 mb-2.5 text-uppercase fw-bold d-inline-flex align-items-center gap-1.5"
+        style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); color: #4f46e5; font-size: 11px; letter-spacing: 0.06em;">
+        <i class="fa-solid fa-graduation-cap"></i> 2 AM Study &bull; Campus Vibe
+      </span>
+      <h1 class="fw-bold mb-2" style="color: #0f172a; font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.02em;">
+        College Life Enjoy &amp; Campus Stories
+      </h1>
+      <p class="mb-0 mx-auto" style="color: #64748b; font-size: 0.95rem; max-width: 620px; line-height: 1.6;">
+        Take a fun break from heavy studies. Watch college fests, late-night hostel fun, and student memories.
+      </p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MAIN VIDEO PLAYER CARD -->
+    <!-- ========================================== -->
+    <div class="card border-0 rounded-4 overflow-hidden mb-5"
+      style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);">
+      
+      <!-- Video Screen -->
+      <div class="ratio ratio-16x9 position-relative" style="background: #000;">
+        <iframe
+          src="https://www.youtube.com/embed/<%= video.youtubeVideoId %>?autoplay=1&rel=0&modestbranding=1"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          title="<%= video.title %>"
+          class="position-absolute top-0 start-0 w-100 h-100"
+          style="border: none;">
+        </iframe>
+      </div>
+
+      <!-- Video Details Section -->
+      <div class="card-body p-4 p-md-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
+          <div class="d-flex align-items-center gap-2">
+            <!-- Brand Category Badge -->
+            <span class="badge rounded-pill px-3 py-1.5 text-uppercase fw-bold d-inline-flex align-items-center gap-1.5"
+              style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(99, 102, 241, 0.12)); border: 1px solid rgba(99, 102, 241, 0.28); color: #4338ca; font-size: 11px; letter-spacing: 0.04em;">
+              <i class="fa-solid fa-fire text-danger" style="font-size: 10px;"></i> <%= video.category || 'Campus Vibe' %>
+            </span>
+            <% if (video.duration) { %>
+              <span class="badge rounded-pill px-2.5 py-1 text-secondary" style="background: #f1f5f9; border: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">
+                <i class="fa-regular fa-clock me-1 text-primary"></i><%= video.duration %>
+              </span>
+            <% } %>
+          </div>
+
+          <!-- YouTube Action Button -->
+          <a href="<%= video.youtubeUrl %>" target="_blank" rel="noopener noreferrer"
+            class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold d-inline-flex align-items-center gap-2 text-white shadow-sm"
+            style="background: linear-gradient(135deg, #dc2626, #b91c1c); border: none; font-size: 0.84rem; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
+            <i class="fa-brands fa-youtube fs-6"></i> Watch on YouTube
+          </a>
+        </div>
+
+        <!-- Video Title with matching brand dark typography -->
+        <h2 class="fw-bold mb-2" style="color: #0f172a; font-size: clamp(1.2rem, 2.5vw, 1.55rem); letter-spacing: -0.015em; line-height: 1.35;">
+          <%= video.title %>
+        </h2>
+
+        <!-- Video Description with high readability -->
+        <% if (video.description) { %>
+        <p class="mb-0" style="color: #475569; font-size: 0.94rem; line-height: 1.65; max-width: 820px;">
+          <%= video.description %>
+        </p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MORE CAMPUS MOMENTS (MATCHING CARDS) -->
+    <!-- ========================================== -->
+    <% if (typeof relatedVideos !== 'undefined' && relatedVideos.length) { %>
+    <div>
+      <div class="mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between">
+        <h3 class="fw-bold fs-5 mb-0" style="color: #0f172a;">
+          <i class="fa-solid fa-film text-danger me-2"></i>More Campus Moments
+        </h3>
+        <a href="/college-life" class="text-decoration-none small fw-semibold" style="color: #4f46e5;">
+          Explore All <i class="fa-solid fa-arrow-right small ms-1"></i>
+        </a>
+      </div>
+
+      <div class="row g-4">
+        <% relatedVideos.forEach(function(item) { %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card border-0 rounded-4 overflow-hidden h-100 shadow-sm bg-white"
+            style="border: 1px solid rgba(0, 0, 0, 0.08) !important; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+            
+            <!-- Video Thumbnail -->
+            <a href="/college-life/<%= item.id %>" class="ratio ratio-16x9 position-relative d-block overflow-hidden text-decoration-none">
+              <img src="<%= item.thumbnail || 'https://img.youtube.com/vi/' + item.youtubeVideoId + '/hqdefault.jpg' %>" alt="<%= item.title %>" style="object-fit: cover; transition: transform 0.3s ease;">
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.25);">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow"
+                  style="width: 44px; height: 44px; background: linear-gradient(135deg, #dc2626, #6366f1); box-shadow: 0 4px 14px rgba(99,102,241,0.4);">
+                  <i class="fa-solid fa-play" style="font-size: 0.85rem; padding-left: 2px;"></i>
+                </div>
+              </div>
+            </a>
+
+            <!-- Card Body -->
+            <div class="card-body d-flex flex-column p-3.5">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="badge rounded-pill px-2.5 py-1 text-uppercase fw-bold"
+                  style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(99, 102, 241, 0.1)); border: 1px solid rgba(99, 102, 241, 0.2); color: #4338ca; font-size: 10px;">
+                  <%= item.category || 'Campus Vibe' %>
+                </span>
+                <% if (item.duration) { %>
+                  <span class="small" style="color: #64748b; font-size: 11px;"><i class="fa-regular fa-clock me-1 text-primary"></i><%= item.duration %></span>
+                <% } %>
+              </div>
+              <h4 class="fw-bold mb-1 fs-6">
+                <a href="/college-life/<%= item.id %>" class="text-decoration-none" style="color: #0f172a;"><%= item.title %></a>
+              </h4>
+              <p class="small flex-grow-1 mb-3" style="color: #64748b; font-size: 0.83rem; line-height: 1.55;">
+                <%= item.description || 'Watch this college life moment on 2 AM Study.' %>
+              </p>
+              <a href="/college-life/<%= item.id %>" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold" style="font-size: 0.82rem;">
+                Watch Video <i class="fa-solid fa-arrow-right small ms-1"></i>
+              </a>
+            </div>
+
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('partials/footer') %>

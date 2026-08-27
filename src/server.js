@@ -74,6 +74,14 @@ try {
   console.error("Could not load resources.json:", e);
 }
 
+function saveExamResources() {
+  try {
+    fs.writeFileSync(resourcesDataFilePath, JSON.stringify(examResources, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Could not save resources.json:", e);
+  }
+}
+
 function saveStudentSafetyCases() {
   try {
     fs.writeFileSync(casesDataFilePath, JSON.stringify(studentSafetyCases, null, 2), 'utf8');
@@ -99,6 +107,57 @@ function saveShopperFeedbacks() {
   } catch (e) {
     console.error("Could not save shopperFeedbacks.json:", e);
   }
+}
+
+// Study Sessions JSON persistence
+const studySessionsFilePath = path.join(__dirname, 'data', 'studySessions.json');
+let studySessions = [];
+try {
+  if (fs.existsSync(studySessionsFilePath)) {
+    studySessions = JSON.parse(fs.readFileSync(studySessionsFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error('Could not load studySessions.json:', e);
+}
+
+function saveStudySessions() {
+  try {
+    fs.writeFileSync(studySessionsFilePath, JSON.stringify(studySessions, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Could not save studySessions.json:', e);
+  }
+}
+
+// College Life Videos JSON persistence
+const collegeLifeVideosFilePath = path.join(__dirname, 'data', 'collegeLifeVideos.json');
+let collegeLifeVideos = [];
+try {
+  if (fs.existsSync(collegeLifeVideosFilePath)) {
+    collegeLifeVideos = JSON.parse(fs.readFileSync(collegeLifeVideosFilePath, 'utf8'));
+  }
+} catch (e) {
+  console.error('Could not load collegeLifeVideos.json:', e);
+}
+
+function saveCollegeLifeVideos() {
+  try {
+    fs.writeFileSync(collegeLifeVideosFilePath, JSON.stringify(collegeLifeVideos, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Could not save collegeLifeVideos.json:', e);
+  }
+}
+
+function extractYoutubeVideoId(url) {
+  if (!url) return null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) return url.trim();
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0];
+    if (u.pathname.startsWith('/live/')) return u.pathname.split('/live/')[1].split('/')[0].split('?')[0];
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
+    if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('/')[0].split('?')[0];
+  } catch (_) {}
+  return null;
 }
 
 // Multer memory storage for secure evidence uploads
@@ -502,11 +561,144 @@ const transporter = nodemailer.createTransport({
 });
 
 app.get('/', (req, res) => {
+  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  const latestPastSession = studySessions
+    .filter(s => s.status === 'COMPLETED')
+    .sort((a, b) => new Date(b.endedAt || b.createdAt) - new Date(a.endedAt || a.createdAt))[0] || null;
   res.render('index', {
     pageTitle: '2AM Study - #1 Student Productivity Hub, Focus Timer & Study Tips',
     metaDescription: 'Boost your student productivity with 2AM Study. Use our Pomodoro focus timer, academic planner, and expert study tips for effective exam preparation and concentration.',
-    shopperFeedbacks: shopperFeedbacks.length ? shopperFeedbacks : []
+    shopperFeedbacks: shopperFeedbacks.length ? shopperFeedbacks : [],
+    liveSession,
+    latestPastSession,
+    collegeVideos: collegeLifeVideos.slice(0, 3),
+    storeProducts: STORE_PRODUCTS
   });
+});
+
+// ===== College Life Enjoy Routes =====
+app.get('/college-life', (req, res) => {
+  res.render('college-life', {
+    pageTitle: 'College Life Enjoy & Campus Stories | 2AM Study',
+    metaDescription: 'Watch college life videos, campus fests, hostel fun, and student vlogs on 2AM Study. Enjoy the best moments of student life.',
+    videos: collegeLifeVideos
+  });
+});
+
+app.get('/college-life/:id', (req, res) => {
+  const video = collegeLifeVideos.find(v => v.id === req.params.id);
+  if (!video) {
+    return res.status(404).render('404', {
+      pageTitle: 'Video Not Found | 2AM Study',
+      metaDescription: 'The college life video you are looking for could not be found.'
+    });
+  }
+  const relatedVideos = collegeLifeVideos.filter(v => v.id !== video.id).slice(0, 3);
+  res.render('college-life-video', {
+    pageTitle: `${video.title} | College Life | 2AM Study`,
+    metaDescription: video.description || 'Watch college life and campus videos on 2AM Study.',
+    video,
+    relatedVideos
+  });
+});
+
+// ===== College Life API (Admin CRUD) =====
+function requireAdminForCollegeLife(req, res, next) {
+  if (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) {
+    return next();
+  }
+  return res.status(401).json({ success: false, error: 'Admin authentication required.' });
+}
+
+// Add college life video
+app.post('/api/college-life/videos', requireAdminForCollegeLife, (req, res) => {
+  const { youtubeUrl, title, description, category, duration, thumbnail, isFeatured } = req.body;
+  if (!youtubeUrl || !title) {
+    return res.status(400).json({ success: false, error: 'YouTube URL and title are required.' });
+  }
+  const youtubeVideoId = extractYoutubeVideoId(youtubeUrl);
+  if (!youtubeVideoId) {
+    return res.status(400).json({ success: false, error: 'Invalid YouTube URL.' });
+  }
+  const newVideo = {
+    id: 'cl-' + uuidv4().split('-')[0],
+    title: title.trim(),
+    description: (description || '').trim(),
+    category: (category || 'College Life').trim(),
+    duration: (duration || '').trim(),
+    youtubeUrl,
+    youtubeVideoId,
+    thumbnail: thumbnail || `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg`,
+    isFeatured: Boolean(isFeatured),
+    createdAt: new Date().toISOString()
+  };
+
+  // If featured, unset existing featured
+  if (newVideo.isFeatured) {
+    collegeLifeVideos.forEach(v => { v.isFeatured = false; });
+  }
+
+  collegeLifeVideos.unshift(newVideo);
+  saveCollegeLifeVideos();
+  res.json({ success: true, video: newVideo });
+});
+
+// Delete college life video
+app.delete('/api/college-life/videos/:id', requireAdminForCollegeLife, (req, res) => {
+  const idx = collegeLifeVideos.findIndex(v => v.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Video not found.' });
+  collegeLifeVideos.splice(idx, 1);
+  saveCollegeLifeVideos();
+  res.json({ success: true });
+});
+
+// Set featured
+app.patch('/api/college-life/videos/:id/feature', requireAdminForCollegeLife, (req, res) => {
+  collegeLifeVideos.forEach(v => { v.isFeatured = false; });
+  const video = collegeLifeVideos.find(v => v.id === req.params.id);
+  if (!video) return res.status(404).json({ success: false, error: 'Video not found.' });
+  video.isFeatured = true;
+  saveCollegeLifeVideos();
+  res.json({ success: true, video });
+});
+
+
+
+// ===== Exam Resources API (Admin CRUD) =====
+// Add resource card
+app.post('/api/resources', requireAdminForCollegeLife, (req, res) => {
+  const { title, exam, category, officialUrl, description, latestYear } = req.body;
+  if (!title || !exam || !officialUrl) {
+    return res.status(400).json({ success: false, error: 'Title, exam name, and official URL are required.' });
+  }
+
+  const examSlug = exam.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const newResource = {
+    id: 'res-' + uuidv4().split('-')[0],
+    title: title.trim(),
+    exam: exam.trim(),
+    examSlug: examSlug || 'general',
+    category: (category || 'PYQ').trim().toUpperCase(),
+    officialUrl: officialUrl.trim(),
+    description: (description || '').trim(),
+    lastUpdated: new Date().toISOString().split('T')[0],
+    latestYear: latestYear ? parseInt(latestYear, 10) : new Date().getFullYear(),
+    active: true,
+    createdAt: new Date().toISOString()
+  };
+
+  examResources.unshift(newResource);
+  saveExamResources();
+  res.json({ success: true, resource: newResource });
+});
+
+// Delete resource card
+app.delete('/api/resources/:id', requireAdminForCollegeLife, (req, res) => {
+  const idx = examResources.findIndex(r => r.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Resource not found.' });
+  examResources.splice(idx, 1);
+  saveExamResources();
+  res.json({ success: true });
 });
 
 // --- Authentication Routes & Session Sync ---
@@ -698,10 +890,7 @@ app.get('/student-safety/how-it-works', (req, res) => {
 });
 
 app.get('/student-safety/admin', (req, res) => {
-  res.render('admin-moderation', {
-    pageTitle: 'Admin Moderation | Student Identity Shield',
-    metaDescription: 'Admin dashboard for reviewing fake profile reports, evidence, and managing community cases.'
-  });
+  res.redirect('/admin#tab-safety');
 });
 
 // ===== Student Safety helpers =====
@@ -1320,21 +1509,19 @@ async function dispatchSmartNotification({ userId, userEmail, caseId, title, mes
   return failedLog;
 }
 
-// Admin Moderation Dashboard View
+// Admin Moderation Dashboard View — redirects to unified Master Admin
 app.get('/student-safety/admin', (req, res) => {
-  res.render('admin-moderation', {
-    pageTitle: 'Admin Moderation Dashboard | Student Identity Shield',
-    metaDescription: 'Moderation review panel to inspect evidence, approve genuine cases, or reject invalid fake profile reports.'
-  });
+  res.redirect('/admin#tab-safety');
 });
 
 // Admin Moderation Action Endpoint
 app.post('/api/student-safety/admin/moderate', (req, res) => {
   const { caseId, action, note, moderatorUid, moderatorName } = req.body;
 
-  // Require a moderatorUid — must be sent by authenticated client
-  if (!moderatorUid || moderatorUid.trim() === '' || moderatorUid === 'ADMIN-MODERATOR') {
-    return res.status(401).json({ success: false, message: 'Unauthorized. Valid moderator UID required.' });
+  // Check auth: session or moderatorUid
+  const isAuthed = (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) || (moderatorUid && moderatorUid.trim() !== '');
+  if (!isAuthed) {
+    return res.status(401).json({ success: false, message: 'Unauthorized. Admin authentication required.' });
   }
   if (!caseId || !action) {
     return res.status(400).json({ success: false, message: 'caseId and action are required.' });
@@ -2095,16 +2282,6 @@ app.get('/contact', (req, res) => {
     metaDescription: 'Need help with our study tools or focus techniques? Contact the 2AM Study support team for academic guidance and assistance.'
   });
 });
-app.get('/behind-2am-study', (req, res) => {
-  res.render('behind-2am-study', {
-    pageTitle: 'Behind 2 AM Study - Our Story, Mission & Vision',
-    metaDescription: 'Discover the story behind 2AM Study. Learn about our mission to empower students with the best focus tools and study techniques for late-night success.',
-    ogTitle: 'Behind 2 AM Study: The Story of a Student Productivity Revolution',
-    ogDescription: 'From late-night study sessions to a global platform. Learn how we built the ultimate hub for students to master focus and achieve academic excellence.',
-    ogImage: 'https://2amstudy.com/assets/images/smart_study_banner.png',
-    ogUrl: 'https://2amstudy.com/behind-2am-study'
-  });
-});
 
 app.get('/faqs', (req, res) => {
   res.render('faqs', {
@@ -2501,82 +2678,170 @@ app.get(['/api/public/products', '/store/api/public/products'], publicApiRateLim
   });
 });
 
-// ─── Store Admin Authentication & Management APIs ──────────────────────────
+// ─── Unified Master Admin Authentication & Management System ───────────────
 
-const STORE_ADMIN_PASSWORD = process.env.STORE_ADMIN_PASSWORD || process.env.ADMIN_PASSCODE || '2amadmin2026';
+const MASTER_ADMIN_PASSWORDS = [
+  process.env.ADMIN_PASSWORD,
+  process.env.ADMIN_PASSCODE,
+  process.env.STORE_ADMIN_PASSWORD,
+  process.env.LIVE_ADMIN_PASSWORD,
+  'nishant2am'
+].filter(Boolean);
+
+function checkMasterPassword(pass) {
+  if (!pass) return false;
+  return MASTER_ADMIN_PASSWORDS.includes(pass);
+}
+
+function isMasterAdminAuthenticated(req) {
+  return !!(req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed));
+}
 
 function requireStoreAdmin(req, res, next) {
-  if (req.session && req.session.isStoreAdmin) {
+  if (isMasterAdminAuthenticated(req)) {
     return next();
   }
   
   if (req.path.startsWith('/api/') || req.xhr || req.headers.accept?.includes('application/json')) {
-    return res.status(401).json({ success: false, error: 'Unauthorized. Store admin authentication required.' });
+    return res.status(401).json({ success: false, error: 'Unauthorized. Admin authentication required.' });
   }
 
-  return res.redirect('/store/admin/login?redirect=' + encodeURIComponent(req.originalUrl || '/store/admin'));
+  return res.redirect('/admin?redirect=' + encodeURIComponent(req.originalUrl || '/admin'));
 }
 
-// 1. Admin Login Page View
-app.get('/store/admin/login', (req, res) => {
-  if (req.session && req.session.isStoreAdmin) {
-    return res.redirect('/store/admin');
+// 1. Single Master Admin Dashboard Route View
+app.get('/admin', async (req, res) => {
+  const isAuthed = isMasterAdminAuthenticated(req);
+  
+  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  const allStudySessions = [...studySessions].sort((a, b) => new Date(b.createdAt || b.startedAt) - new Date(a.createdAt || a.startedAt));
+  
+  let ordersList = [];
+  try {
+    if (firestoreDb) {
+      const snap = await firestoreDb.collection('storeOrders').orderBy('createdAt', 'desc').limit(50).get();
+      if (!snap.empty) {
+        ordersList = snap.docs.map(doc => doc.data());
+      }
+    }
+  } catch(e) {}
+  if (ordersList.length === 0 && storeInvoicesMap.size > 0) {
+    for (const [orderId, data] of storeInvoicesMap.entries()) {
+      if (typeof data === 'object' && data !== null) {
+        ordersList.push({ orderId, ...data });
+      } else {
+        ordersList.push({ orderId, invoiceNo: data });
+      }
+    }
   }
-  res.render('store-admin-login', {
-    pageTitle: 'Store Admin Login | 2AM Study',
-    metaDescription: 'Secure administrator login for 2AM Study Store product catalog and inventory management.'
+
+  res.render('admin', {
+    pageTitle: 'Master Admin Dashboard | 2AM Study',
+    metaDescription: 'Single master admin dashboard for managing Live Streams, Products, Orders, Blog, and Student Safety.',
+    isAuthed,
+    liveSession,
+    allStudySessions,
+    products: STORE_PRODUCTS,
+    orders: ordersList,
+    blogs: BLOG_POSTS,
+    safetyCases: studentSafetyCases,
+    feedbacks: shopperFeedbacks,
+    collegeVideos: collegeLifeVideos,
+    resources: examResources
   });
 });
 
-// 2. Admin Login Action
-app.post('/api/store/admin/login', (req, res) => {
+// Legacy Admin URL Redirects to Unified Dashboard
+app.get('/store/admin', (req, res) => res.redirect('/admin#tab-products'));
+app.get('/store/admin/login', (req, res) => res.redirect('/admin'));
+
+// 2. Master Admin Login Action
+app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (!password) {
     return res.status(400).json({ success: false, error: 'Password is required.' });
   }
 
-  if (password === STORE_ADMIN_PASSWORD) {
+  if (checkMasterPassword(password)) {
+    req.session.isAdmin = true;
     req.session.isStoreAdmin = true;
+    req.session.liveAdminAuthed = true;
     req.session.adminLoggedInAt = new Date().toISOString();
-    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/store/admin' });
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
+  return res.status(401).json({ success: false, error: 'Invalid master admin passcode.' });
+});
+
+// Also support legacy store login endpoint
+app.post('/api/store/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (checkMasterPassword(password)) {
+    req.session.isAdmin = true;
+    req.session.isStoreAdmin = true;
+    req.session.liveAdminAuthed = true;
+    req.session.adminLoggedInAt = new Date().toISOString();
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+  }
   return res.status(401).json({ success: false, error: 'Invalid master admin password.' });
 });
 
-// 3. Admin Logout Action
-app.post('/api/store/admin/logout', (req, res) => {
+// 3. Admin Logout Actions
+app.post('/api/admin/logout', (req, res) => {
   if (req.session) {
+    delete req.session.isAdmin;
     delete req.session.isStoreAdmin;
+    delete req.session.liveAdminAuthed;
     delete req.session.adminLoggedInAt;
   }
-  res.json({ success: true, redirect: '/store/admin/login' });
+  res.json({ success: true, redirect: '/admin' });
+});
+
+app.get('/admin/logout', (req, res) => {
+  if (req.session) {
+    delete req.session.isAdmin;
+    delete req.session.isStoreAdmin;
+    delete req.session.liveAdminAuthed;
+    delete req.session.adminLoggedInAt;
+  }
+  res.redirect('/admin');
+});
+
+app.post('/api/store/admin/logout', (req, res) => {
+  if (req.session) {
+    delete req.session.isAdmin;
+    delete req.session.isStoreAdmin;
+    delete req.session.liveAdminAuthed;
+    delete req.session.adminLoggedInAt;
+  }
+  res.json({ success: true, redirect: '/admin' });
 });
 
 app.get('/store/admin/logout', (req, res) => {
   if (req.session) {
+    delete req.session.isAdmin;
     delete req.session.isStoreAdmin;
+    delete req.session.liveAdminAuthed;
     delete req.session.adminLoggedInAt;
   }
-  res.redirect('/store/admin/login');
+  res.redirect('/admin');
 });
 
 // 4. Check Current Admin Session Status
 app.get('/api/store/admin/me', (req, res) => {
   res.json({
     success: true,
-    authenticated: !!(req.session && req.session.isStoreAdmin),
+    authenticated: isMasterAdminAuthenticated(req),
     loggedInAt: req.session?.adminLoggedInAt || null
   });
 });
 
-// 5. Admin Dashboard View
-app.get('/store/admin', requireStoreAdmin, (req, res) => {
-  res.render('store-admin', {
-    pageTitle: 'Store Admin Dashboard | 2AM Study Store',
-    metaDescription: 'Comprehensive store management dashboard for 2 AM Study.',
-    products: STORE_PRODUCTS
-  });
+// Delete Shopper Feedback Action
+app.delete('/api/admin/feedbacks/:id', requireStoreAdmin, (req, res) => {
+  const { id } = req.params;
+  shopperFeedbacks = shopperFeedbacks.filter(f => f.id !== id);
+  saveShopperFeedbacks();
+  res.json({ success: true });
 });
 
 // 6. Admin Analytics Stats API
@@ -3754,6 +4019,163 @@ app.post('/store/api/store/verify-payment', async (req, res) => {
 // Help Bot Doubt Solver (AI Proxy)
 const doubtHandler = require('../api/doubt');
 app.post('/api/doubt', doubtHandler);
+
+// ─── Live Study Sessions ──────────────────────────────────────────────────────
+// (studySessions and extractYoutubeVideoId defined at top)
+
+// GET — Public live study page
+app.get('/live-study', (req, res) => {
+  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  const pastSessions = studySessions
+    .filter(s => s.status === 'COMPLETED')
+    .sort((a, b) => new Date(b.endedAt || b.createdAt) - new Date(a.endedAt || a.createdAt));
+  res.render('live-study', {
+    pageTitle: 'Live Study Sessions | 2AM Study',
+    metaDescription: 'Join our live study sessions on 2AM Study. Watch the admin YouTube Live stream and browse past recorded study challenges.',
+    liveSession,
+    pastSessions
+  });
+});
+
+// GET — Individual session detail page
+app.get('/live-study/:id', (req, res) => {
+  const session = studySessions.find(s => s.id === req.params.id);
+  if (!session) {
+    return res.status(404).render('live-study-session', {
+      pageTitle: 'Session Not Found | 2AM Study',
+      metaDescription: 'This study session could not be found.',
+      session: null
+    });
+  }
+  res.render('live-study-session', {
+    pageTitle: `${session.title} | 2AM Study`,
+    metaDescription: session.description || `Watch the ${session.title} recording on 2AM Study.`,
+    session
+  });
+});
+
+// GET — Admin panel page (redirects to unified Master Admin)
+app.get('/live-admin', (req, res) => {
+  res.redirect('/admin#tab-live');
+});
+
+// GET — Public status API (used by header and pages)
+app.get('/api/live-study/status', (req, res) => {
+  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  res.json({ isLive: !!liveSession, session: liveSession });
+});
+
+// GET — All sessions list (admin only — requires auth session)
+app.get('/api/live-study/all', (req, res) => {
+  if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
+  const sorted = [...studySessions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ success: true, sessions: sorted });
+});
+
+// POST — Verify admin password
+app.post('/api/live-study/auth', (req, res) => {
+  const { password } = req.body;
+  if (checkMasterPassword(password)) {
+    req.session.isAdmin = true;
+    req.session.isStoreAdmin = true;
+    req.session.liveAdminAuthed = true;
+    req.session.adminLoggedInAt = new Date().toISOString();
+    return res.json({ success: true });
+  }
+  return res.status(401).json({ success: false, message: 'Incorrect password.' });
+});
+
+// POST — Activate a live session
+app.post('/api/live-study/activate', (req, res) => {
+  if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
+  const { youtubeUrl, title, description, duration } = req.body;
+  if (!youtubeUrl || !title) return res.status(400).json({ success: false, message: 'URL and title are required.' });
+
+  const videoId = extractYoutubeVideoId(youtubeUrl);
+  if (!videoId) return res.status(400).json({ success: false, message: 'Could not extract YouTube video ID from that URL.' });
+
+  // Reject if a LIVE session already exists
+  const existingLive = studySessions.find(s => s.status === 'LIVE');
+  if (existingLive) {
+    return res.status(409).json({ success: false, message: 'A live session is already active. End it first before starting a new one.', existingSession: existingLive });
+  }
+
+  const now = new Date().toISOString();
+  const session = {
+    id: uuidv4(),
+    title: title.trim(),
+    description: (description || '').trim(),
+    youtubeUrl: youtubeUrl.trim(),
+    youtubeVideoId: videoId,
+    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    duration: (duration || '').trim(),
+    status: 'LIVE',
+    scheduledAt: null,
+    startedAt: now,
+    endedAt: null,
+    createdAt: now
+  };
+  studySessions.unshift(session);
+  saveStudySessions();
+  res.json({ success: true, session });
+});
+
+// POST — End the current live session
+app.post('/api/live-study/end', (req, res) => {
+  if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
+  let ended = false;
+  studySessions.forEach(s => {
+    if (s.status === 'LIVE') {
+      s.status = 'COMPLETED';
+      s.endedAt = new Date().toISOString();
+      ended = true;
+    }
+  });
+  saveStudySessions();
+  if (ended) return res.json({ success: true });
+  res.json({ success: false, message: 'No active live session found.' });
+});
+
+// POST — Manually add a past session
+app.post('/api/live-study/add-past', (req, res) => {
+  if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
+  const { youtubeUrl, title, description, duration, sessionDate, thumbnail } = req.body;
+  if (!youtubeUrl || !title) return res.status(400).json({ success: false, message: 'URL and title are required.' });
+
+  const videoId = extractYoutubeVideoId(youtubeUrl);
+  if (!videoId) return res.status(400).json({ success: false, message: 'Could not extract YouTube video ID.' });
+
+  const session = {
+    id: uuidv4(),
+    title: title.trim(),
+    description: (description || '').trim(),
+    youtubeUrl: youtubeUrl.trim(),
+    youtubeVideoId: videoId,
+    thumbnail: thumbnail && thumbnail.trim() ? thumbnail.trim() : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    duration: (duration || '').trim(),
+    status: 'COMPLETED',
+    scheduledAt: null,
+    startedAt: sessionDate ? new Date(sessionDate).toISOString() : new Date().toISOString(),
+    endedAt: sessionDate ? new Date(sessionDate).toISOString() : new Date().toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  studySessions.unshift(session);
+  saveStudySessions();
+  res.json({ success: true, session });
+});
+
+// DELETE — Remove a session (cannot delete active LIVE session)
+app.delete('/api/live-study/delete/:id', (req, res) => {
+  if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
+  const { id } = req.params;
+  const target = studySessions.find(s => s.id === id);
+  if (!target) return res.status(404).json({ success: false, message: 'Session not found.' });
+  if (target.status === 'LIVE') return res.status(400).json({ success: false, message: 'Cannot delete an active LIVE session. End it first.' });
+  studySessions = studySessions.filter(s => s.id !== id);
+  saveStudySessions();
+  res.json({ success: true });
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
