@@ -492,6 +492,41 @@ function savePersistedBlogs() {
 
 loadPersistedBlogs();
 
+// Persistent Store Orders Management
+const storeOrdersFilePath = path.join(__dirname, 'data', 'storeOrders.json');
+let PERSISTED_STORE_ORDERS = [];
+let storeInvoicesMap = new Map();
+let invoiceCounter = 1;
+
+function loadPersistedStoreOrders() {
+  try {
+    if (fs.existsSync(storeOrdersFilePath)) {
+      const data = JSON.parse(fs.readFileSync(storeOrdersFilePath, 'utf8'));
+      if (Array.isArray(data)) {
+        PERSISTED_STORE_ORDERS = data;
+        PERSISTED_STORE_ORDERS.forEach(o => {
+          if (o && o.orderId) storeInvoicesMap.set(o.orderId, o);
+        });
+        console.log(`[Store Orders] Loaded ${PERSISTED_STORE_ORDERS.length} past orders from disk.`);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[Store Orders] Notice loading persisted orders:', e.message);
+  }
+}
+
+function savePersistedStoreOrders() {
+  try {
+    fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    fs.writeFileSync(storeOrdersFilePath, JSON.stringify(PERSISTED_STORE_ORDERS, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Store Orders] Notice saving orders:', e.message);
+  }
+}
+
+loadPersistedStoreOrders();
+
 const razorpay = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET ?
   new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -531,7 +566,15 @@ app.use(session({
   }
 }));
 
-// Multer config for product image uploads
+// Global SEO & Canonical URL Middleware
+app.use((req, res, next) => {
+  const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+  res.locals.currentPath = cleanPath;
+  res.locals.canonicalUrl = 'https://2amstudy.com' + (cleanPath === '/' ? '' : cleanPath);
+  res.locals.ogUrl = 'https://2amstudy.com' + (cleanPath === '/' ? '' : cleanPath);
+  res.locals.siteDomain = 'https://2amstudy.com';
+  next();
+});
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, 'public/assets/images/store'));
@@ -1483,7 +1526,7 @@ async function dispatchSmartNotification({ userId, userEmail, caseId, title, mes
           <h2 style="color:#0f172a;margin-bottom:12px;text-align:center;">${title || 'Case Status Update'}</h2>
           <p style="color:#334155;font-size:15px;line-height:1.6;">${message}</p>
           <div style="text-align:center;margin-top:28px;">
-            <a href="https://2amstudy.online${targetUrl || `/student-safety#${caseId}`}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:99px;font-weight:700;text-decoration:none;font-size:14px;">View Verified Case</a>
+            <a href="https://2amstudy.com${targetUrl || `/student-safety#${caseId}`}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:99px;font-weight:700;text-decoration:none;font-size:14px;">View Verified Case</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:32px;">You received this fallback email because Push Notifications were unreached or disabled.</p>
         </div>
@@ -2312,9 +2355,43 @@ app.get('/store/product/:id', (req, res) => {
       hideBot: true
     });
   }
+  const productImages = (product.images && product.images.length)
+    ? product.images.map(img => img.startsWith('http') ? img : `https://2amstudy.com${img}`)
+    : (product.image ? [product.image.startsWith('http') ? product.image : `https://2amstudy.com${product.image}`] : ['https://2amstudy.com/assets/images/smart_study_banner.png']);
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": productImages,
+    "description": product.desc || `${product.name} on 2AM Study Store.`,
+    "sku": `2AM-PROD-${product.id}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "2AM Study"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://2amstudy.com/store/product/${product.id}`,
+      "priceCurrency": "INR",
+      "price": product.price,
+      "availability": (product.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating || "4.8",
+      "reviewCount": product.reviewsCount || 120
+    }
+  };
+
   return res.render('store-product', {
     pageTitle: `${product.name} | 2AM Study Store`,
-    metaDescription: product.desc,
+    metaDescription: product.desc || `Buy ${product.name} at best student discount prices on 2AM Study Store.`,
+    ogTitle: `${product.name} | 2AM Study Store`,
+    ogDescription: product.desc || `Buy ${product.name} on 2AM Study Store.`,
+    ogImage: productImages[0],
+    structuredData: productSchema,
     product,
     storeProducts: STORE_PRODUCTS,
     hideBot: true
@@ -2342,9 +2419,13 @@ app.get('/store/order-summary', (req, res) => {
   });
 });
 
-// In-memory / persistent invoice store
-let storeInvoicesMap = new Map();
-let invoiceCounter = 1;
+app.get(['/store/my-orders', '/my-orders'], (req, res) => {
+  res.render('store-orders', {
+    pageTitle: 'My Orders | 2AM Study Store',
+    metaDescription: 'Track, manage, and view invoices for all your past purchases from the 2AM Study Store.',
+    hideBot: true
+  });
+});
 
 app.get('/store/invoice/:orderId', (req, res) => {
   const { orderId } = req.params;
@@ -2454,6 +2535,64 @@ app.get('/api/store/orders/:orderId', async (req, res) => {
     console.error('[GET /api/store/orders]', e.message);
     return res.status(500).json({ success: false, error: 'Could not fetch order.' });
   }
+});
+
+// My Orders API — fetch past orders by student email or UID
+app.get('/api/store/my-orders', async (req, res) => {
+  const email = (req.query.email || req.session?.checkoutCustomer?.email || '').toLowerCase().trim();
+  const uid = req.query.uid || req.session?.user?.uid || '';
+
+  let ordersList = [];
+
+  // 1. Check Firestore
+  if (firestoreDb && (email || uid)) {
+    try {
+      if (email) {
+        const snap = await firestoreDb.collection('storeOrders')
+          .where('customer.email', '==', email)
+          .get();
+        snap.forEach(doc => ordersList.push({ id: doc.id, ...doc.data() }));
+      }
+      if (uid && ordersList.length === 0) {
+        const snapUid = await firestoreDb.collection('storeOrders')
+          .where('userId', '==', uid)
+          .get();
+        snapUid.forEach(doc => ordersList.push({ id: doc.id, ...doc.data() }));
+      }
+    } catch (err) {
+      console.warn('[My Orders Firestore Error]:', err.message);
+    }
+  }
+
+  // 2. Check Persisted Disk Orders / storeInvoicesMap
+  if (Array.isArray(PERSISTED_STORE_ORDERS) && PERSISTED_STORE_ORDERS.length > 0) {
+    PERSISTED_STORE_ORDERS.forEach(order => {
+      const orderEmail = (order.customer?.email || order.email || '').toLowerCase().trim();
+      const orderUid = order.userId || '';
+      if ((email && orderEmail === email) || (uid && orderUid === uid)) {
+        if (!ordersList.some(o => (o.orderId || o.id) === (order.orderId || order.id))) {
+          ordersList.push(order);
+        }
+      }
+    });
+  }
+
+  // 3. Fallback: if session has lastOrder, include it
+  if (req.session?.lastOrder && !ordersList.some(o => (o.orderId || o.id) === req.session.lastOrder.orderId)) {
+    const sessionEmail = (req.session.lastOrder.customer?.email || '').toLowerCase().trim();
+    if (!email || sessionEmail === email) {
+      ordersList.push(req.session.lastOrder);
+    }
+  }
+
+  // Sort by newest first
+  ordersList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  res.json({
+    success: true,
+    count: ordersList.length,
+    orders: ordersList
+  });
 });
 
 // ─── Public Read-Only Product API (for Hiii Nishant & public previews) ───────────
@@ -3703,9 +3842,38 @@ app.get('/blog/:slug', (req, res) => {
   if (dynamicPost) {
     if (dynamicPost.status === 'published' || req.session?.isStoreAdmin) {
       dynamicPost.views = (dynamicPost.views || 0) + 1;
+      const blogCover = dynamicPost.coverImage
+        ? (dynamicPost.coverImage.startsWith('http') ? dynamicPost.coverImage : `https://2amstudy.com${dynamicPost.coverImage}`)
+        : 'https://2amstudy.com/assets/images/smart_study_banner.png';
+
+      const blogSchema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": dynamicPost.title,
+        "description": dynamicPost.excerpt || 'Read this article on 2AM Study Blog.',
+        "image": blogCover,
+        "author": {
+          "@type": "Person",
+          "name": dynamicPost.author || "Nishant Kumar"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "2AM Study",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://2amstudy.com/assets/images/logo.jpg"
+          }
+        },
+        "datePublished": dynamicPost.createdAt || new Date().toISOString()
+      };
+
       return res.render('blog/post', {
         pageTitle: `${dynamicPost.title} | 2AM Study Blog`,
         metaDescription: dynamicPost.excerpt || 'Read this article on 2AM Study Blog.',
+        ogTitle: `${dynamicPost.title} | 2AM Study Blog`,
+        ogDescription: dynamicPost.excerpt || 'Read this article on 2AM Study Blog.',
+        ogImage: blogCover,
+        structuredData: blogSchema,
         post: dynamicPost
       });
     }
@@ -3714,9 +3882,12 @@ app.get('/blog/:slug', (req, res) => {
   // 2. Fallback to existing static EJS views if file exists
   const staticFilePath = path.join(__dirname, 'views', 'blog', `${slug}.ejs`);
   if (fs.existsSync(staticFilePath)) {
+    const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     return res.render(`blog/${slug}`, {
-      pageTitle: `${slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} | 2AM Study`,
-      metaDescription: 'Expert study tips and guides on 2AM Study.'
+      pageTitle: `${formattedTitle} | 2AM Study Blog`,
+      metaDescription: `Read ${formattedTitle} - Expert study tips, focus routines, and academic productivity guide on 2AM Study.`,
+      ogTitle: `${formattedTitle} | 2AM Study Blog`,
+      ogDescription: `Read ${formattedTitle} on 2AM Study Blog.`
     });
   }
 
@@ -4070,6 +4241,10 @@ app.post('/store/api/store/verify-payment', async (req, res) => {
         console.error('[Firestore] Failed to save order:', e.message);
       }
     }
+
+    // Save to disk persistence
+    PERSISTED_STORE_ORDERS.unshift(completedOrder);
+    savePersistedStoreOrders();
 
     storeInvoicesMap.set(razorpay_order_id, completedOrder);
     req.session.lastOrder = completedOrder;

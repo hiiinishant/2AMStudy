@@ -4,8 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= pageTitle || '2AM Study - #1 Student Productivity Hub, Focus Timer & Study Tools' %></title>
   <meta name="description"
-    content="<%= typeof metaDescription !== 'undefined' ? metaDescription : '2AM Study helps students stay focused with a productivity timer, study tools, study tips, and routines to improve concentration and academic performance.' %>" />
+    content="<%= typeof metaDescription !== 'undefined' ? metaDescription : '2AM Study helps students stay focused with a Pomodoro productivity timer, study tools, study tips, and student safety tools to improve academic performance.' %>" />
+
+  <!-- Canonical Tag (prevents duplicate indexing in Google) -->
+  <link rel="canonical" href="<%= typeof canonicalUrl !== 'undefined' ? canonicalUrl : ('https://2amstudy.com' + (typeof currentPath !== 'undefined' ? currentPath : '')) %>" />
+
+  <!-- Robots Directive -->
+  <meta name="robots" content="<%= typeof metaRobots !== 'undefined' ? metaRobots : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' %>" />
+  <% if (typeof metaKeywords !== 'undefined' && metaKeywords) { %>
+  <meta name="keywords" content="<%= metaKeywords %>" />
+  <% } %>
 
   <!-- Performance Optimization: Resource Hints -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -23,19 +33,16 @@
     rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/media.css" />
-  <title>
-    <%= pageTitle || '2AM Study - Focus Timer & Study Tools for Students' %>
-  </title>
 
-  <!-- Social Media Meta Tags (Open Graph & Twitter) -->
+  <!-- Social Media Meta Tags (Open Graph & Twitter Cards) -->
   <meta property="og:title"
     content="<%= typeof ogTitle !== 'undefined' ? ogTitle : (pageTitle || '2AM Study - #1 Student Productivity Hub') %>" />
   <meta property="og:description"
     content="<%= typeof ogDescription !== 'undefined' ? ogDescription : (typeof metaDescription !== 'undefined' ? metaDescription : 'Enhance your study focus and academic results with 2AM Study.') %>" />
   <meta property="og:image"
-    content="<%= typeof ogImage !== 'undefined' ? ogImage : 'https://2amstudy.online/assets/images/smart_study_banner.png' %>" />
-  <meta property="og:url" content="<%= typeof ogUrl !== 'undefined' ? ogUrl : 'https://2amstudy.online' %>" />
-  <meta property="og:type" content="website" />
+    content="<%= typeof ogImage !== 'undefined' ? ogImage : 'https://2amstudy.com/assets/images/smart_study_banner.png' %>" />
+  <meta property="og:url" content="<%= typeof ogUrl !== 'undefined' ? ogUrl : (typeof canonicalUrl !== 'undefined' ? canonicalUrl : 'https://2amstudy.com') %>" />
+  <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>" />
   <meta property="og:site_name" content="2AM Study" />
 
   <meta name="twitter:card" content="summary_large_image" />
@@ -44,7 +51,51 @@
   <meta name="twitter:description"
     content="<%= typeof ogDescription !== 'undefined' ? ogDescription : (typeof metaDescription !== 'undefined' ? metaDescription : 'Enhance your study focus and academic results with 2AM Study.') %>" />
   <meta name="twitter:image"
-    content="<%= typeof ogImage !== 'undefined' ? ogImage : 'https://2amstudy.online/assets/images/smart_study_banner.png' %>" />
+    content="<%= typeof ogImage !== 'undefined' ? ogImage : 'https://2amstudy.com/assets/images/smart_study_banner.png' %>" />
+
+  <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://2amstudy.com/#organization",
+        "name": "2AM Study",
+        "url": "https://2amstudy.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://2amstudy.com/assets/images/logo.jpg"
+        },
+        "sameAs": [
+          "https://youtube.com/@2amstudy?si=scn2pH77qJ3FpHAL",
+          "https://www.instagram.com/2amstudyofficial/",
+          "http://pinterest.com/2amstudy"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://2amstudy.com/#website",
+        "url": "https://2amstudy.com",
+        "name": "2AM Study",
+        "description": "Student Productivity Hub, Focus Timer & Student Safety Hub",
+        "publisher": {
+          "@id": "https://2amstudy.com/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://2amstudy.com/store?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  }
+  </script>
+  <% if (typeof structuredData !== 'undefined' && structuredData) { %>
+  <script type="application/ld+json">
+    <%- typeof structuredData === 'string' ? structuredData : JSON.stringify(structuredData) %>
+  </script>
+  <% } %>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0HF04M8D2K"></script>
@@ -226,7 +277,7 @@
                           class="fa-solid fa-bell me-2 text-primary"></i>Notifications</a></li>
                     <li><a class="dropdown-item rounded-3 py-2 small" href="/student-safety"><i
                           class="fa-solid fa-shield-halved me-2 text-primary"></i>Student Safety</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2 small" href="/store"><i
+                    <li><a class="dropdown-item rounded-3 py-2 small" href="/store/my-orders"><i
                           class="fa-solid fa-bag-shopping me-2 text-primary"></i>My Orders</a></li>
                     <li><a class="dropdown-item rounded-3 py-2 small" href="/settings"><i
                           class="fa-solid fa-gear me-2 text-primary"></i>Settings</a></li>
@@ -238,6 +289,31 @@
                           class="fa-solid fa-right-from-bracket me-2"></i>Logout</button></li>
                   </ul>
                 </div>
+
+                <!-- Instant Header Auth State Pre-Hydration (Prevents 1s Login/Join flicker on page navigation) -->
+                <script>
+                  (function() {
+                    try {
+                      var isLogged = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
+                      if (isLogged) {
+                        var g = document.getElementById('guestAuthButtons');
+                        var u = document.getElementById('userMenuDropdown');
+                        var n = document.getElementById('headerUserName');
+                        var a = document.getElementById('headerUserAvatar');
+                        var b = document.getElementById('notifBellWrapper');
+                        if (g) g.classList.add('d-none');
+                        if (u) u.classList.remove('d-none');
+                        if (b) b.classList.remove('d-none');
+                        var cachedName = localStorage.getItem('studentName') || localStorage.getItem('studentEmail');
+                        if (cachedName) {
+                          var cleanName = cachedName.includes('@') ? cachedName.split('@')[0] : cachedName;
+                          if (n) n.textContent = cleanName.length > 12 ? cleanName.substring(0, 12) + '...' : cleanName;
+                          if (a) a.textContent = cleanName.charAt(0).toUpperCase();
+                        }
+                      }
+                    } catch(e) {}
+                  })();
+                </script>
 
               </div>
             </div>

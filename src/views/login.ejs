@@ -534,8 +534,8 @@ body {
     });
   }
 
-  // Safe redirect helper — rejects external URLs, only allows relative paths starting with /
-  function safeRedirect(param, fallback = '/student-safety/my-reports') {
+  // Safe redirect helper — default fallback is homepage ('/') when user logs in directly
+  function safeRedirect(param, fallback = '/') {
     if (!param) return fallback;
     try {
       if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) {
@@ -549,7 +549,7 @@ body {
   const safeRedirectUrl = safeRedirect(rawRedirect);
 
   // Preserve safe redirect on Sign Up link
-  if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
+  if (rawRedirect && safeRedirectUrl !== '/') {
     const toSignup = document.getElementById('toSignupLink');
     if (toSignup) toSignup.href = '/signup?redirect=' + encodeURIComponent(safeRedirectUrl);
   }

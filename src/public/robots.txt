@@ -1,6 +1,20 @@
-# Standard robots.txt for 2AM Study
+# robots.txt for 2AM Study (https://2amstudy.com)
 User-agent: *
 Allow: /
 
+# Disallow private, administrative and checkout process paths
+Disallow: /admin
+Disallow: /admin/
+Disallow: /store/admin
+Disallow: /store/admin/
+Disallow: /store/payment
+Disallow: /store/payment-success
+Disallow: /store/invoice/
+Disallow: /api/
+Disallow: /store/api/
+Disallow: /student-safety/admin
+Disallow: /live-admin
+
 # Sitemap Location
 Sitemap: https://2amstudy.com/sitemap.xml
+

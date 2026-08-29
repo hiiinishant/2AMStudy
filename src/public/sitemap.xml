@@ -1,89 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Core Pages -->
-  <url><loc>https://2amstudy.com/</loc><changefreq>weekly</changefreq><priority>1.00</priority></url>
-  <url><loc>https://2amstudy.com/about</loc><changefreq>monthly</changefreq><priority>0.70</priority></url>
+  <!-- Core Landing & Trust Pages -->
+  <url><loc>https://2amstudy.com/</loc><changefreq>daily</changefreq><priority>1.00</priority></url>
+  <url><loc>https://2amstudy.com/about</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/faqs</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/contact</loc><changefreq>monthly</changefreq><priority>0.70</priority></url>
   <url><loc>https://2amstudy.com/privacy-policy</loc><changefreq>monthly</changefreq><priority>0.50</priority></url>
-  <url><loc>https://2amstudy.com/store</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
-  <url><loc>https://2amstudy.com/store/product/101</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/102</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/103</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/201</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/202</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/203</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/301</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/302</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/401</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/402</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/403</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/404</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/405</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/406</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/407</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/408</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/409</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/410</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/411</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/412</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/413</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/414</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/415</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/store/product/416</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/pricing-plan.html</loc><changefreq>monthly</changefreq><priority>0.60</priority></url>
+  <url><loc>https://2amstudy.com/terms</loc><changefreq>monthly</changefreq><priority>0.50</priority></url>
 
-  <!-- Popular Study Tools -->
-  <url><loc>https://2amstudy.com/timer</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <!-- Student Safety Ecosystem (High Search Intent) -->
+  <url><loc>https://2amstudy.com/student-safety</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://2amstudy.com/student-safety/cases</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://2amstudy.com/student-safety/report</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/student-safety/how-it-works</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
+
+  <!-- Student Store Hub & Products -->
+  <url><loc>https://2amstudy.com/store</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://2amstudy.com/store/product/101</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/102</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/103</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/201</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/202</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/203</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/301</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/302</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/401</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/402</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/403</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/404</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/405</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/406</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/407</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/408</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/409</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/410</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/411</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/412</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/413</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/414</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/415</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/store/product/416</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+
+  <!-- Popular Study Tools Hub & Utilities -->
+  <url><loc>https://2amstudy.com/study-tools</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://2amstudy.com/timer</loc><changefreq>weekly</changefreq><priority>0.95</priority></url>
+  <url><loc>https://2amstudy.com/clock</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/music</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/streak</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/quotes</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/game</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/tasks</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/flashcards</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/notes</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/chat</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
-  <url><loc>https://2amstudy.com/music</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/quotes</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
-  <url><loc>https://2amstudy.com/game</loc><changefreq>weekly</changefreq><priority>0.70</priority></url>
-  <url><loc>https://2amstudy.com/streak</loc><changefreq>weekly</changefreq><priority>0.70</priority></url>
-  <url><loc>https://2amstudy.com/college-student</loc><changefreq>weekly</changefreq><priority>0.70</priority></url>
+  <url><loc>https://2amstudy.com/college-student</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/reminder</loc><changefreq>weekly</changefreq><priority>0.70</priority></url>
   <url><loc>https://2amstudy.com/distraction</loc><changefreq>weekly</changefreq><priority>0.70</priority></url>
-  <url><loc>https://2amstudy.com/clock</loc><changefreq>weekly</changefreq><priority>0.60</priority></url>
   <url><loc>https://2amstudy.com/exam-countdown</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
   <url><loc>https://2amstudy.com/syllabus-tracker</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/timetable-generator</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/timetable-generator</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/resources</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
 
-  <!-- Hubs -->
-  <url><loc>https://2amstudy.com/study-tools</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
-  <url><loc>https://2amstudy.com/calculators</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/calculators/cgpa</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
-  <url><loc>https://2amstudy.com/calculators/percentage</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <!-- Calculators & Utilities Hub -->
+  <url><loc>https://2amstudy.com/calculators</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/calculators/cgpa</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/calculators/percentage</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
   <url><loc>https://2amstudy.com/calculators/age</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
-  <url><loc>https://2amstudy.com/utilities</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/utilities</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/pdf-tools</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
-
-  <!-- PDF Tools Sub-sections -->
   <url><loc>https://2amstudy.com/pdf-tools/merger</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/pdf-tools/splitter</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/pdf-tools/editor</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/pdf-tools/compressor</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://2amstudy.com/pdf-tools/converter</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
-
-  <!-- Utility Tools -->
   <url><loc>https://2amstudy.com/air-quality</loc><changefreq>daily</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/word-counter</loc><changefreq>monthly</changefreq><priority>0.65</priority></url>
-  <url><loc>https://2amstudy.com/grammar-checker</loc><changefreq>monthly</changefreq><priority>0.65</priority></url>
-  <url><loc>https://2amstudy.com/weather</loc><changefreq>daily</changefreq><priority>0.60</priority></url>
+  <url><loc>https://2amstudy.com/word-counter</loc><changefreq>monthly</changefreq><priority>0.70</priority></url>
+  <url><loc>https://2amstudy.com/grammar-checker</loc><changefreq>monthly</changefreq><priority>0.70</priority></url>
+  <url><loc>https://2amstudy.com/weather</loc><changefreq>daily</changefreq><priority>0.65</priority></url>
   <url><loc>https://2amstudy.com/compass</loc><changefreq>monthly</changefreq><priority>0.50</priority></url>
 
-  <!-- Blog & Content -->
-  <url><loc>https://2amstudy.com/blog</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <!-- Blog & Educational Content -->
+  <url><loc>https://2amstudy.com/blog</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/blog/focus-tips</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/blog/study-routine-guide</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/blog/study-at-night</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
-  <url><loc>https://2amstudy.com/blog/how-to-stay-focused</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/best-study-techniques</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/avoid-distraction</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/daily-study-routine</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/build-consistency</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/no-motivation-2am-study</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/mistakes-before-exams</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
-  <url><loc>https://2amstudy.com/blog/smart-work-student-success</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://2amstudy.com/blog/how-to-stay-focused</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/best-study-techniques</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/avoid-distraction</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/daily-study-routine</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/build-consistency</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/no-motivation-2am-study</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/mistakes-before-exams</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://2amstudy.com/blog/smart-work-student-success</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
 </urlset>
+
