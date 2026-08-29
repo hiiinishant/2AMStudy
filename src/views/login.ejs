@@ -160,6 +160,7 @@ body {
 .auth-brand-logo span {
   background: linear-gradient(135deg, #0f172a 30%, #2563eb 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -376,7 +377,7 @@ body {
       <div class="auth-panel-content">
         <h2 class="auth-panel-title">2 AM Study</h2>
         <p class="auth-panel-subtitle">
-          Meet Our Founder — Nishant Kumar, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
+          Meet Our Founder — <a href="https://hiiinishant.com" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline; text-underline-offset: 3px; font-weight: 700; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Nishant Kumar</a>, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
         </p>
 
         <div class="auth-carousel-dots">
@@ -405,16 +406,22 @@ body {
         <span id="auth-error-msg">Failed to log in. Please check your credentials.</span>
       </div>
 
+      <!-- Bug 5 fix: Info alert shown when user navigates to /forgot-password directly -->
+      <div id="auth-info-alert" class="auth-alert d-none" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="auth-info-msg">Enter your email address below, then click <strong>Forgot password?</strong> to receive a reset link.</span>
+      </div>
+
       <div id="auth-success-alert" class="auth-alert auth-alert-success d-none">
         <i class="fa-solid fa-circle-check text-success"></i>
-        <span>Logged in successfully! Redirecting...</span>
+        <span id="auth-success-msg">Logged in successfully! Redirecting...</span>
       </div>
 
       <!-- Login Form -->
       <form id="loginForm" novalidate>
-        <!-- Username or Email -->
+        <!-- Email Address -->
         <div class="mb-2">
-          <label for="loginEmail" class="auth-form-label">Username or email</label>
+          <label for="loginEmail" class="auth-form-label">Email address</label>
           <div class="auth-input-wrap">
             <input type="email" class="auth-input" id="loginEmail" placeholder="student@university.edu" required autocomplete="email">
           </div>
@@ -491,7 +498,7 @@ body {
     browserSessionPersistence,
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -545,6 +552,13 @@ body {
   if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
     const toSignup = document.getElementById('toSignupLink');
     if (toSignup) toSignup.href = '/signup?redirect=' + encodeURIComponent(safeRedirectUrl);
+  }
+
+  // Bug 5 fix: Show helpful info alert when user is redirected from /forgot-password URL
+  const resetPrompt = new URLSearchParams(window.location.search).get('resetprompt');
+  if (resetPrompt === '1') {
+    const infoAlert = document.getElementById('auth-info-alert');
+    if (infoAlert) infoAlert.classList.remove('d-none');
   }
 
   // Instant redirect if already logged in locally
@@ -634,6 +648,7 @@ body {
       await saveUserToFirestore(user);
 
       successAlert.classList.add('redirecting');
+      document.getElementById('auth-success-msg').textContent = 'Logged in successfully! Redirecting...';
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
@@ -672,6 +687,7 @@ body {
       await saveUserToFirestore(user);
 
       successAlert.classList.add('redirecting');
+      document.getElementById('auth-success-msg').textContent = 'Logged in successfully! Redirecting...';
       successAlert.classList.remove('d-none');
 
       setTimeout(() => {
@@ -701,16 +717,39 @@ body {
       return;
     }
 
+    // Validate email format client-side before calling Firebase
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errorAlert.classList.remove('d-none');
+      errorMsg.textContent = 'Please enter a valid email address (e.g. student@university.edu).';
+      document.getElementById('loginEmail').focus();
+      return;
+    }
+
     try {
+      // Check Firestore first — Firebase silently succeeds for non-existent emails (privacy by design)
+      // so we do our own check against the users collection before sending the reset email
+      const usersRef = collection(db, 'users');
+      const emailQuery = query(usersRef, where('email', '==', email));
+      const emailSnap = await getDocs(emailQuery);
+
+      if (emailSnap.empty) {
+        // No account registered with this email — block the reset
+        errorAlert.classList.remove('d-none');
+        errorMsg.textContent = 'No account found with this email address. Please check and try again.';
+        return;
+      }
+
+      // Account exists — safe to send reset email
       await sendPasswordResetEmail(auth, email);
+      document.getElementById('auth-success-msg').textContent = `Password reset link sent to ${email}. Please check your inbox.`;
       successAlert.classList.remove('d-none');
-      successAlert.querySelector('span').textContent = `Password reset link sent to ${email}. Please check your inbox.`;
     } catch (err) {
       errorAlert.classList.remove('d-none');
-      if (err.code === 'auth/user-not-found') {
-        errorMsg.textContent = 'No account found with this email address.';
-      } else if (err.code === 'auth/invalid-email') {
+      if (err.code === 'auth/invalid-email') {
         errorMsg.textContent = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMsg.textContent = 'Too many requests. Please wait a moment before trying again.';
       } else {
         errorMsg.textContent = err.message || 'Could not send password reset email.';
       }

@@ -34,9 +34,53 @@
           </div>
 
           <div class="mb-3">
-            <label for="settingsEmail" class="form-label fw-semibold text-dark small">Email Address</label>
-            <input type="email" class="form-control py-2 bg-light" id="settingsEmail" disabled readonly>
-            <div class="form-text small">Email address cannot be changed directly for security reasons.</div>
+            <label class="form-label fw-semibold text-dark small">Email Address</label>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <input type="email" class="form-control py-2 bg-light flex-grow-1" id="settingsEmail" disabled readonly>
+              <button type="button" id="changeEmailToggleBtn" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold flex-shrink-0">
+                ✏️ Change Email
+              </button>
+            </div>
+            <div class="form-text small text-muted">A verification link will be sent to your new address. Your email won't change until you click it.</div>
+          </div>
+
+          <!-- Change Email Secure Panel -->
+          <div id="changeEmailPanel" class="d-none border rounded-4 p-4 mb-3" style="background:#f8fafc;">
+            <p class="fw-bold text-dark mb-3" style="font-size:0.9rem;">🔐 Change Email Address</p>
+
+            <div id="changeEmailAlert" class="alert border-0 rounded-3 p-3 small mb-3 d-none"></div>
+
+            <div class="mb-3">
+              <label for="newEmailInput" class="form-label small fw-semibold text-dark">New Email Address</label>
+              <input type="email" class="form-control py-2" id="newEmailInput" placeholder="new@example.com" autocomplete="off">
+            </div>
+            <div class="mb-3">
+              <label for="confirmNewEmailInput" class="form-label small fw-semibold text-dark">Confirm New Email</label>
+              <input type="email" class="form-control py-2" id="confirmNewEmailInput" placeholder="Re-enter new email" autocomplete="off">
+            </div>
+
+            <!-- Shown only for email/password accounts -->
+            <div id="currentPasswordSection" class="mb-3 d-none">
+              <label for="currentPasswordForEmail" class="form-label small fw-semibold text-dark">Current Password <span class="text-danger">*</span></label>
+              <input type="password" class="form-control py-2" id="currentPasswordForEmail" placeholder="Enter your current password" autocomplete="current-password">
+              <div class="form-text small">Required to verify your identity before changing email.</div>
+            </div>
+
+            <!-- Shown only for Google-only accounts -->
+            <div id="googleReauthNote" class="mb-3 d-none">
+              <div class="alert alert-info border-0 rounded-3 p-3 small mb-0">
+                <strong><i class="fa-brands fa-google me-1"></i> Google Account:</strong> You'll be prompted to re-authenticate with Google to confirm your identity.
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" id="submitEmailChangeBtn" class="btn btn-primary rounded-pill px-4 fw-bold">
+                Send Verification Link
+              </button>
+              <button type="button" id="cancelEmailChangeBtn" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+                Cancel
+              </button>
+            </div>
           </div>
 
           <div class="mb-4">
@@ -119,7 +163,16 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    updateProfile,
+    verifyBeforeUpdateEmail,
+    reauthenticateWithCredential,
+    reauthenticateWithPopup,
+    EmailAuthProvider,
+    GoogleAuthProvider
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -225,6 +278,32 @@
 
     document.getElementById('settingsEmail').value = user.email;
     document.getElementById('settingsName').value = user.displayName || user.email.split('@')[0];
+
+    // ── Email sync: if Firebase Auth email changed after verification, sync cache & Firestore ──
+    const cachedEmail = localStorage.getItem('studentEmail');
+    if (cachedEmail && cachedEmail !== user.email) {
+      localStorage.setItem('studentEmail', user.email);
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          emailVerified: user.emailVerified,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (syncErr) {
+        console.warn('Email sync warning:', syncErr);
+      }
+    }
+
+    // ── Detect auth provider and show appropriate change-email UI ──
+    const isPasswordUser = user.providerData.some(p => p.providerId === 'password');
+    const isGoogleOnly   = user.providerData.every(p => p.providerId === 'google.com');
+
+    if (isPasswordUser) {
+      document.getElementById('currentPasswordSection').classList.remove('d-none');
+    }
+    if (isGoogleOnly) {
+      document.getElementById('googleReauthNote').classList.remove('d-none');
+    }
 
     updatePushBadge();
 
@@ -386,6 +465,118 @@
     } finally {
       saveBtn.disabled = false;
       saveBtn.innerText = 'Save Changes';
+    }
+  });
+  // ── Secure Change Email Feature ──────────────────────────────────────────
+  const changeEmailToggleBtn  = document.getElementById('changeEmailToggleBtn');
+  const changeEmailPanel      = document.getElementById('changeEmailPanel');
+  const cancelEmailChangeBtn  = document.getElementById('cancelEmailChangeBtn');
+  const submitEmailChangeBtn  = document.getElementById('submitEmailChangeBtn');
+  const changeEmailAlert      = document.getElementById('changeEmailAlert');
+
+  function showCEAlert(type, message) {
+    changeEmailAlert.className = `alert alert-${type} border-0 rounded-3 p-3 small mb-3`;
+    changeEmailAlert.textContent = message;
+    changeEmailAlert.classList.remove('d-none');
+  }
+
+  function clearCEPanel() {
+    document.getElementById('newEmailInput').value = '';
+    document.getElementById('confirmNewEmailInput').value = '';
+    const pwField = document.getElementById('currentPasswordForEmail');
+    if (pwField) pwField.value = '';
+    changeEmailAlert.classList.add('d-none');
+  }
+
+  // Toggle open/close
+  changeEmailToggleBtn.addEventListener('click', () => {
+    const isOpen = !changeEmailPanel.classList.contains('d-none');
+    changeEmailPanel.classList.toggle('d-none', isOpen);
+    changeEmailToggleBtn.textContent = isOpen ? '✏️ Change Email' : '✖ Close';
+    if (!isOpen) clearCEPanel();
+  });
+
+  cancelEmailChangeBtn.addEventListener('click', () => {
+    changeEmailPanel.classList.add('d-none');
+    changeEmailToggleBtn.textContent = '✏️ Change Email';
+    clearCEPanel();
+  });
+
+  submitEmailChangeBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newEmail     = document.getElementById('newEmailInput').value.trim().toLowerCase();
+    const confirmEmail = document.getElementById('confirmNewEmailInput').value.trim().toLowerCase();
+    const emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // ── Client-side validation ──
+    if (!newEmail || !emailRegex.test(newEmail)) {
+      showCEAlert('danger', '❌ Please enter a valid email address.'); return;
+    }
+    if (newEmail !== confirmEmail) {
+      showCEAlert('danger', '❌ Email addresses do not match. Please re-enter.'); return;
+    }
+    if (newEmail === (user.email || '').toLowerCase()) {
+      showCEAlert('warning', '⚠️ The new email is the same as your current email.'); return;
+    }
+
+    submitEmailChangeBtn.disabled = true;
+    submitEmailChangeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Sending...`;
+    changeEmailAlert.classList.add('d-none');
+
+    const isPasswordUser = user.providerData.some(p => p.providerId === 'password');
+    const isGoogleUser   = user.providerData.some(p => p.providerId === 'google.com');
+
+    try {
+      // ── Step 1: Re-authenticate (required by Firebase before sensitive ops) ──
+      if (isPasswordUser) {
+        const currentPassword = document.getElementById('currentPasswordForEmail').value;
+        if (!currentPassword) {
+          showCEAlert('danger', '❌ Please enter your current password to continue.');
+          return;
+        }
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+
+      } else if (isGoogleUser) {
+        const provider = new GoogleAuthProvider();
+        await reauthenticateWithPopup(user, provider);
+      }
+
+      // ── Step 2: Send verification to the NEW email ──
+      // Firebase Auth sends a link to newEmail.
+      // The email in Firebase Auth ONLY changes after the user clicks that link.
+      // We do NOT touch Firestore or localStorage here.
+      await verifyBeforeUpdateEmail(user, newEmail);
+
+      // ── Step 3: Success message ──
+      showCEAlert('success',
+        `✅ Verification link sent to ${newEmail}. Please check your new inbox and click the link. ` +
+        `Your email won't change until you verify it. Once verified, it will sync automatically on your next login.`
+      );
+      document.getElementById('newEmailInput').value = '';
+      document.getElementById('confirmNewEmailInput').value = '';
+      const pwField = document.getElementById('currentPasswordForEmail');
+      if (pwField) pwField.value = '';
+
+    } catch (err) {
+      console.error('Change email error:', err);
+      const errorMessages = {
+        'auth/requires-recent-login'  : '🔒 Session expired. Please log out and log back in before changing your email.',
+        'auth/email-already-in-use'   : '❌ This email address is already registered to another account.',
+        'auth/invalid-email'          : '❌ The email address you entered is not valid.',
+        'auth/operation-not-allowed'  : '❌ Email change is currently disabled. Please contact support.',
+        'auth/network-request-failed' : '❌ Network error. Please check your connection and try again.',
+        'auth/wrong-password'         : '❌ Incorrect current password. Please try again.',
+        'auth/invalid-credential'     : '❌ Incorrect current password. Please try again.',
+        'auth/popup-closed-by-user'   : '❌ Google sign-in was cancelled. Please try again.',
+        'auth/too-many-requests'      : '❌ Too many attempts. Please wait a moment and try again.'
+      };
+      showCEAlert('danger', errorMessages[err.code] || err.message || 'Failed to send verification link. Please try again.');
+    } finally {
+      submitEmailChangeBtn.disabled = false;
+      submitEmailChangeBtn.textContent = 'Send Verification Link';
     }
   });
 </script>

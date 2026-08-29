@@ -727,7 +727,9 @@ app.get('/signup', (req, res) => {
 });
 
 app.get('/forgot-password', (req, res) => {
-  res.redirect('/login');
+  // Bug 5 fix: Redirect with a flag so the login page can show a helpful prompt
+  // instead of silently dropping the user on the login page with no context
+  res.redirect('/login?resetprompt=1');
 });
 
 app.get('/profile', (req, res) => {

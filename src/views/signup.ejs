@@ -150,6 +150,7 @@ body {
 .su-brand-logo span {
   background: linear-gradient(135deg, #0f172a 30%, #2563eb 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -259,6 +260,19 @@ body {
   .su-photo-panel { min-height: 260px; padding: 28px 24px; }
   .su-form-panel { padding: 32px 24px; }
 }
+
+.su-name-college-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 480px) {
+  .su-name-college-row {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 
 <section class="su-hero-section">
@@ -277,7 +291,7 @@ body {
       <div class="su-panel-content">
         <h2 class="su-panel-title">2 AM Study</h2>
         <p class="su-panel-subtitle">
-          Meet Our Founder — Nishant Kumar, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
+          Meet Our Founder — <a href="https://hiiinishant.com" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline; text-underline-offset: 3px; font-weight: 700; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Nishant Kumar</a>, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
         </p>
 
         <div class="su-dots">
@@ -313,15 +327,33 @@ body {
         <i class="fa-solid fa-circle-check" style="margin-top:2px;flex-shrink:0;"></i>
         <div>
           <strong style="display:block;margin-bottom:2px;">Account Created Successfully!</strong>
-          <span>We've sent a verification email. Please check your inbox. Redirecting...</span>
+          <span id="su-success-msg">Redirecting you to your dashboard...</span>
         </div>
+      </div>
+
+      <!-- Email Verification Pending State (shown after email/password signup) -->
+      <div id="verifyPendingState" class="d-none" style="text-align:center;padding:16px 0;">
+        <div style="font-size:2.8rem;margin-bottom:10px;">📧</div>
+        <p style="font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:6px;">Verify Your Email</p>
+        <p style="font-size:0.86rem;color:#475569;margin-bottom:18px;line-height:1.55;">
+          We've sent a verification link to<br>
+          <strong id="verifyEmailDisplay" style="color:#2563eb;"></strong><br>
+          Click the link in your inbox to activate your account.
+        </p>
+        <button id="checkVerifiedBtn" type="button" class="su-btn-primary" style="margin-bottom:10px;">
+          ✅ I've Verified — Continue
+        </button>
+        <button id="resendVerifyBtn" type="button" style="background:none;border:none;color:#2563eb;font-size:0.85rem;font-weight:600;cursor:pointer;display:block;width:100%;padding:6px 0;">
+          📨 Resend Verification Email
+        </button>
+        <div id="resendMsg" style="font-size:0.8rem;color:#64748b;margin-top:8px;min-height:20px;"></div>
       </div>
 
       <!-- Form -->
       <form id="signupForm" novalidate>
 
         <!-- Name + College row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;">
+        <div class="su-name-college-row">
           <div>
             <label for="signupName" class="su-form-label">Full Name <span style="color:#ef4444;">*</span></label>
             <div class="su-input-wrap">
@@ -332,7 +364,7 @@ body {
           <div>
             <label for="signupCollege" class="su-form-label">College <span style="font-size:0.74rem;color:#94a3b8;font-weight:400;">(Optional)</span></label>
             <div class="su-input-wrap">
-              <input type="text" class="su-input" id="signupCollege" placeholder="e.g. Delhi University" autocomplete="organization">
+              <input type="text" class="su-input" id="signupCollege" placeholder="e.g. Delhi University" autocomplete="organization" maxlength="120">
             </div>
           </div>
         </div>
@@ -350,7 +382,7 @@ body {
         <div style="margin-bottom:4px;">
           <label for="signupPassword" class="su-form-label">Password <span style="color:#ef4444;">*</span></label>
           <div class="su-input-wrap">
-            <input type="password" class="su-input" id="signupPassword" placeholder="Minimum 6 characters" minlength="6" required autocomplete="new-password" style="padding-right:44px;">
+            <input type="password" class="su-input" id="signupPassword" placeholder="Minimum 8 characters" minlength="8" required autocomplete="new-password" style="padding-right:44px;">
             <button type="button" class="su-password-toggle" id="pwToggle1" aria-label="Toggle password visibility">
               <i class="fa-regular fa-eye" id="pwEye1"></i>
             </button>
@@ -359,7 +391,7 @@ body {
             <div class="su-strength-bar"><div class="su-strength-fill" id="strengthFill"></div></div>
             <span class="su-strength-label" id="strengthLabel"></span>
           </div>
-          <div class="su-field-error" id="passwordError">Password must be at least 6 characters.</div>
+          <div class="su-field-error" id="passwordError">Password must be at least 8 characters.</div>
         </div>
 
         <!-- Confirm Password -->
@@ -385,7 +417,7 @@ body {
 
         <!-- Submit -->
         <button type="submit" id="signupSubmitBtn" class="su-btn-primary">
-          ✨ Create Account
+          âœ¨ Create Account
         </button>
       </form>
 
@@ -426,7 +458,8 @@ body {
     updateProfile,
     sendEmailVerification,
     GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    reload
   } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -466,7 +499,7 @@ body {
   setupToggle('pwToggle1', 'pwEye1', 'signupPassword');
   setupToggle('pwToggle2', 'pwEye2', 'signupConfirmPassword');
 
-  // Password Strength Meter
+  // Password Strength Meter (Fix 3: updated thresholds for 8-char min)
   const pwInput = document.getElementById('signupPassword');
   const strengthWrap = document.getElementById('strengthWrap');
   const strengthFill = document.getElementById('strengthFill');
@@ -477,8 +510,8 @@ body {
     if (!val) { strengthWrap.classList.remove('visible'); return; }
     strengthWrap.classList.add('visible');
     let score = 0;
-    if (val.length >= 6) score++;
-    if (val.length >= 10) score++;
+    if (val.length >= 8)  score++;   // Fix 3: was >= 6
+    if (val.length >= 12) score++;   // Fix 3: was >= 10
     if (/[A-Z]/.test(val)) score++;
     if (/[0-9]/.test(val)) score++;
     if (/[^A-Za-z0-9]/.test(val)) score++;
@@ -494,10 +527,18 @@ body {
     strengthFill.style.background = lvl.color;
     strengthLabel.textContent = lvl.label;
     strengthLabel.style.color = lvl.color;
+
+    // Fix 2: Re-validate confirm password live when password changes
+    const cpw = document.getElementById('signupConfirmPassword');
+    if (cpw.value) {
+      const mismatch = cpw.value !== val;
+      markInput(cpw, mismatch);
+      showErr('confirmPasswordFeedback', mismatch);
+    }
   });
 
-  // Safe redirect
-  function safeRedirect(param, fallback = '/student-safety/my-reports') {
+  // Safe redirect — default fallback is homepage ('/') when user signs up directly
+  function safeRedirect(param, fallback = '/') {
     if (!param) return fallback;
     if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) return fallback;
     return param;
@@ -506,7 +547,7 @@ body {
   const rawRedirect = new URLSearchParams(window.location.search).get('redirect');
   const safeRedirectUrl = safeRedirect(rawRedirect);
 
-  if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
+  if (rawRedirect && safeRedirectUrl !== '/') {
     const toLogin = document.getElementById('toLoginLink');
     if (toLogin) toLogin.href = '/login?redirect=' + encodeURIComponent(safeRedirectUrl);
   }
@@ -558,10 +599,55 @@ body {
     if (inputEl) inputEl.classList.toggle('is-invalid', invalid);
   }
 
-  // Signup submit
+  // â”€â”€ Fix 5: Rate limiting tracker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let failedAttempts = 0;
+  let cooldownActive = false;
+  let cooldownTimer = null;
+
+  function startCooldown() {
+    cooldownActive = true;
+    submitBtn.disabled = true;
+    let seconds = 30;
+    submitBtn.textContent = `Too many attempts. Wait ${seconds}s...`;
+    cooldownTimer = setInterval(() => {
+      seconds--;
+      if (seconds <= 0) {
+        clearInterval(cooldownTimer);
+        cooldownActive = false;
+        failedAttempts = 0;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'âœ¨ Create Account';
+      } else {
+        submitBtn.textContent = `Too many attempts. Wait ${seconds}s...`;
+      }
+    }, 1000);
+  }
+
+  // â”€â”€ Critical Fix: Verification pending state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Holds the firebase user after creation so verify/resend buttons can use it
+  let pendingUser = null;
+
+  function showVerifyPendingState(user) {
+    pendingUser = user;
+    // Hide signup form, divider, google button, footer so user cannot bypass
+    signupForm.style.display = 'none';
+    const divider = document.querySelector('.su-divider');
+    if (divider) divider.style.display = 'none';
+    googleBtn.style.display = 'none';
+    const footerPrompt = document.querySelector('.su-footer-prompt');
+    if (footerPrompt) footerPrompt.style.display = 'none';
+    // Show email and pending state panel
+    document.getElementById('verifyEmailDisplay').textContent = user.email;
+    document.getElementById('verifyPendingState').classList.remove('d-none');
+  }
+
+  // â”€â”€ Signup Form Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (cooldownActive) return; // Fix 5: block during cooldown
+
     errorAlert.classList.add('d-none');
     successAlert.classList.add('d-none');
 
@@ -580,14 +666,20 @@ body {
 
     let valid = true;
 
-    if (!name) { markInput(nameEl, true); showErr('nameError', true); valid = false; }
-    else        { markInput(nameEl, false); showErr('nameError', false); }
+    // Fix 4: Name must be at least 2 characters (not just non-empty)
+    if (!name || name.length < 2) {
+      markInput(nameEl, true);
+      document.getElementById('nameError').textContent = name ? 'Name must be at least 2 characters.' : 'Please enter your full name.';
+      showErr('nameError', true);
+      valid = false;
+    } else { markInput(nameEl, false); showErr('nameError', false); }
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       markInput(emailEl, true); showErr('emailError', true); valid = false;
     } else { markInput(emailEl, false); showErr('emailError', false); }
 
-    if (!password || password.length < 6) {
+    // Fix 3: Minimum 8 characters (was 6)
+    if (!password || password.length < 8) {
       markInput(pwEl, true); showErr('passwordError', true); valid = false;
     } else { markInput(pwEl, false); showErr('passwordError', false); }
 
@@ -609,42 +701,130 @@ body {
 
       await updateProfile(user, { displayName: name });
 
-      try { await sendEmailVerification(user); } catch (evErr) { console.warn("Email verification send warning:", evErr); }
+      // Fix 7: Catch sendEmailVerification failure and tell the user
+      let verificationSent = true;
+      try {
+        await sendEmailVerification(user);
+      } catch (evErr) {
+        console.warn("Email verification send warning:", evErr);
+        verificationSent = false;
+      }
 
       syncLocalCache(user, college);
       await saveUserToFirestore(user, college);
 
-      successAlert.classList.remove('d-none');
+      // Critical Fix: Show verification pending state instead of instant redirect
+      // User MUST verify their email before being let through
+      showVerifyPendingState(user);
 
-      setTimeout(() => { window.location.href = safeRedirectUrl; }, 1500);
+      // Fix 7: If verification email failed to send, warn the user with resend option
+      if (!verificationSent) {
+        const resendMsg = document.getElementById('resendMsg');
+        resendMsg.textContent = 'âš ï¸ We couldn\'t send the verification email. Please use the "Resend" button below.';
+        resendMsg.style.color = '#d97706';
+      }
 
     } catch (err) {
       console.error("Signup error:", err);
+
+      // Fix 5: Track failed attempts â€” lock out after 3 consecutive failures
+      failedAttempts++;
+      if (failedAttempts >= 3) {
+        startCooldown();
+        return; // finally block still runs, but cooldown manages button state
+      }
+
       errorAlert.classList.remove('d-none');
       if (err.code === 'auth/email-already-in-use') {
         errorMsg.textContent = 'This email is already registered. Please login instead.';
       } else if (err.code === 'auth/invalid-email') {
         errorMsg.textContent = 'Please enter a valid email address.';
       } else if (err.code === 'auth/weak-password') {
-        errorMsg.textContent = 'Password is too weak. Please use at least 6 characters.';
+        errorMsg.textContent = 'Password is too weak. Please use at least 8 characters.';
       } else {
         errorMsg.textContent = err.message || 'Failed to create account.';
       }
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerText = '✨ Create Account';
+      // Only restore button if cooldown didn't take over
+      if (!cooldownActive) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'âœ¨ Create Account';
+      }
     }
   });
 
-  // Google Sign-Up
+  // â”€â”€ "I've Verified â€” Continue" button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('checkVerifiedBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('checkVerifiedBtn');
+    const resendMsg = document.getElementById('resendMsg');
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    try {
+      if (pendingUser) {
+        // Reload user from Firebase to get latest emailVerified status
+        await reload(pendingUser);
+        if (pendingUser.emailVerified) {
+          // Update Firestore to mark email as verified
+          try {
+            const userRef = doc(db, "users", pendingUser.uid);
+            await updateDoc(userRef, { emailVerified: true });
+          } catch (fsErr) { console.warn("Firestore verify update:", fsErr); }
+          resendMsg.textContent = 'âœ… Email verified! Redirecting...';
+          resendMsg.style.color = '#15803d';
+          setTimeout(() => { window.location.href = safeRedirectUrl; }, 800);
+        } else {
+          resendMsg.textContent = 'âŒ Email not verified yet. Please click the link in your inbox first.';
+          resendMsg.style.color = '#b91c1c';
+          btn.disabled = false;
+          btn.textContent = 'âœ… I\'ve Verified â€” Continue';
+        }
+      }
+    } catch (err) {
+      console.error("Verify check error:", err);
+      resendMsg.textContent = 'Error checking verification status. Please try again.';
+      resendMsg.style.color = '#b91c1c';
+      btn.disabled = false;
+      btn.textContent = 'âœ… I\'ve Verified â€” Continue';
+    }
+  });
+
+  // â”€â”€ "Resend Verification Email" button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  document.getElementById('resendVerifyBtn').addEventListener('click', async () => {
+    const resendBtn = document.getElementById('resendVerifyBtn');
+    const resendMsg = document.getElementById('resendMsg');
+    resendBtn.disabled = true;
+    resendMsg.textContent = 'Sending...';
+    resendMsg.style.color = '#64748b';
+    try {
+      if (pendingUser) {
+        await sendEmailVerification(pendingUser);
+        resendMsg.textContent = 'ðŸ“¨ Verification email resent! Please check your inbox.';
+        resendMsg.style.color = '#15803d';
+        // Anti-spam: re-enable after 30 seconds
+        setTimeout(() => { resendBtn.disabled = false; }, 30000);
+      }
+    } catch (err) {
+      resendMsg.textContent = err.code === 'auth/too-many-requests'
+        ? 'Too many requests. Please wait a moment before resending.'
+        : 'Failed to resend. Please try again in a moment.';
+      resendMsg.style.color = '#b91c1c';
+      resendBtn.disabled = false;
+    }
+  });
+
+  // â”€â”€ Fix 1 & 6: Google Sign-Up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Google accounts are pre-verified by Google â€” no email verification step needed
   googleBtn.addEventListener('click', async () => {
     errorAlert.classList.add('d-none');
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      // Fix 1: Google accounts are always emailVerified â€” save correctly
       syncLocalCache(user);
       await saveUserToFirestore(user);
+      // Fix 6: Show correct success message â€” no fake "verification email sent"
+      document.getElementById('su-success-msg').textContent = 'Redirecting you to your dashboard...';
       successAlert.classList.remove('d-none');
       setTimeout(() => { window.location.href = safeRedirectUrl; }, 800);
     } catch (err) {
@@ -658,3 +838,4 @@ body {
 </script>
 
 <%- include('partials/footer') %>
+

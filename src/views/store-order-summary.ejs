@@ -573,24 +573,33 @@ async function initializeCart() {
         cartItems = data.cart || [];
         appliedCouponData = data.coupon || null;
 
-        // Pre-fill address from session
+        // Pre-fill address from session (server-side — most reliable)
         if (data.customer) {
           const c = data.customer;
           ['name','email','phone','pincode','address','city'].forEach(k => {
             const el = document.getElementById(`checkout-${k}`);
             if (el) el.value = c[k] || '';
           });
+          // Keep localStorage in sync with what the session has
+          localStorage.setItem('2am_checkout_address', JSON.stringify(c));
         }
 
-        // Pre-fill from localStorage if available
-        const nameEl = document.getElementById('checkout-name');
+        // Pre-fill from localStorage if available (fallback — handles session loss after cart edit)
+        const savedAddr = (() => { try { return JSON.parse(localStorage.getItem('2am_checkout_address') || 'null'); } catch(e){ return null; } })();
+        const nameEl  = document.getElementById('checkout-name');
         const emailEl = document.getElementById('checkout-email');
-        if (nameEl && !nameEl.value && localStorage.getItem('studentName')) {
-          nameEl.value = localStorage.getItem('studentName');
+
+        if (savedAddr) {
+          // Restore any field that is still empty (server session took priority above)
+          ['name','email','phone','pincode','address','city'].forEach(k => {
+            const el = document.getElementById(`checkout-${k}`);
+            if (el && !el.value && savedAddr[k]) el.value = savedAddr[k];
+          });
         }
-        if (emailEl && !emailEl.value && localStorage.getItem('studentEmail')) {
-          emailEl.value = localStorage.getItem('studentEmail');
-        }
+
+        // Final fallback: Firebase name/email only (for first-time visitors with no saved address)
+        if (nameEl  && !nameEl.value  && localStorage.getItem('studentName'))  nameEl.value  = localStorage.getItem('studentName');
+        if (emailEl && !emailEl.value && localStorage.getItem('studentEmail')) emailEl.value = localStorage.getItem('studentEmail');
 
         // Restore coupon UI if one was saved
         if (appliedCouponData && (appliedCouponData.discount > 0 || appliedCouponData.freeDelivery)) {
@@ -620,12 +629,30 @@ async function initializeCart() {
         body: JSON.stringify(payload),
         credentials: 'include'
       });
+      // Also persist to localStorage so fields survive cart edits / session loss
+      localStorage.setItem('2am_checkout_address', JSON.stringify(payload));
     } catch(e) { /* silent fail — will be validated on submit */ }
   }, 600);
 
+  // Partial-save: also save to localStorage on every keystroke (even before all fields are filled)
+  // This ensures fields aren't lost if the user navigates away mid-fill
+  const partialSave = debounce(() => {
+    const partial = {};
+    addressFields.forEach(id => {
+      const el = document.getElementById(id);
+      const key = id.replace('checkout-', '');
+      partial[key] = el ? el.value.trim() : '';
+    });
+    const existing = (() => { try { return JSON.parse(localStorage.getItem('2am_checkout_address') || '{}'); } catch(e){ return {}; } })();
+    localStorage.setItem('2am_checkout_address', JSON.stringify({ ...existing, ...partial }));
+  }, 300);
+
   addressFields.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('input', saveAddress);
+    if (el) {
+      el.addEventListener('input', saveAddress);
+      el.addEventListener('input', partialSave);
+    }
   });
 
   renderCart();

@@ -287,39 +287,41 @@
     </div>
 
     <!-- Clean Product Table with Image, Product, Qty, Unit Price, Discount, Total -->
-    <table class="table-invoice">
-      <thead>
-        <tr>
-          <th style="width: 60px;">Image</th>
-          <th>Product Details</th>
-          <th class="text-center" style="width: 60px;">Qty</th>
-          <th class="text-end" style="width: 100px;">Unit Price</th>
-          <th class="text-end" style="width: 100px;">Discount</th>
-          <th class="text-end" style="width: 110px;">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (Array.isArray(order.items) && order.items.length > 0) { %>
-          <% order.items.forEach(function(item) { %>
-            <tr>
-              <td>
-                <img src="<%= item.image || '/assets/images/store/placeholder.jpg' %>" alt="<%= item.name %>" class="product-thumb" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
-              </td>
-              <td>
-                <div class="fw-bold text-dark"><%= item.name %></div>
-                <% if (item.variant) { %>
-                  <div class="text-muted small">Variant: <%= item.variant %></div>
-                <% } %>
-              </td>
-              <td class="text-center fw-bold"><%= item.qty || 1 %></td>
-              <td class="text-end text-muted">₹<%= Number(item.origPrice || item.unitPrice).toLocaleString() %></td>
-              <td class="text-end text-success">-₹<%= Number((item.discountPerUnit || 0) * item.qty).toLocaleString() %></td>
-              <td class="text-end fw-bold text-dark">₹<%= Number(item.lineTotal || (item.unitPrice * item.qty)).toLocaleString() %></td>
-            </tr>
-          <% }); %>
-        <% } %>
-      </tbody>
-    </table>
+    <div class="table-responsive mb-3">
+      <table class="table-invoice mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Image</th>
+            <th>Product Details</th>
+            <th class="text-center" style="width: 60px;">Qty</th>
+            <th class="text-end" style="width: 100px;">Unit Price</th>
+            <th class="text-end" style="width: 100px;">Discount</th>
+            <th class="text-end" style="width: 110px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (Array.isArray(order.items) && order.items.length > 0) { %>
+            <% order.items.forEach(function(item) { %>
+              <tr>
+                <td>
+                  <img src="<%= item.image || '/assets/images/store/placeholder.jpg' %>" alt="<%= item.name %>" class="product-thumb" onerror="this.onerror=null; this.src='/assets/images/store/placeholder.jpg';">
+                </td>
+                <td>
+                  <div class="fw-bold text-dark"><%= item.name %></div>
+                  <% if (item.variant) { %>
+                    <div class="text-muted small">Variant: <%= item.variant %></div>
+                  <% } %>
+                </td>
+                <td class="text-center fw-bold"><%= item.qty || 1 %></td>
+                <td class="text-end text-muted">₹<%= Number(item.origPrice || item.unitPrice).toLocaleString() %></td>
+                <td class="text-end text-success">-₹<%= Number((item.discountPerUnit || 0) * item.qty).toLocaleString() %></td>
+                <td class="text-end fw-bold text-dark">₹<%= Number(item.lineTotal || (item.unitPrice * item.qty)).toLocaleString() %></td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Order Summary & Local QR Code Verification Section -->
     <div class="row g-4 align-items-center mb-4">
