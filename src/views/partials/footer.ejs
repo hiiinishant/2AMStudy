@@ -819,14 +819,109 @@
   }
 </style>
 
+
+<!-- Store Cart Bubble Styles -->
+<style>
+  .store-cart-container {
+    display: none; /* shown via JS only on store pages */
+    position: fixed;
+    bottom: 100px;
+    right: 26px;
+    z-index: 9998;
+  }
+
+  .store-cart-bubble {
+    width: 58px;
+    height: 58px;
+    background: linear-gradient(135deg, #fb641b 0%, #ea580c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(251, 100, 27, 0.5);
+    position: relative;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .store-cart-bubble:hover {
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 14px 36px rgba(251, 100, 27, 0.7);
+  }
+
+  .store-cart-bubble:active {
+    transform: scale(0.96);
+  }
+
+  /* Pulsing ring animation */
+  .store-cart-bubble .pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid rgba(251, 100, 27, 0.6);
+    animation: cartBubblePulse 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes cartBubblePulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    70% { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1.35); opacity: 0; }
+  }
+
+  /* Item count badge */
+  .cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ffffff;
+    color: #ea580c;
+    font-size: 0.72rem;
+    font-weight: 900;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #fb641b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    animation: badgePop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes badgePop {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  /* On mobile, move slightly up to avoid bottom nav overlap */
+  @media (max-width: 767.98px) {
+    .store-cart-container {
+      bottom: 80px;
+      right: 16px;
+    }
+
+    .store-cart-bubble {
+      width: 52px;
+      height: 52px;
+      font-size: 1.2rem;
+    }
+  }
+</style>
+
 <!-- Store Cart Bubble -->
 <div class="store-cart-container" id="storeCartContainer">
-  <div class="store-cart-bubble" onclick="window.location.href='/store/cart'">
+  <div class="store-cart-bubble" onclick="window.location.href='/store/cart'" title="View Cart">
     <i class="fa-solid fa-cart-shopping"></i>
     <div class="pulse"></div>
     <span class="cart-badge" id="floatingCartCount" style="display: none;">0</span>
   </div>
 </div>
+
 
 <footer class="site-footer">
   <div class="footer-ambient-glow-1"></div>
@@ -2600,14 +2695,18 @@
       const badge = document.getElementById('floatingCartCount');
       if (!container || !badge) return;
       
-      const isStorePage = window.location.pathname.includes('/store');
+      const path = window.location.pathname;
+      const isStorePage = path.includes('/store') && 
+                          !path.includes('/order-summary') && 
+                          !path.includes('/payment') && 
+                          !path.includes('/cart');
       
-      // Strict path check - Only show on store pages
+      // Strict path check - Only show on store browse/product pages
       if (isStorePage) {
         container.style.display = 'block';
       } else {
         container.style.display = 'none';
-        return; // No need to fetch cart data on non-store pages
+        return;
       }
       
       try {

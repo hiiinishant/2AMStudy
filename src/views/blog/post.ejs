@@ -209,8 +209,9 @@
 </div>
 
 <main class="container py-4" style="max-width: 860px;">
-  <% if (post.image) { %>
-    <img src="<%= post.image %>" alt="<%= post.title %>" class="blog-featured-img" onerror="this.src='/assets/images/smart_study_banner.png'">
+  <% const cover = post.coverImage || post.image; %>
+  <% if (cover) { %>
+    <img src="<%= cover %>" alt="<%= post.title %>" class="blog-featured-img" onerror="this.src='/assets/images/smart_study_banner.png'">
   <% } %>
 
   <div class="article-body">

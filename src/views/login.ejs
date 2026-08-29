@@ -1,104 +1,479 @@
 <%- include('partials/header') %>
 
-<section class="py-5 bg-light d-flex align-items-center min-vh-100" style="padding-top: 100px !important;">
-  <div class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-md-8 col-lg-6 col-xl-5">
-        
-        <!-- Auth Card -->
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white p-4 p-md-5">
-          <div class="text-center mb-4">
-            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 28px;">
-              🔑
-            </div>
-            <h1 class="h3 fw-extrabold text-dark mb-1">Welcome Back</h1>
-            <p class="text-muted small">Log in to access your 2AM Study account & Student Safety Hub</p>
-          </div>
+<style>
+/* 2 AM Study - Custom Split-Card Login Design */
+:root {
+  --auth-page-bg: #f1f5f9;
+  --auth-card-bg: #ffffff;
+  --auth-panel-bg: #f5f8ff;
+  --auth-text-dark: #0f172a;
+  --auth-text-muted: #475569;
+  --auth-text-sub: #64748b;
+  --auth-border: #e2e8f0;
+  --auth-input-border: #cbd5e1;
+  --auth-accent-blue: #2563eb;
+  --auth-accent-blue-hover: #1d4ed8;
+  --auth-btn-dark: #0f172a;
+  --auth-btn-dark-hover: #1e293b;
+}
 
-          <!-- Alert Banners -->
-          <div id="auth-error-alert" class="alert alert-danger border-0 rounded-3 p-3 small mb-4 d-none">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
-              <span id="auth-error-msg">Failed to log in. Please check your credentials.</span>
-            </div>
-          </div>
+body {
+  background: var(--auth-page-bg) !important;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--auth-text-dark);
+}
 
-          <div id="auth-success-alert" class="alert alert-success border-0 rounded-3 p-3 small mb-4 d-none">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-circle-check text-success fs-5"></i>
-              <span>Logged in successfully! Redirecting...</span>
-            </div>
-          </div>
+.auth-hero-section {
+  min-height: calc(100vh - 80px);
+  padding: 40px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 45%),
+              radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+              var(--auth-page-bg);
+}
 
-          <!-- Login Form -->
-          <form id="loginForm" novalidate>
-            <!-- Email -->
-            <div class="mb-3">
-              <label for="loginEmail" class="form-label fw-semibold text-dark small">Email Address</label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
-                <input type="email" class="form-control bg-light border-start-0 py-2" id="loginEmail" placeholder="student@university.edu" required>
-              </div>
-              <div class="invalid-feedback">Please enter a valid email address.</div>
-            </div>
+.auth-master-card {
+  max-width: 990px;
+  width: 100%;
+  background: var(--auth-card-bg);
+  border-radius: 28px;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  margin: 0 auto;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
 
-            <!-- Password -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label for="loginPassword" class="form-label fw-semibold text-dark small mb-0">Password</label>
-                <a href="#" id="forgotPasswordBtn" class="text-primary text-decoration-none small">Forgot Password?</a>
-              </div>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                <input type="password" class="form-control bg-light border-start-0 py-2" id="loginPassword" placeholder="••••••••" required>
-              </div>
-              <div class="invalid-feedback">Please enter your password.</div>
-            </div>
+/* Left Photo Panel */
+.auth-illustration-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  text-align: left;
+  padding: 40px 36px;
+  overflow: hidden;
+  min-height: 520px;
+}
 
-            <!-- Remember Me & Checkbox -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="rememberMe" checked>
-                <label class="form-check-label text-dark small" for="rememberMe">
-                  Remember me
-                </label>
-              </div>
-            </div>
+.auth-panel-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 0;
+}
 
-            <!-- Submit Button -->
-            <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3 shadow-sm">
-              Log In
-            </button>
-          </form>
+.auth-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 0.15) 0%,
+    rgba(15, 23, 42, 0.35) 40%,
+    rgba(15, 23, 42, 0.88) 100%
+  );
+  z-index: 1;
+}
 
-          <div class="d-flex align-items-center my-4">
-            <hr class="flex-grow-1 my-0 opacity-25">
-            <span class="px-3 text-muted small fw-semibold">OR</span>
-            <hr class="flex-grow-1 my-0 opacity-25">
-          </div>
+.auth-panel-content {
+  position: relative;
+  z-index: 2;
+}
 
-          <!-- Google Sign-In Button -->
-          <button type="button" id="googleSignInBtn" class="btn btn-outline-secondary w-100 rounded-pill py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
-              <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
-              <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
-              <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
+.auth-panel-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
 
-          <!-- Footer Link -->
-          <div class="text-center mt-4 pt-2">
-            <p class="text-muted small mb-0">
-              Don't have an account? <a href="/signup" id="toSignupLink" class="text-primary fw-bold text-decoration-none">Sign Up</a>
-            </p>
-          </div>
+.auth-panel-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
+  max-width: 300px;
+  margin: 0 0 24px;
+}
 
+.auth-carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.auth-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.auth-dot.active {
+  width: 26px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Right Form Panel */
+.auth-form-panel {
+  padding: 52px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.auth-brand-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--auth-text-dark);
+  text-decoration: none;
+}
+
+.auth-brand-logo img {
+  height: 38px;
+  width: auto;
+  border-radius: 8px;
+}
+
+.auth-brand-logo span {
+  background: linear-gradient(135deg, #0f172a 30%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auth-form-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.auth-input-wrap {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1.5px solid var(--auth-input-border);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: var(--auth-text-dark);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: var(--auth-accent-blue);
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12);
+}
+
+.auth-input::placeholder {
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.9rem;
+}
+
+.password-toggle-btn:hover {
+  color: var(--auth-text-dark);
+}
+
+.forgot-password-link {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--auth-accent-blue);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: var(--auth-accent-blue-hover);
+  text-decoration: underline;
+}
+
+.btn-signin-primary {
+  width: 100%;
+  background: var(--auth-btn-dark);
+  color: #ffffff;
+  border: none;
+  padding: 13px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.btn-signin-primary:hover {
+  background: var(--auth-accent-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+.btn-signin-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-divider-wrap {
+  display: flex;
+  align-items: center;
+  margin: 22px 0 20px;
+}
+
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-divider-text {
+  padding: 0 14px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.btn-google-auth {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid var(--auth-input-border);
+  color: #334155;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-google-auth:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.auth-footer-prompt {
+  text-align: center;
+  margin-top: 26px;
+  font-size: 0.86rem;
+  color: #64748b;
+}
+
+.auth-signup-link {
+  color: var(--auth-accent-blue);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.auth-signup-link:hover {
+  text-decoration: underline;
+}
+
+/* Alert Boxes */
+.auth-alert {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-alert-danger {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.auth-alert-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .auth-master-card {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    border-radius: 20px;
+  }
+  .auth-illustration-panel {
+    min-height: 280px;
+    padding: 28px 24px;
+  }
+  .auth-panel-title {
+    font-size: 1.4rem;
+  }
+  .auth-form-panel {
+    padding: 36px 28px;
+  }
+}
+</style>
+
+<section class="auth-hero-section">
+  <div class="auth-master-card">
+    
+    <!-- Left Photo Panel -->
+    <div class="auth-illustration-panel">
+      <!-- Full-cover hero photo -->
+      <img
+        src="/assets/images/login-hero.webp"
+        alt="Confident 2 AM Study Student"
+        class="auth-panel-photo"
+        onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#0f172a,#1e3a8a)';"
+      >
+      <!-- Dark gradient overlay -->
+      <div class="auth-panel-overlay"></div>
+
+      <!-- Text content at bottom -->
+      <div class="auth-panel-content">
+        <h2 class="auth-panel-title">2 AM Study</h2>
+        <p class="auth-panel-subtitle">
+          Meet Our Founder — Nishant Kumar, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
+        </p>
+
+        <div class="auth-carousel-dots">
+          <span class="auth-dot"></span>
+          <span class="auth-dot active"></span>
+          <span class="auth-dot"></span>
+          <span class="auth-dot"></span>
         </div>
-
       </div>
     </div>
+
+    <!-- Right Login Form Panel -->
+    <div class="auth-form-panel">
+      
+      <!-- Brand Logo Header -->
+      <div class="auth-brand-header">
+        <a href="/" class="auth-brand-logo">
+          <img src="/assets/images/logo.jpg" alt="2 AM Study Logo" onerror="this.style.display='none';">
+          <span>2 AM Study</span>
+        </a>
+      </div>
+
+      <!-- Alert Banners -->
+      <div id="auth-error-alert" class="auth-alert auth-alert-danger d-none">
+        <i class="fa-solid fa-circle-exclamation text-danger"></i>
+        <span id="auth-error-msg">Failed to log in. Please check your credentials.</span>
+      </div>
+
+      <div id="auth-success-alert" class="auth-alert auth-alert-success d-none">
+        <i class="fa-solid fa-circle-check text-success"></i>
+        <span>Logged in successfully! Redirecting...</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" novalidate>
+        <!-- Username or Email -->
+        <div class="mb-2">
+          <label for="loginEmail" class="auth-form-label">Username or email</label>
+          <div class="auth-input-wrap">
+            <input type="email" class="auth-input" id="loginEmail" placeholder="student@university.edu" required autocomplete="email">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-1">
+          <label for="loginPassword" class="auth-form-label">Password</label>
+          <div class="auth-input-wrap">
+            <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••••••" required autocomplete="current-password">
+            <button type="button" class="password-toggle-btn" id="passwordToggleBtn" aria-label="Toggle password visibility">
+              <i class="fa-regular fa-eye" id="passwordEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Forgot Password Link & Remember Me -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="form-check m-0">
+            <input class="form-check-input" type="checkbox" id="rememberMe" checked style="cursor: pointer;">
+            <label class="form-check-label small text-muted" for="rememberMe" style="cursor: pointer; font-size: 0.82rem;">
+              Remember me
+            </label>
+          </div>
+          <a href="#" id="forgotPasswordBtn" class="forgot-password-link">Forgot password?</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="loginSubmitBtn" class="btn-signin-primary">
+          Login
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider-wrap">
+        <div class="auth-divider-line"></div>
+        <span class="auth-divider-text">or</span>
+        <div class="auth-divider-line"></div>
+      </div>
+
+      <!-- Google Sign-In Button -->
+      <button type="button" id="googleSignInBtn" class="btn-google-auth">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
+          <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
+          <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
+          <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
+        </svg>
+        <span>Login with Google</span>
+      </button>
+
+      <!-- Footer Account Prompt -->
+      <div class="auth-footer-prompt">
+        <span>Are you new?</span>
+        <a href="/signup" id="toSignupLink" class="auth-signup-link">Create an Account</a>
+      </div>
+
+    </div>
+
   </div>
 </section>
 
@@ -138,11 +513,24 @@
   const submitBtn = document.getElementById('loginSubmitBtn');
   const googleBtn = document.getElementById('googleSignInBtn');
   const forgotBtn = document.getElementById('forgotPasswordBtn');
+  const rememberMeCheck = document.getElementById('rememberMe');
+  const passwordInput = document.getElementById('loginPassword');
+  const passwordToggleBtn = document.getElementById('passwordToggleBtn');
+  const passwordEyeIcon = document.getElementById('passwordEyeIcon');
+
+  // Password visibility toggle
+  if (passwordToggleBtn && passwordInput) {
+    passwordToggleBtn.addEventListener('click', () => {
+      const isPass = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPass ? 'text' : 'password');
+      passwordEyeIcon.className = isPass ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+    });
+  }
+
   // Safe redirect helper — rejects external URLs, only allows relative paths starting with /
   function safeRedirect(param, fallback = '/student-safety/my-reports') {
     if (!param) return fallback;
     try {
-      // Reject anything that looks like an absolute URL
       if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) {
         return fallback;
       }
@@ -159,11 +547,10 @@
     if (toSignup) toSignup.href = '/signup?redirect=' + encodeURIComponent(safeRedirectUrl);
   }
 
-  // Instant redirect if already logged in locally (zero flash of login form)
+  // Instant redirect if already logged in locally
   const isAlreadyLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
   if (isAlreadyLoggedIn) {
     window.location.href = safeRedirectUrl;
-    return;
   }
 
   // Check if already logged in via Firebase Auth source of truth
@@ -173,7 +560,7 @@
     }
   });
 
-  // Upsert user doc in Firestore (respecting existing profile data)
+  // Upsert user doc in Firestore
   const saveUserToFirestore = async (user) => {
     try {
       const userRef = doc(db, "users", user.uid);
@@ -228,7 +615,8 @@
     const password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
-      loginForm.classList.add('was-validated');
+      errorAlert.classList.remove('d-none');
+      errorMsg.textContent = 'Please enter both your email/username and password.';
       return;
     }
 
@@ -236,8 +624,7 @@
     submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Logging in...`;
 
     try {
-      // Remember me persistence
-      const persistence = rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+      const persistence = rememberMeCheck && rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(auth, persistence);
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -265,7 +652,7 @@
       }
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerText = 'Log In';
+      submitBtn.innerText = 'Login';
     }
   });
 
@@ -275,7 +662,7 @@
     const provider = new GoogleAuthProvider();
 
     try {
-      const persistence = rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+      const persistence = rememberMeCheck && rememberMeCheck.checked ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(auth, persistence);
 
       const result = await signInWithPopup(auth, provider);
@@ -295,7 +682,7 @@
       console.error("Google auth error:", err);
       if (err.code !== 'auth/popup-closed-by-user') {
         errorAlert.classList.remove('d-none');
-        errorMsg.textContent = err.message || 'Google Sign-In failed.';
+        errorMsg.textContent = err.message || 'Google login failed.';
       }
     }
   });
@@ -303,20 +690,34 @@
   // Forgot Password
   forgotBtn.addEventListener('click', async (e) => {
     e.preventDefault();
+    errorAlert.classList.add('d-none');
+    successAlert.classList.add('d-none');
+
     const email = document.getElementById('loginEmail').value.trim();
     if (!email) {
-      alert('Please enter your email address in the Email field above first.');
+      errorAlert.classList.remove('d-none');
+      errorMsg.textContent = 'Please enter your email address in the field above first, then click Forgot password.';
       document.getElementById('loginEmail').focus();
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      alert(`Password reset link sent to ${email}. Please check your inbox.`);
+      successAlert.classList.remove('d-none');
+      successAlert.querySelector('span').textContent = `Password reset link sent to ${email}. Please check your inbox.`;
     } catch (err) {
-      alert(err.message || 'Could not send password reset email.');
+      errorAlert.classList.remove('d-none');
+      if (err.code === 'auth/user-not-found') {
+        errorMsg.textContent = 'No account found with this email address.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMsg.textContent = 'Please enter a valid email address.';
+      } else {
+        errorMsg.textContent = err.message || 'Could not send password reset email.';
+      }
     }
   });
 </script>
 
 <%- include('partials/footer') %>
+
+

@@ -1,83 +1,178 @@
 <%- include('partials/header') %>
 
-  <main class="container py-5 my-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-10 bg-white p-5 rounded-4 shadow-sm">
-        <h1 class="display-5 fw-bold mb-4 text-primary">Privacy Policy</h1>
-        <p class="text-muted"><i class="fa-regular fa-clock me-2"></i> Last updated: <span id="current-date"></span></p>
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music, Blog, About, & Terms) -->
+<section class="hero-privacy-section">
+  <div class="container text-center">
+    <div class="hero-privacy-badge">
+      <span class="pulse-dot"></span>
+      <span>Privacy &amp; Data Protection</span>
+      <i class="fa-solid fa-user-shield text-primary ms-1" style="font-size: 0.85rem;"></i>
+    </div>
+    
+    <h1 class="animated-2am-title">
+      Privacy Policy — <span class="gradient-2am-text">2 AM Study</span>
+    </h1>
+    
+    <p class="hero-privacy-subtitle">
+      Learn how we protect student data, respect your privacy rights, and keep your late-night study hub secure.
+    </p>
+  </div>
+</section>
 
-        <div class="privacy-content lh-lg">
-          <p>At 2AM Study, accessible from our website, one of our main priorities is the privacy of our visitors. This
-            Privacy Policy document contains types of information that is collected and recorded by 2AM Study and how we
-            use it.</p>
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-          <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to
-            contact us.</p>
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">Log Files</h3>
-          <p>2AM Study follows a standard procedure of using log files. These files log visitors when they visit
-            websites. All hosting companies do this and a part of hosting services' analytics. The information collected
-            by log files include internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date
-            and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any
-            information that is personally identifiable. The purpose of the information is for analyzing trends,
-            administering the site, tracking users' movement on the website, and gathering demographic information.</p>
+.hero-privacy-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">Cookies and Web Beacons</h3>
-          <p>Like any other website, 2AM Study uses "cookies". These cookies are used to store information including
-            visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is
-            used to optimize the users' experience by customizing our web page content based on visitors' browser type
-            and/or other information.</p>
+.hero-privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
 
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
 
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">CCPA Privacy Rights (Do Not Sell My Personal Information)</h3>
-          <p>Under the CCPA, among other rights, California consumers have the right to:</p>
-          <ul>
-            <li>Request that a business that collects a consumer's personal data disclose the categories and specific
-              pieces of personal data that a business has collected about consumers.</li>
-            <li>Request that a business delete any personal data about the consumer that a business has collected.</li>
-            <li>Request that a business that sells a consumer's personal data, not sell the consumer's personal data.
-            </li>
-          </ul>
-          <p>If you make a request, we have one month to respond to you. If you would like to exercise any of these
-            rights, please contact us.</p>
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">GDPR Data Protection Rights</h3>
-          <p>We would like to make sure you are fully aware of all of your data protection rights. Every user is
-            entitled to the following:</p>
-          <ul>
-            <li><strong>The right to access</strong> – You have the right to request copies of your personal data. We
-              may charge you a small fee for this service.</li>
-            <li><strong>The right to rectification</strong> – You have the right to request that we correct any
-              information you believe is inaccurate. You also have the right to request that we complete the information
-              you believe is incomplete.</li>
-            <li><strong>The right to erasure</strong> – You have the right to request that we erase your personal data,
-              under certain conditions.</li>
-            <li><strong>The right to restrict processing</strong> – You have the right to request that we restrict the
-              processing of your personal data, under certain conditions.</li>
-            <li><strong>The right to object to processing</strong> – You have the right to object to our processing of
-              your personal data, under certain conditions.</li>
-            <li><strong>The right to data portability</strong> – You have the right to request that we transfer the data
-              that we have collected to another organization, or directly to you, under certain conditions.</li>
-          </ul>
+.hero-privacy-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">Children's Information</h3>
-          <p>Another part of our priority is adding protection for children while using the internet. We encourage
-            parents and guardians to observe, participate in, and/or monitor and guide their online activity.</p>
-          <p>2AM Study does not knowingly collect any Personal Identifiable Information from children under the age of
-            13. If you think that your child provided this kind of information on our website, we strongly encourage you
-            to contact us immediately and we will do our best efforts to promptly remove such information from our
-            records.</p>
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
 
-          <h3 class="mt-5 mb-3 text-secondary">Consent</h3>
-          <p>By using our website, you hereby consent to our Privacy Policy and agree to its Terms and Conditions.</p>
-        </div>
+.privacy-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.privacy-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+</style>
+
+<main class="container py-5 my-0">
+  <div class="privacy-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+      <div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill fw-semibold mb-1">Student Privacy Guarantee</span>
+        <h2 class="fw-bold text-dark mb-0">Data Privacy &amp; Trust Statement</h2>
+      </div>
+      <div class="text-muted small mt-2 mt-md-0">
+        <i class="fa-regular fa-clock me-1 text-primary"></i> Last updated: <span id="current-date" class="fw-semibold text-dark"></span>
       </div>
     </div>
-  </main>
 
-  <script>
-    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  </script>
+    <div class="privacy-content lh-lg text-secondary" style="font-size: 0.96rem;">
+      <p class="lead text-dark fw-normal mb-4">
+        At <strong>2 AM Study</strong>, accessible from our web platform, student trust and data privacy are our highest priorities. This Privacy Policy outlines what information is collected, how it is secured, and how your privacy rights are strictly safeguarded.
+      </p>
 
-  <%- include('partials/footer') %>
+      <div class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-primary">
+        <p class="mb-0 text-dark small">
+          If you have any questions regarding your personal information, study records, or account deletion, please reach out to our privacy desk directly at <a href="mailto:2amstudyofficial@gmail.com" class="text-primary fw-bold text-decoration-none">2amstudyofficial@gmail.com</a>.
+        </p>
+      </div>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-server text-primary"></i> 1. Log Files &amp; Operational Telemetry</h3>
+      <p>Like standard modern web applications, 2 AM Study follows standard logging practices. Information collected in logs includes Internet Protocol (IP) addresses, browser type, device information, timestamp data, and referring pages. These logs are strictly aggregated for diagnostic monitoring, performance optimization, and preventing security abuse.</p>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-cookie-bite text-warning"></i> 2. Cookies &amp; Local Storage</h3>
+      <p>We use essential cookies and browser storage (such as HTML5 LocalStorage) to preserve your preferences—including Pomodoro timer layouts, sound volume levels, focus streaks, and active study session parameters—so you can seamlessly resume your study workflow across tabs.</p>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-user-gear text-info"></i> 3. CCPA Privacy Rights (Do Not Sell My Personal Information)</h3>
+      <p class="fw-semibold text-dark mb-2">Under the CCPA, students and consumers have the following rights:</p>
+      <ul class="mb-3 ps-4">
+        <li><strong>Right to Know:</strong> Request disclosure of categories and specific pieces of personal data collected.</li>
+        <li><strong>Right to Deletion:</strong> Request full deletion of all personal data held about your account.</li>
+        <li><strong>Right to Opt-Out:</strong> We do <strong>not</strong> sell student personal information under any circumstances.</li>
+      </ul>
+      <p>If you submit a data request, our compliance team will fulfill your request within 30 days.</p>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-shield-halved text-success"></i> 4. GDPR Data Protection Rights</h3>
+      <p class="fw-semibold text-dark mb-2">Every student using 2 AM Study is entitled to full international data protection rights:</p>
+      <ul class="mb-3 ps-4">
+        <li><strong>Right to Access:</strong> Request digital copies of your profile and data records.</li>
+        <li><strong>Right to Rectification:</strong> Request correction of incomplete or outdated profile information.</li>
+        <li><strong>Right to Erasure:</strong> Request permanent removal of your account data ("Right to be Forgotten").</li>
+        <li><strong>Right to Restrict &amp; Object:</strong> Object to specific automated processing workflows.</li>
+        <li><strong>Right to Data Portability:</strong> Request export of your study data in a machine-readable format.</li>
+      </ul>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-child-reaching text-danger"></i> 5. Children's Online Privacy Protection</h3>
+      <p>2 AM Study does not knowingly collect Personally Identifiable Information from individuals under the age of 13. If you believe a minor has submitted personal details through our platform, please contact us immediately and we will promptly purge the information from our systems.</p>
+
+      <h3 class="privacy-section-title"><i class="fa-solid fa-handshake-angle text-primary"></i> 6. User Consent &amp; Updates</h3>
+      <p>By using the 2 AM Study platform and study tools, you hereby consent to our Privacy Policy and agree to its provisions. Any policy modifications will be published here with an updated timestamp.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+</script>
+
+<%- include('partials/footer') %>

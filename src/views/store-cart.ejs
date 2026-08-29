@@ -20,7 +20,8 @@ body {
 .cart-main {
   padding-top: 120px;
   padding-bottom: 60px;
-  min-height: 80vh;
+  min-height: calc(100vh - 120px);
+  flex: 1 0 auto;
 }
 
 .cart-title {
@@ -36,6 +37,7 @@ body {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 30px;
+  align-items: start;
 }
 
 .cart-left {
@@ -108,7 +110,9 @@ body {
 
 .cart-right {
   position: sticky;
-  top: 120px;
+  top: 90px;
+  align-self: start;
+  z-index: 10;
 }
 
 .price-summary {
@@ -393,7 +397,7 @@ body {
 </style>
 
 
-<div class="cart-main">
+<main class="cart-main">
   <div class="container">
     <h1 class="cart-title">🛒 Your Shopping Cart</h1>
     
@@ -438,7 +442,7 @@ body {
       </div>
     <% } %>
   </div>
-</div>
+</main>
 
 <div class="checkout-fixed-bar d-flex d-md-none" id="mobileCartFixedBar" style="display: none;">
   <div class="mobile-cart-total">
@@ -449,15 +453,20 @@ body {
 </div>
 
 <script>
-let cartItems = [];
+let cartItems = <%- JSON.stringify(locals.initialCart || []) %>;
+
+// Immediately render cart on initial load — eliminates 1-second delay / layout flash
+renderCart();
 
 async function loadCart() {
-  const res = await fetch(`/store/api/store/cart`, { credentials: 'include' });
-  const data = await res.json();
-  if (data.success) {
-    cartItems = data.items;
-    renderCart();
-  }
+  try {
+    const res = await fetch(`/store/api/store/cart`, { credentials: 'include' });
+    const data = await res.json();
+    if (data.success && JSON.stringify(data.items) !== JSON.stringify(cartItems)) {
+      cartItems = data.items;
+      renderCart();
+    }
+  } catch(e) {}
 }
 
 async function updateQty(productId, delta) {
@@ -607,17 +616,8 @@ function renderCart() {
 
 function proceedToCheckout() {
   if (cartItems.length === 0) return;
-
-  const isClientLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
-
-  // If already logged in, go STRAIGHT to /store/order-summary (no login flash ever)
-  if (isClientLoggedIn) {
-    window.location.href = '/store/order-summary';
-    return;
-  }
-
-  // Not logged in — send to login page with redirect back to order summary
-  window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
+  // Proceed directly to order summary so user can fill delivery address details
+  window.location.href = '/store/order-summary';
 }
 
 loadCart();

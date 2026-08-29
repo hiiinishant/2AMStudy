@@ -24,7 +24,8 @@ body {
 .order-main {
   padding-top: 100px;
   padding-bottom: 60px;
-  min-height: 100vh;
+  min-height: calc(100vh - 120px);
+  flex: 1 0 auto;
 }
 
 .order-container {
@@ -32,6 +33,7 @@ body {
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
   margin-bottom: 2rem;
+  align-items: start;
 }
 
 .order-section {
@@ -142,7 +144,9 @@ body {
 
 .order-summary {
   position: sticky;
-  top: 100px;
+  top: 90px;
+  align-self: start;
+  z-index: 10;
 }
 
 .summary-row {
@@ -373,7 +377,7 @@ body {
 </style>
 
 
-<div class="order-main">
+<main class="order-main">
   <div class="container">
     <!-- Header -->
     <h1 class="px-3 px-md-0" style="font-size: 1.75rem; font-weight: 700; margin-bottom: 24px; color: var(--order-text);">Secure Checkout</h1>
@@ -461,13 +465,32 @@ body {
           <span style="color: var(--order-green); font-size: 0.85rem; font-weight: 600;" id="savingsText">You will save ₹0 on this order</span>
         </div>
 
-        <!-- Coupon Code -->
+        <!-- Coupon Code Area -->
         <div style="border-top: 1px dashed var(--order-border); padding-top: 16px; margin-bottom: 16px;">
-          <div class="promo-code" style="margin-bottom: 5px;">
-            <input type="text" class="promo-input" id="couponInput" placeholder="Enter Coupon Code" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon('desktop');}">
-            <button type="button" class="promo-btn" id="couponApplyBtn" onclick="applyCoupon('desktop')">Apply</button>
+          <!-- Default Coupon Input Box -->
+          <div id="couponInputContainer">
+            <div class="promo-code" style="margin-bottom: 5px;">
+              <input type="text" class="promo-input" id="couponInput" placeholder="Enter Coupon Code (e.g. STUDY10)" style="text-transform: uppercase;" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon('desktop');}">
+              <button type="button" class="promo-btn" id="couponApplyBtn" onclick="applyCoupon('desktop')">Apply</button>
+            </div>
+            <div id="couponMessage" style="font-size: 0.85rem; margin-top: 4px; display: none;"></div>
           </div>
-          <div id="couponMessage" style="font-size: 0.85rem; margin-top: 4px; display: none;"></div>
+
+          <!-- Applied Coupon Card (Shown when coupon is active) -->
+          <div id="couponAppliedBox" style="display: none; background: #eefbf1; border: 1px solid #86efac; border-radius: 8px; padding: 12px 14px; margin-bottom: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-tags" style="color: #16a34a; font-size: 1.1rem;"></i>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.92rem; color: #15803d; letter-spacing: 0.5px;" id="appliedCouponCodeDisplay">CODE</div>
+                  <div style="font-size: 0.8rem; color: #166534;" id="appliedCouponMsgDisplay">Coupon applied</div>
+                </div>
+              </div>
+              <button type="button" onclick="toggleChangeCoupon()" style="background: rgba(40, 116, 240, 0.08); border: 1px solid rgba(40, 116, 240, 0.3); color: var(--order-accent); font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 5px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='var(--order-accent)';this.style.color='#fff';" onmouseout="this.style.background='rgba(40, 116, 240, 0.08)';this.style.color='var(--order-accent)';">
+                Change
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="checkout-btn-wrap">
@@ -482,7 +505,7 @@ body {
       </div>
     </div>
   </div>
-</div>
+</main>
 
 
 
@@ -514,12 +537,9 @@ body {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Only auto-fill form fields if user is already logged in.
+    // Login is NOT required here — it is only required at the final "Proceed to Pay" step.
     onAuthStateChanged(auth, (user) => {
-      if (!user && localStorage.getItem('isLoggedIn') !== 'true' && localStorage.getItem('studentRegistered') !== 'true') {
-        window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
-        return;
-      }
-
       if (user) {
         const nameInput = document.getElementById('checkout-name');
         const emailInput = document.getElementById('checkout-email');
@@ -573,9 +593,7 @@ async function initializeCart() {
         }
 
         // Restore coupon UI if one was saved
-        if (appliedCouponData && appliedCouponData.discount > 0) {
-          const input = document.getElementById('couponInput');
-          if (input) input.value = appliedCouponData.code;
+        if (appliedCouponData && (appliedCouponData.discount > 0 || appliedCouponData.freeDelivery)) {
           showCouponSuccess(appliedCouponData);
         }
       }
@@ -716,44 +734,53 @@ function updateSummary() {
 }
 
 function showCouponSuccess(data, source = 'desktop') {
-  const msgId = source === 'mobile' ? 'couponMessage2' : 'couponMessage';
-  const inputId = source === 'mobile' ? 'couponInput2' : 'couponInput';
-  const msg = document.getElementById(msgId);
-  const input = document.getElementById(inputId);
-  if (msg) {
-    msg.textContent = data.message;
-    msg.style.color = 'var(--order-green)';
-    msg.style.display = 'block';
+  const container = document.getElementById('couponInputContainer');
+  const appliedBox = document.getElementById('couponAppliedBox');
+  const codeEl = document.getElementById('appliedCouponCodeDisplay');
+  const msgEl = document.getElementById('appliedCouponMsgDisplay');
+
+  if (appliedBox && codeEl && msgEl) {
+    codeEl.textContent = data.code;
+    const discountText = data.discount > 0 ? `Saved ₹${data.discount.toLocaleString()}` : 'Free Delivery Applied';
+    msgEl.textContent = `${data.message || 'Coupon applied!'} (${discountText})`;
+    appliedBox.style.display = 'block';
   }
-  // Sync to other input if possible
-  const otherInput = document.getElementById(source === 'mobile' ? 'couponInput' : 'couponInput2');
-  if (otherInput && input) {
-    otherInput.value = input.value;
-    const otherMsg = document.getElementById(source === 'mobile' ? 'couponMessage' : 'couponMessage2');
-    if (otherMsg) {
-      otherMsg.textContent = data.message;
-      otherMsg.style.color = 'var(--order-green)';
-      otherMsg.style.display = 'block';
-    }
+  if (container) {
+    container.style.display = 'none';
+  }
+
+  const msg = document.getElementById('couponMessage');
+  if (msg) msg.style.display = 'none';
+}
+
+function toggleChangeCoupon() {
+  const container = document.getElementById('couponInputContainer');
+  const appliedBox = document.getElementById('couponAppliedBox');
+  const input = document.getElementById('couponInput');
+  if (container) container.style.display = 'block';
+  if (appliedBox) appliedBox.style.display = 'none';
+  if (input) {
+    input.value = '';
+    input.focus();
   }
 }
 
 async function applyCoupon(source = 'desktop') {
-  const inputId = source === 'mobile' ? 'couponInput2' : 'couponInput';
-  const msgId = source === 'mobile' ? 'couponMessage2' : 'couponMessage';
-  const btnId = source === 'mobile' ? 'couponApplyBtn2' : 'couponApplyBtn';
-  const input = document.getElementById(inputId) || document.getElementById('couponInput');
-  const msg = document.getElementById(msgId) || document.getElementById('couponMessage');
-  const applyBtn = document.getElementById(btnId);
-  const code = input ? input.value.trim() : '';
+  const input = document.getElementById('couponInput');
+  const msg = document.getElementById('couponMessage');
+  const applyBtn = document.getElementById('couponApplyBtn');
+  const code = input ? input.value.trim().toUpperCase().replace(/[\s\-_]+/g, '') : '';
   if (!code) {
-    if (msg) { msg.textContent = 'Enter a coupon code first.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+    if (msg) { msg.textContent = 'Enter a coupon code first.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
     return;
   }
 
-  // Show pending state — block button while validating
-  if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = '...'; }
-  if (msg) { msg.textContent = 'Validating…'; msg.style.color = 'var(--order-text-muted)'; msg.style.display = 'block'; }
+  // Smooth inline spinner inside button — avoids shifting card height
+  if (applyBtn) { 
+    applyBtn.disabled = true; 
+    applyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size: 0.9rem;"></i>'; 
+  }
+  if (msg) { msg.style.display = 'none'; }
 
   try {
     const res = await fetch(`/store/api/store/checkout/coupon`, {
@@ -770,13 +797,12 @@ async function applyCoupon(source = 'desktop') {
     } else {
       appliedCouponData = null;
       try { await fetch(`/store/api/store/checkout/coupon`, { method: 'DELETE', credentials: 'include' }); } catch(e) {}
-      // Keep code visible — just show error below input
-      if (msg) { msg.textContent = data.error || 'Invalid coupon.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+      if (msg) { msg.textContent = data.error || 'Invalid coupon code. Please try again.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
       updateSummary();
     }
   } catch(e) {
     appliedCouponData = null;
-    if (msg) { msg.textContent = 'Could not apply coupon. Try again.'; msg.style.color = '#ff6161'; msg.style.display = 'block'; }
+    if (msg) { msg.textContent = 'Could not apply coupon. Please try again.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
     updateSummary();
   } finally {
     if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
@@ -784,19 +810,39 @@ async function applyCoupon(source = 'desktop') {
 }
 
 async function removeCoupon() {
+  const container = document.getElementById('couponInputContainer');
+  const appliedBox = document.getElementById('couponAppliedBox');
+  const input = document.getElementById('couponInput');
+  const msg = document.getElementById('couponMessage');
+
   try {
     await fetch(`/store/api/store/checkout/coupon`, { method: 'DELETE', credentials: 'include' });
   } catch(e) { /* ignore */ }
+
   appliedCouponData = null;
-  const input = document.getElementById('couponInput');
   if (input) input.value = '';
-  const msg = document.getElementById('couponMessage');
-  if (msg) msg.style.display = 'none';
+  if (msg) {
+    msg.textContent = 'Coupon removed.';
+    msg.style.color = 'var(--order-text-muted)';
+    msg.style.display = 'block';
+    setTimeout(() => { if (msg) msg.style.display = 'none'; }, 3000);
+  }
+  if (appliedBox) appliedBox.style.display = 'none';
+  if (container) container.style.display = 'block';
+
   updateSummary();
 }
 
 async function proceedToCheckout() {
   if (cartItems.length === 0) { alert('Your cart is empty!'); return; }
+
+  // ── Login gate — only required at final payment step ──
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' ||
+    localStorage.getItem('studentRegistered') === 'true';
+  if (!isLoggedIn) {
+    window.location.href = '/login?redirect=' + encodeURIComponent('/store/order-summary');
+    return;
+  }
 
   const fields = ['checkout-name','checkout-email','checkout-phone','checkout-pincode','checkout-address','checkout-city'];
   const payload = {};

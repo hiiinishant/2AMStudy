@@ -1,109 +1,408 @@
 <%- include('../partials/header') %>
 
-<section class="py-5 bg-primary text-white text-center pb-5 shadow-sm" style="padding-top: 100px !important; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;">
-    <div class="container py-5 mt-4">
-        <h1 class="display-4 fw-bold mb-3"><i class="fa-solid fa-graduation-cap me-2"></i>Student Productivity Tools & Academic Toolkit</h1>
-        <p class="lead fw-light mb-0" style="max-width: 600px; margin: 0 auto;">The premium featured study tools every student needs to master their academic journey.</p>
-    </div>
-</section>
-
-<main class="container py-5 my-0">
-  <div class="row g-4">
-    <!-- Syllabus Tracker -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-success">
-        <div class="card-body">
-          <div class="bg-success bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-list-check fa-3x text-success"></i>
-          </div>
-          <h4 class="fw-bold">Syllabus Tracker</h4>
-          <p class="text-muted small">Visualize your progress by tracking chapter and subject completion.</p>
-          <a href="/syllabus-tracker" class="btn btn-outline-success rounded-pill w-100 fw-bold py-2 mt-2">Launch Tracker</a>
-        </div>
-      </div>
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music, Blog, & About) -->
+<section class="hero-tools-section">
+  <div class="container text-center">
+    <div class="hero-tools-badge">
+      <span class="pulse-dot"></span>
+      <span>Productivity &amp; Academic Toolkit</span>
+      <i class="fa-solid fa-graduation-cap text-primary ms-1" style="font-size: 0.85rem;"></i>
     </div>
     
-    <!-- Timetable Generator -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-primary">
-        <div class="card-body">
-          <div class="bg-primary bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-table-cells fa-3x text-primary"></i>
+    <h1 class="animated-2am-title">
+      Study Tools Hub — <span class="gradient-2am-text">2 AM Study</span>
+    </h1>
+    
+    <p class="hero-tools-subtitle">
+      A complete ecosystem of student-engineered productivity engines, focus timers, memory decks &amp; habit tracking systems.
+    </p>
+  </div>
+</section>
+
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
+
+.hero-tools-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.hero-tools-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+.hero-tools-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 660px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
+
+/* Category Filter Bar */
+.tool-filter-bar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 2.5rem;
+}
+
+.tool-filter-btn {
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-filter-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.tool-filter-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+/* Tool Cards */
+.tool-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.tool-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 1.25rem;
+  transition: transform 0.25s ease;
+}
+
+.tool-card:hover .tool-icon-box {
+  transform: scale(1.08);
+}
+</style>
+
+<main class="container py-5 my-0">
+
+  <!-- Category Filter Navigation -->
+  <div class="tool-filter-bar" id="toolFilterBar">
+    <button class="tool-filter-btn active" data-cat="all">
+      <i class="fa-solid fa-layer-group"></i> All Study Tools
+    </button>
+    <button class="tool-filter-btn" data-cat="focus">
+      ⚡ Focus &amp; Timers
+    </button>
+    <button class="tool-filter-btn" data-cat="memory">
+      🧠 Memory &amp; Flashcards
+    </button>
+    <button class="tool-filter-btn" data-cat="organization">
+      📋 Planning &amp; Tracking
+    </button>
+  </div>
+
+  <div class="row g-4" id="toolsGrid">
+
+    <!-- 1. Pomodoro Focus Timer -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="focus">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-primary bg-opacity-10 text-primary">
+            <i class="fa-solid fa-stopwatch"></i>
           </div>
-          <h4 class="fw-bold">Weekly Timetable</h4>
-          <p class="text-muted small">Generate, customize, and print a professional study schedule.</p>
-          <a href="/timetable-generator" class="btn btn-outline-primary rounded-pill w-100 fw-bold py-2 mt-2">Generate Now</a>
+          <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 fw-bold small">
+            ⚡ Popular
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Pomodoro Focus Timer</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Precision interval timer with customizable study/break sessions, ambient bell chimes &amp; live streak counters.
+        </p>
+        <a href="/timer" class="btn btn-primary rounded-pill w-100 fw-bold shadow-sm">
+          <i class="fa-solid fa-play me-1.5"></i> Launch Timer
+        </a>
       </div>
     </div>
 
-    <!-- Exam Countdown -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-danger">
-        <div class="card-body">
-          <div class="bg-danger bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-clock fa-3x text-danger"></i>
+    <!-- 2. Focus Music Hub -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="focus">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-success bg-opacity-10 text-success">
+            <i class="fa-solid fa-headphones"></i>
           </div>
-          <h4 class="fw-bold">Exam Countdown</h4>
-          <p class="text-muted small">Stay aware of your deadlines with live countdown timers for your finals.</p>
-          <a href="/exam-countdown" class="btn btn-outline-danger rounded-pill w-100 fw-bold py-2 mt-2">Set Deadlines</a>
+          <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold small">
+            🎧 Audio Engine
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Lofi &amp; Focus Music</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Stream 40+ curated lofi study tracks, binaural alpha waves, rain audio &amp; noise generators with sleep timer.
+        </p>
+        <a href="/music" class="btn btn-outline-success rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-music me-1.5"></i> Open Music Studio
+        </a>
       </div>
     </div>
 
-    <!-- Flashcards -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-warning">
-        <div class="card-body">
-          <div class="bg-warning bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-brain fa-3x text-warning"></i>
+    <!-- 3. Study Streaks & Leaderboard -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="focus">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-danger bg-opacity-10 text-danger">
+            <i class="fa-solid fa-fire"></i>
           </div>
-          <h4 class="fw-bold">Advanced Flashcards</h4>
-          <p class="text-muted small">Convert PDFs to cards instantly with OCR and smart extraction technology.</p>
-          <a href="/flashcards" class="btn btn-outline-warning rounded-pill w-100 fw-bold py-2 mt-2 text-dark">Build Your Deck</a>
+          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1 fw-bold small">
+            🔥 Gamified
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Study Streak Tracker</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Build unbreakable study discipline with daily streak counters, achievement badges &amp; milestone celebrations.
+        </p>
+        <a href="/streak" class="btn btn-outline-danger rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-chart-line me-1.5"></i> View Your Streak
+        </a>
       </div>
     </div>
 
-    <!-- Reminder System -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-info">
-        <div class="card-body">
-          <div class="bg-info bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-bell fa-3x text-info"></i>
+    <!-- 4. Advanced Flashcards -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="memory">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-warning bg-opacity-10 text-warning">
+            <i class="fa-solid fa-brain"></i>
           </div>
-          <h4 class="fw-bold">Reminder System</h4>
-          <p class="text-muted small">Set time-based alerts for study sessions and break-time notifications.</p>
-          <a href="/reminder" class="btn btn-outline-info rounded-pill w-100 fw-bold py-2 mt-2">Setup Alerts</a>
+          <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 fw-bold small">
+            🧠 Active Recall
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Interactive Flashcards</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Supercharge your memory retention with custom flashcard decks, spaced repetition testing &amp; OCR conversion.
+        </p>
+        <a href="/flashcards" class="btn btn-outline-warning rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-bolt me-1.5"></i> Practice Decks
+        </a>
       </div>
     </div>
 
-    <!-- Goal Manager (Task Link) -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center hover-lift border-bottom border-4 border-secondary">
-        <div class="card-body">
-          <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-block p-4 mb-3">
-             <i class="fa-solid fa-list-check fa-3x text-secondary"></i>
+    <!-- 5. Digital Clock & Focus Hub -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="focus">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-info bg-opacity-10 text-info">
+            <i class="fa-solid fa-clock"></i>
           </div>
-          <h4 class="fw-bold">Daily Goal Manager</h4>
-          <p class="text-muted small">Keep track of your daily wins with our high-performance to-do list.</p>
-          <a href="/tasks" class="btn btn-outline-secondary rounded-pill w-100 fw-bold py-2 mt-2">Manage Goals</a>
+          <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 fw-bold small">
+            ⏱️ Precision
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Digital Clock &amp; World Hub</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Desk display digital clock, daily focus goal tracker, interactive monthly calendar &amp; 4-city world clock.
+        </p>
+        <a href="/clock" class="btn btn-outline-info rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-expand me-1.5"></i> Open Clock Studio
+        </a>
+      </div>
+    </div>
+
+    <!-- 6. Study Motivation & Quotes -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="memory">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-purple bg-opacity-10 text-primary" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
+            <i class="fa-solid fa-quote-left"></i>
+          </div>
+          <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 fw-bold small">
+            💡 Inspiration
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Motivational Study Quotes</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Daily focus affirmations, dynamic theme picker (Midnight, Cyber, Forest) &amp; high-res quote card export.
+        </p>
+        <a href="/quotes" class="btn btn-outline-primary rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-sparkles me-1.5"></i> Get Inspired
+        </a>
+      </div>
+    </div>
+
+    <!-- 7. Daily Tasks & Habit Tracker -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="organization">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-secondary bg-opacity-10 text-secondary">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2.5 py-1 fw-bold small">
+            📋 Checklist
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Daily Task &amp; Goal Manager</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Organize lecture tasks, assign priority tags, manage study checklists &amp; mark completed academic goals.
+        </p>
+        <a href="/tasks" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-check-double me-1.5"></i> Manage Tasks
+        </a>
+      </div>
+    </div>
+
+    <!-- 8. Study Notes Hub -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="memory">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-warning bg-opacity-10 text-warning">
+            <i class="fa-solid fa-pen-nib"></i>
+          </div>
+          <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 fw-bold small">
+            📝 Repository
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Academic Study Notes</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Access curated lecture summaries, exam revision notes, mind maps, formula cheatsheets &amp; past question sets.
+        </p>
+        <a href="/notes" class="btn btn-outline-warning rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-book-open me-1.5"></i> Browse Notes
+        </a>
+      </div>
+    </div>
+
+    <!-- 9. Student Safety Platform -->
+    <div class="col-md-6 col-lg-4 tool-item" data-cat="organization">
+      <div class="tool-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="tool-icon-box bg-danger bg-opacity-10 text-danger">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1 fw-bold small">
+            🛡️ Safe Campus
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Student Safety &amp; Protection</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Confidential incident reporting, scam profile alerts, verified case tracking &amp; 24/7 student protection helpline.
+        </p>
+        <a href="/student-safety" class="btn btn-outline-danger rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-user-shield me-1.5"></i> Safety Portal
+        </a>
       </div>
     </div>
 
   </div>
+
+  <div class="text-center mt-5">
+    <a href="/" class="btn btn-link text-muted fw-bold text-decoration-none">
+      <i class="fa-solid fa-arrow-left me-2"></i> Back to Main Dashboard
+    </a>
+  </div>
+
 </main>
 
-<style>
-.hover-lift {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
-}
-</style>
+<script>
+  // Category filtering
+  document.querySelectorAll('.tool-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const selected = btn.dataset.cat;
+      const items = document.querySelectorAll('.tool-item');
+
+      items.forEach(item => {
+        if (selected === 'all' || item.dataset.cat === selected) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>

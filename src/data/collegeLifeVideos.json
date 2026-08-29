@@ -1,5 +1,41 @@
 [
   {
+    "id": "cl-5a747f8c",
+    "title": "A Normal Day at  My University 🎓 | College Life Vlog  | Hiii Nishant",
+    "description": "🔔 Subscribe to Hiii Nishant for more vlogs | Nishant vlogs | New video",
+    "category": "Campus Vibe",
+    "duration": "14 minutes",
+    "youtubeUrl": "https://youtu.be/4wjzdp0JesE?si=vmWZ7Dgc18DJSAaT",
+    "youtubeVideoId": "4wjzdp0JesE",
+    "thumbnail": "https://img.youtube.com/vi/4wjzdp0JesE/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-08-29T08:22:03.731Z"
+  },
+  {
+    "id": "cl-57e62c04",
+    "title": "Jubin Nautiyal in my college | Chandigarh University | Nishant Vlogs",
+    "description": "rom electrifying performances to a crowd that couldn’t stop cheering, this fest was unforgettable.",
+    "category": "Campus Vibe",
+    "duration": "9 minutes",
+    "youtubeUrl": "https://youtu.be/NzIOLBaHvaI?si=hjEp7xGx39dyhLBR",
+    "youtubeVideoId": "NzIOLBaHvaI",
+    "thumbnail": "https://img.youtube.com/vi/NzIOLBaHvaI/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-08-29T07:59:17.811Z"
+  },
+  {
+    "id": "cl-e22374da",
+    "title": "First Time in Snow 🙆‍♂️ | Barf hi barf | Part - 3 🔥 | Nishant | Shimla",
+    "description": "First Time in Shimla | Nishant video   #travel #viralvideo #vlog",
+    "category": "Friends & Fun",
+    "duration": "5 minutes",
+    "youtubeUrl": "https://youtu.be/SZW-XVulDQI?si=1i-uUwW721IIKTr1",
+    "youtubeVideoId": "SZW-XVulDQI",
+    "thumbnail": "https://img.youtube.com/vi/SZW-XVulDQI/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-08-28T20:50:20.481Z"
+  },
+  {
     "id": "cl-1bb6dc4d",
     "title": "2 AM Study With Me",
     "description": "Study With Me CU",
@@ -7,33 +43,9 @@
     "duration": "",
     "youtubeUrl": "https://www.youtube.com/live/94hXyaOHxwU?si=b6BnUtcqw5Vf_tRO",
     "youtubeVideoId": "94hXyaOHxwU",
-    "thumbnail": "https://img.youtube.com/vi/94hXyaOHxwU/maxresdefault.jpg",
+    "thumbnail": "https://img.youtube.com/vi/94hXyaOHxwU/hqdefault.jpg",
     "isFeatured": false,
     "createdAt": "2026-08-27T08:57:51.031Z"
-  },
-  {
-    "id": "cl-001",
-    "title": "College Life & Campus Fest Vibes - 2 AM Study",
-    "category": "Campus Vibe",
-    "description": "Experience the energy of college fests, campus hangouts, and student memories.",
-    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
-    "youtubeVideoId": "jfKfPfyJRdk",
-    "thumbnail": "https://img.youtube.com/vi/jfKfPfyJRdk/maxresdefault.jpg",
-    "duration": "10 Min",
-    "isFeatured": true,
-    "createdAt": "2026-08-27T00:00:00.000Z"
-  },
-  {
-    "id": "cl-002",
-    "title": "Hostel Life Fun & Late Night Chai Stories",
-    "category": "Hostel Fun",
-    "description": "Late night discussions, midnight Maggi sessions, and unforgettable hostel friendships.",
-    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
-    "youtubeVideoId": "jfKfPfyJRdk",
-    "thumbnail": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&h=340&q=80",
-    "duration": "8 Min",
-    "isFeatured": false,
-    "createdAt": "2026-08-26T18:00:00.000Z"
   },
   {
     "id": "cl-003",

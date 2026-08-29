@@ -556,7 +556,7 @@
                   <% allStudySessions.forEach(function(s) { %>
                   <tr id="session-row-<%= s.id %>">
                     <td style="width: 100px;">
-                      <img src="<%= s.thumbnail || 'https://img.youtube.com/vi/' + s.youtubeVideoId + '/hqdefault.jpg' %>" alt="" class="rounded-2" style="width: 80px; height: 45px; object-fit: cover;">
+                      <img src="<%= (s.thumbnail && !s.thumbnail.includes('maxresdefault')) ? s.thumbnail : ('https://img.youtube.com/vi/' + s.youtubeVideoId + '/hqdefault.jpg') %>" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/<%= s.youtubeVideoId %>/hqdefault.jpg';" alt="" class="rounded-2" style="width: 80px; height: 45px; object-fit: cover;">
                     </td>
                     <td>
                       <div class="fw-bold text-white"><%= s.title %></div>
@@ -724,18 +724,19 @@
                   <tr id="blog-row-<%= b.id %>">
                     <td>
                       <div class="d-flex align-items-center gap-2.5">
-                        <img src="<%= b.coverImage || '/assets/images/logo.jpg' %>" alt="" class="rounded-2" style="width: 48px; height: 32px; object-fit: cover;">
+                        <img src="<%= b.coverImage || b.image || '/assets/images/logo.jpg' %>" alt="" class="rounded-2 border border-secondary border-opacity-25" style="width: 52px; height: 36px; object-fit: cover;" onerror="this.src='/assets/images/logo.jpg'">
                         <div>
                           <div class="fw-bold text-white"><%= b.title %></div>
                           <div class="text-muted small" style="font-size: 11px;">/blog/<%= b.slug %></div>
                         </div>
                       </div>
                     </td>
-                    <td><span class="badge bg-info bg-opacity-25 text-info rounded-pill px-2 py-0" style="font-size: 10px;"><%= b.category || 'Study' %></span></td>
-                    <td class="text-muted small"><%= new Date(b.createdAt || Date.now()).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+                    <td><span class="badge bg-info bg-opacity-25 text-info rounded-pill px-2 py-1" style="font-size: 10px;"><%= b.category || 'Study Tips' %></span></td>
+                    <td class="text-muted small"><%= new Date(b.createdAt || b.date || Date.now()).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></td>
                     <td class="text-end">
-                      <a href="/blog/<%= b.slug %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-eye"></i></a>
-                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="deleteBlog('<%= b.id %>')" style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
+                      <a href="/blog/<%= b.slug %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill py-1 px-2.5 me-1" style="font-size: 11px;" title="View Blog"><i class="fa-solid fa-eye"></i> View</a>
+                      <button class="btn btn-sm btn-outline-warning rounded-pill py-1 px-2.5 me-1" onclick="openEditBlogModal('<%= b.id %>')" style="font-size: 11px;" title="Edit Blog"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill py-1 px-2.5" onclick="deleteBlog('<%= b.id %>')" style="font-size: 11px;" title="Delete Blog"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                   <% }); %>
@@ -912,7 +913,7 @@
                   <% collegeVideos.forEach(function(v) { %>
                   <tr id="cv-row-<%= v.id %>">
                     <td style="width: 90px;">
-                      <img src="<%= v.thumbnail || 'https://img.youtube.com/vi/' + v.youtubeVideoId + '/default.jpg' %>" alt="" class="rounded-2" style="width: 78px; height: 44px; object-fit: cover;">
+                      <img src="<%= (v.thumbnail && !v.thumbnail.includes('maxresdefault')) ? v.thumbnail : ('https://img.youtube.com/vi/' + v.youtubeVideoId + '/hqdefault.jpg') %>" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/<%= v.youtubeVideoId %>/hqdefault.jpg';" alt="" class="rounded-2" style="width: 78px; height: 44px; object-fit: cover;">
                     </td>
                     <td>
                       <div class="fw-bold text-white"><%= v.title %></div>
@@ -1153,7 +1154,7 @@
   <!-- Modal: Add Blog -->
   <div class="modal fade" id="addBlogModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content modal-content-dark">
+      <div class="modal-content modal-content-dark border border-secondary border-opacity-25 shadow-lg">
         <div class="modal-header modal-header-dark">
           <h5 class="modal-title fw-bold text-white fs-6"><i class="fa-solid fa-plus text-info me-2"></i>New Blog Article</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -1164,28 +1165,156 @@
               <label class="form-label text-white-50 small fw-semibold">Article Title *</label>
               <input type="text" class="form-control form-control-dark" id="blogTitle" required placeholder="e.g. Study Techniques for Toppers">
             </div>
+
             <div class="row g-2 mb-3">
-              <div class="col-6">
+              <div class="col-md-6">
                 <label class="form-label text-white-50 small fw-semibold">Category</label>
-                <input type="text" class="form-control form-control-dark" id="blogCategory" value="Study Tips">
+                <input type="text" class="form-control form-control-dark" id="blogCategory" value="Study Tips" placeholder="Study Tips, Exam Prep...">
               </div>
-              <div class="col-6">
-                <label class="form-label text-white-50 small fw-semibold">Cover Image URL</label>
-                <input type="text" class="form-control form-control-dark" id="blogImage" placeholder="https://images.unsplash.com/...">
+              <div class="col-md-6">
+                <label class="form-label text-white-50 small fw-semibold">Author</label>
+                <input type="text" class="form-control form-control-dark" id="blogAuthor" value="2 AM Study" placeholder="Author Name">
               </div>
             </div>
+
+            <!-- Cover Image with Upload + URL + Live Preview -->
+            <div class="mb-3 p-3 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15);">
+              <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-image text-info me-1"></i> Card Cover Image</span>
+                <span class="text-muted" style="font-size: 11px;">Upload file or paste image link</span>
+              </label>
+              <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                  <div class="position-relative rounded-2 overflow-hidden border border-secondary border-opacity-25 bg-dark d-flex align-items-center justify-content-center" style="width: 80px; height: 56px;">
+                    <img id="blogImagePreview" src="/assets/images/logo.jpg" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="input-group input-group-sm mb-1">
+                    <input type="text" class="form-control form-control-dark" id="blogImage" placeholder="https://images.unsplash.com/... or upload" oninput="updateCoverPreview('blogImage', 'blogImagePreview')">
+                    <label class="btn btn-outline-info btn-sm px-3 m-0 d-flex align-items-center gap-1" style="cursor: pointer;">
+                      <i class="fa-solid fa-upload"></i> Upload
+                      <input type="file" accept="image/*" class="d-none" onchange="uploadBlogCover(this, 'blogImage', 'blogImagePreview')">
+                    </label>
+                  </div>
+                  <div class="text-white-50 small" style="font-size: 11px;">This image will appear at the top of the blog card and article header.</div>
+                </div>
+              </div>
+            </div>
+
             <div class="mb-3">
-              <label class="form-label text-white-50 small fw-semibold">Summary / Excerpt *</label>
+              <label class="form-label text-white-50 small fw-semibold">Summary / Excerpt (Card Description) *</label>
               <textarea class="form-control form-control-dark" id="blogExcerpt" rows="2" required placeholder="Brief intro for the article card..."></textarea>
             </div>
+
+            <!-- Content Editor with Image Box & Formatting Toolbar -->
             <div class="mb-3">
-              <label class="form-label text-white-50 small fw-semibold">Content (HTML/Text) *</label>
-              <textarea class="form-control form-control-dark" id="blogContent" rows="5" required placeholder="<p>Write your article here...</p>"></textarea>
+              <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                <label class="form-label text-white-50 small fw-semibold mb-0">Article Content *</label>
+                <!-- Formatting & Image Box Toolbar -->
+                <div class="btn-group btn-group-sm">
+                  <label class="btn btn-outline-info btn-sm py-0 px-2 d-flex align-items-center gap-1" title="Upload & Insert Image Box" style="font-size: 11px; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i> Image Box
+                    <input type="file" accept="image/*" class="d-none" onchange="uploadInlineImage(this, 'blogContent')">
+                  </label>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('blogContent', 'h2')" title="H2 Section Heading">H2</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('blogContent', 'h3')" title="H3 Subheading">H3</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('blogContent', 'quote')" title="Quote Block">Quote</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('blogContent', 'tip')" title="Pro-Tip Callout">Tip</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('blogContent', 'list')" title="Bullet List">List</button>
+                </div>
+              </div>
+              <textarea class="form-control form-control-dark font-monospace" id="blogContent" rows="8" required placeholder="Write your article here... Use the Image Box button above to insert photos!"></textarea>
             </div>
           </div>
           <div class="modal-footer modal-footer-dark">
             <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-gradient-primary btn-sm rounded-pill px-4">Publish Article</button>
+            <button type="submit" id="submitBlogBtn" class="btn btn-gradient-primary btn-sm rounded-pill px-4">Publish Article</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Blog -->
+  <div class="modal fade" id="editBlogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-dark border border-secondary border-opacity-25 shadow-lg">
+        <div class="modal-header modal-header-dark">
+          <h5 class="modal-title fw-bold text-white fs-6"><i class="fa-solid fa-pen-to-square text-warning me-2"></i>Edit Blog Article</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="editBlogForm" onsubmit="updateBlog(event)">
+          <input type="hidden" id="editBlogId">
+          <div class="modal-body p-3">
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Article Title *</label>
+              <input type="text" class="form-control form-control-dark" id="editBlogTitle" required>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label text-white-50 small fw-semibold">Category</label>
+                <input type="text" class="form-control form-control-dark" id="editBlogCategory">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-white-50 small fw-semibold">Author</label>
+                <input type="text" class="form-control form-control-dark" id="editBlogAuthor">
+              </div>
+            </div>
+
+            <!-- Edit Cover Image with Upload + URL + Live Preview -->
+            <div class="mb-3 p-3 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15);">
+              <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-image text-warning me-1"></i> Card Cover Image</span>
+                <span class="text-muted" style="font-size: 11px;">Upload file or paste image link</span>
+              </label>
+              <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                  <div class="position-relative rounded-2 overflow-hidden border border-secondary border-opacity-25 bg-dark d-flex align-items-center justify-content-center" style="width: 80px; height: 56px;">
+                    <img id="editBlogImagePreview" src="/assets/images/logo.jpg" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="input-group input-group-sm mb-1">
+                    <input type="text" class="form-control form-control-dark" id="editBlogImage" placeholder="https://images.unsplash.com/... or upload" oninput="updateCoverPreview('editBlogImage', 'editBlogImagePreview')">
+                    <label class="btn btn-outline-warning btn-sm px-3 m-0 d-flex align-items-center gap-1" style="cursor: pointer;">
+                      <i class="fa-solid fa-upload"></i> Upload
+                      <input type="file" accept="image/*" class="d-none" onchange="uploadBlogCover(this, 'editBlogImage', 'editBlogImagePreview')">
+                    </label>
+                  </div>
+                  <div class="text-white-50 small" style="font-size: 11px;">This image will appear on the blog card and article header.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-semibold">Summary / Excerpt (Card Description) *</label>
+              <textarea class="form-control form-control-dark" id="editBlogExcerpt" rows="2" required></textarea>
+            </div>
+
+            <!-- Edit Content with Toolbar -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                <label class="form-label text-white-50 small fw-semibold mb-0">Article Content *</label>
+                <div class="btn-group btn-group-sm">
+                  <label class="btn btn-outline-warning btn-sm py-0 px-2 d-flex align-items-center gap-1" title="Upload & Insert Image Box" style="font-size: 11px; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i> Image Box
+                    <input type="file" accept="image/*" class="d-none" onchange="uploadInlineImage(this, 'editBlogContent')">
+                  </label>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('editBlogContent', 'h2')" title="H2 Section Heading">H2</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('editBlogContent', 'h3')" title="H3 Subheading">H3</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('editBlogContent', 'quote')" title="Quote Block">Quote</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('editBlogContent', 'tip')" title="Pro-Tip Callout">Tip</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 text-white-50" style="font-size: 11px;" onclick="insertQuickTag('editBlogContent', 'list')" title="Bullet List">List</button>
+                </div>
+              </div>
+              <textarea class="form-control form-control-dark font-monospace" id="editBlogContent" rows="8" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-dark">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" id="saveEditBlogBtn" class="btn btn-warning btn-sm rounded-pill px-4 text-dark fw-bold">Save Changes</button>
           </div>
         </form>
       </div>
@@ -1295,7 +1424,13 @@
           });
           const data = await res.json();
           if (data.success) {
-            window.location.reload();
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectParam = urlParams.get('redirect');
+            if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+              window.location.href = redirectParam;
+            } else {
+              window.location.reload();
+            }
           } else {
             errAlert.textContent = data.error || 'Incorrect passcode. Please try again.';
             errAlert.classList.remove('d-none');
@@ -1325,8 +1460,15 @@
     // Live Stream Actions
     async function activateLive(e) {
       e.preventDefault();
+      const form = document.getElementById('activateLiveForm');
+      const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
       const youtubeUrl = document.getElementById('liveYtUrl').value.trim();
       const title = document.getElementById('liveTitle').value.trim();
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Starting...';
+      }
 
       try {
         const res = await fetch('/api/live-study/activate', {
@@ -1337,12 +1479,23 @@
         const data = await res.json();
         if (data.success) {
           showToast('🔴 Live Stream is ACTIVE!');
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => {
+            window.location.hash = 'live';
+            window.location.reload();
+          }, 800);
         } else {
           showToast(data.message || 'Failed to activate live stream.', true);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-tower-broadcast me-1"></i> Start Live Now';
+          }
         }
       } catch(err) {
         showToast('Error connecting to server.', true);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-tower-broadcast me-1"></i> Start Live Now';
+        }
       }
     }
 
@@ -1353,7 +1506,10 @@
         const data = await res.json();
         if (data.success) {
           showToast('Live stream ended.');
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => {
+            window.location.hash = 'live';
+            window.location.reload();
+          }, 800);
         } else {
           showToast(data.message || 'Failed to end stream.', true);
         }
@@ -1364,10 +1520,17 @@
 
     async function addPastSession(e) {
       e.preventDefault();
+      const form = document.getElementById('addPastSessionForm');
+      const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
       const youtubeUrl = document.getElementById('pastYtUrl').value.trim();
       const title = document.getElementById('pastTitle').value.trim();
       const duration = document.getElementById('pastDuration').value.trim();
       const thumbnail = document.getElementById('pastThumbnail').value.trim();
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+      }
 
       try {
         const res = await fetch('/api/live-study/add-past', {
@@ -1378,12 +1541,23 @@
         const data = await res.json();
         if (data.success) {
           showToast('Recorded study session saved!');
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => {
+            window.location.hash = 'live';
+            window.location.reload();
+          }, 800);
         } else {
           showToast(data.message || 'Failed to add session.', true);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Save Session';
+          }
         }
       } catch(err) {
         showToast('Error connecting to server.', true);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Save Session';
+        }
       }
     }
 
@@ -1471,11 +1645,104 @@
       }
     }
 
+    // ─── Blog Management & Image Box Helpers ─────────────────────────────────────
+    
+    function updateCoverPreview(inputId, previewImgId) {
+      const url = document.getElementById(inputId).value.trim();
+      const preview = document.getElementById(previewImgId);
+      if (preview) {
+        preview.src = url || '/assets/images/logo.jpg';
+      }
+    }
+
+    async function uploadBlogCover(fileInput, targetUrlInputId, previewImgId) {
+      if (!fileInput.files || !fileInput.files[0]) return;
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+
+      showToast('Uploading cover image...');
+      try {
+        const res = await fetch('/api/store/admin/blogs/upload-image', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          document.getElementById(targetUrlInputId).value = data.url;
+          const preview = document.getElementById(previewImgId);
+          if (preview) preview.src = data.url;
+          showToast('Cover image uploaded successfully!');
+        } else {
+          showToast(data.error || 'Failed to upload cover image.', true);
+        }
+      } catch(err) {
+        showToast('Network error while uploading cover image.', true);
+      } finally {
+        fileInput.value = '';
+      }
+    }
+
+    async function uploadInlineImage(fileInput, textareaId) {
+      if (!fileInput.files || !fileInput.files[0]) return;
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+
+      showToast('Uploading inline image...');
+      try {
+        const res = await fetch('/api/store/admin/blogs/upload-image', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          const caption = prompt('Enter a caption for this image (optional):', '') || 'Image description';
+          const imageBoxHtml = `\n\n<figure class="blog-img-box my-4 text-center">\n  <img src="${data.url}" alt="${caption}" class="img-fluid rounded-4 shadow-sm" style="max-height: 480px; object-fit: cover;">\n  <figcaption class="text-muted small mt-2">${caption}</figcaption>\n</figure>\n\n`;
+          
+          insertAtCursor(textareaId, imageBoxHtml);
+          showToast('Image Box inserted into content!');
+        } else {
+          showToast(data.error || 'Failed to upload inline image.', true);
+        }
+      } catch(err) {
+        showToast('Network error uploading image.', true);
+      } finally {
+        fileInput.value = '';
+      }
+    }
+
+    function insertQuickTag(textareaId, type) {
+      let snippet = '';
+      if (type === 'h2') snippet = '\n\n<h2>Section Title</h2>\n<p>Write your section content here...</p>\n';
+      else if (type === 'h3') snippet = '\n\n<h3>Subheading Title</h3>\n<p>Details here...</p>\n';
+      else if (type === 'quote') snippet = '\n\n<blockquote>"Success doesn\'t come to you, you go to it."</blockquote>\n';
+      else if (type === 'tip') snippet = '\n\n<div class="pro-tip">\n  <strong>Pro-Tip:</strong> Review your notes within 24 hours to boost retention by 80%.\n</div>\n';
+      else if (type === 'list') snippet = '\n\n<ul>\n  <li>Key point 1</li>\n  <li>Key point 2</li>\n  <li>Key point 3</li>\n</ul>\n';
+      
+      insertAtCursor(textareaId, snippet);
+    }
+
+    function insertAtCursor(textareaId, text) {
+      const el = document.getElementById(textareaId);
+      if (!el) return;
+      const start = el.selectionStart || el.value.length;
+      const end = el.selectionEnd || el.value.length;
+      el.value = el.value.substring(0, start) + text + el.value.substring(end);
+      el.focus();
+      el.selectionStart = el.selectionEnd = start + text.length;
+    }
+
     // Blog Actions
     async function createBlog(e) {
       e.preventDefault();
+      const btn = document.getElementById('submitBlogBtn');
+      const originalText = btn ? btn.innerHTML : 'Publish Article';
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...'; }
+
       const title = document.getElementById('blogTitle').value.trim();
       const category = document.getElementById('blogCategory').value.trim();
+      const author = document.getElementById('blogAuthor').value.trim();
       const coverImage = document.getElementById('blogImage').value.trim();
       const excerpt = document.getElementById('blogExcerpt').value.trim();
       const content = document.getElementById('blogContent').value.trim();
@@ -1484,17 +1751,83 @@
         const res = await fetch('/api/store/admin/blogs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, category, coverImage, excerpt, content, status: 'published' })
+          body: JSON.stringify({ title, category, author, coverImage, image: coverImage, excerpt, content, status: 'published' })
         });
         const data = await res.json();
         if (data.success) {
-          showToast('Blog article published!');
-          setTimeout(() => window.location.reload(), 1000);
+          showToast('Blog article published successfully!');
+          setTimeout(() => window.location.reload(), 800);
         } else {
-          showToast(data.error || 'Failed to publish.', true);
+          showToast(data.error || 'Failed to publish article.', true);
+          if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
         }
       } catch(err) {
         showToast('Error publishing blog.', true);
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+      }
+    }
+
+    async function openEditBlogModal(id) {
+      showToast('Loading article details...');
+      try {
+        const res = await fetch('/api/store/admin/blogs/' + id);
+        const data = await res.json();
+        if (data.success && data.post) {
+          const p = data.post;
+          document.getElementById('editBlogId').value = p.id;
+          document.getElementById('editBlogTitle').value = p.title || '';
+          document.getElementById('editBlogCategory').value = p.category || 'Study Tips';
+          document.getElementById('editBlogAuthor').value = p.author || '2 AM Study';
+          const imgUrl = p.coverImage || p.image || '';
+          document.getElementById('editBlogImage').value = imgUrl;
+          const preview = document.getElementById('editBlogImagePreview');
+          if (preview) preview.src = imgUrl || '/assets/images/logo.jpg';
+          document.getElementById('editBlogExcerpt').value = p.excerpt || '';
+          document.getElementById('editBlogContent').value = p.content || '';
+
+          const modal = new bootstrap.Modal(document.getElementById('editBlogModal'));
+          modal.show();
+        } else {
+          showToast(data.error || 'Failed to load article.', true);
+        }
+      } catch(err) {
+        showToast('Error loading blog details.', true);
+      }
+    }
+
+    async function updateBlog(e) {
+      e.preventDefault();
+      const id = document.getElementById('editBlogId').value;
+      if (!id) return;
+
+      const btn = document.getElementById('saveEditBlogBtn');
+      const originalText = btn ? btn.innerHTML : 'Save Changes';
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+
+      const title = document.getElementById('editBlogTitle').value.trim();
+      const category = document.getElementById('editBlogCategory').value.trim();
+      const author = document.getElementById('editBlogAuthor').value.trim();
+      const coverImage = document.getElementById('editBlogImage').value.trim();
+      const excerpt = document.getElementById('editBlogExcerpt').value.trim();
+      const content = document.getElementById('editBlogContent').value.trim();
+
+      try {
+        const res = await fetch('/api/store/admin/blogs/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, category, author, coverImage, image: coverImage, excerpt, content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Blog article updated successfully!');
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          showToast(data.error || 'Failed to update article.', true);
+          if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+        }
+      } catch(err) {
+        showToast('Error updating blog.', true);
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
       }
     }
 
@@ -1559,12 +1892,19 @@
     // College Life Video Actions
     async function addCollegeVideo(e) {
       e.preventDefault();
+      const form = document.getElementById('addCollegeVideoForm');
+      const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
       const youtubeUrl = document.getElementById('clYtUrl').value.trim();
       const title = document.getElementById('clTitle').value.trim();
       const category = document.getElementById('clCategory').value;
       const duration = document.getElementById('clDuration').value.trim();
       const description = document.getElementById('clDescription').value.trim();
       const isFeatured = document.getElementById('clFeatured').checked;
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Adding...';
+      }
 
       try {
         const res = await fetch('/api/college-life/videos', {
@@ -1578,12 +1918,20 @@
           setTimeout(() => {
             window.location.hash = 'college';
             window.location.reload();
-          }, 1000);
+          }, 800);
         } else {
           showToast(data.error || 'Failed to add video.', true);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Video';
+          }
         }
       } catch(err) {
         showToast('Error connecting to server.', true);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Video';
+        }
       }
     }
 

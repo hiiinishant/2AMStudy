@@ -25,19 +25,18 @@
       <% if (typeof videos !== 'undefined' && videos.length) { %>
         <% videos.forEach(function(v) { %>
         <div class="col-sm-6 col-lg-4 video-item" data-category="<%= v.category || '' %>">
-          <div class="card border-0 rounded-4 overflow-hidden h-100 shadow-sm" style="transition: transform 0.2s, box-shadow 0.2s;">
+          <div class="card college-card border-0 rounded-4 overflow-hidden h-100 shadow-sm">
 
             <!-- Thumbnail with play button -->
-            <a href="/college-life/<%= v.id %>" class="ratio ratio-16x9 position-relative d-block overflow-hidden text-decoration-none"
-               onmouseover="this.querySelector('.play-overlay').style.opacity=1"
-               onmouseout="this.querySelector('.play-overlay').style.opacity=0">
-              <img src="<%= v.thumbnail || 'https://img.youtube.com/vi/' + v.youtubeVideoId + '/hqdefault.jpg' %>"
-                   alt="<%= v.title %>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%;">
-              <div class="play-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                   style="background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;">
-                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow"
-                     style="width: 48px; height: 48px;">
-                  <i class="fa-solid fa-play text-dark" style="font-size: 1rem; padding-left: 3px;"></i>
+            <a href="/college-life/<%= v.id %>" class="ratio ratio-16x9 position-relative d-block overflow-hidden text-decoration-none">
+              <img src="<%= (v.thumbnail && !v.thumbnail.includes('maxresdefault')) ? v.thumbnail : ('https://img.youtube.com/vi/' + v.youtubeVideoId + '/hqdefault.jpg') %>"
+                   onerror="this.onerror=null;this.src='https://img.youtube.com/vi/<%= v.youtubeVideoId %>/hqdefault.jpg';"
+                   alt="<%= v.title %>" loading="lazy" style="object-fit: cover; width: 100%; height: 100%; transition: transform 0.3s ease;">
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                   style="background: rgba(0,0,0,0.25);">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                     style="width: 46px; height: 46px; box-shadow: 0 2px 12px rgba(0,0,0,0.2);">
+                  <i class="fa-solid fa-play text-dark" style="font-size: 0.9rem; padding-left: 3px;"></i>
                 </div>
               </div>
               <% if (v.isFeatured) { %>
@@ -58,11 +57,14 @@
                 <% } %>
               </div>
               <h5 class="fw-bold text-dark mb-1 fs-6">
-                <a href="/college-life/<%= v.id %>" class="text-dark text-decoration-none stretched-link"><%= v.title %></a>
+                <a href="/college-life/<%= v.id %>" class="text-dark text-decoration-none"><%= v.title %></a>
               </h5>
               <p class="text-muted small flex-grow-1 mb-3" style="font-size: 0.82rem; line-height: 1.5;">
                 <%= v.description || 'Watch this college life moment on 2 AM Study.' %>
               </p>
+              <a href="/college-life/<%= v.id %>" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold w-100 text-center">
+                Watch Video <i class="fa-solid fa-arrow-right small ms-1"></i>
+              </a>
             </div>
 
           </div>
@@ -81,6 +83,16 @@
 </main>
 
 <style>
+  .college-card {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .college-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+  }
+  .college-card:hover img {
+    transform: scale(1.04);
+  }
   .active-filter {
     background: #212529 !important;
     color: #fff !important;

@@ -1,147 +1,432 @@
 <%- include('partials/header') %>
 
-<section class="py-5 bg-light d-flex align-items-center min-vh-100" style="padding-top: 100px !important;">
-  <div class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-md-8 col-lg-6 col-xl-5">
-        
-        <!-- Auth Card -->
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white p-4 p-md-5">
-          <div class="text-center mb-4">
-            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 28px;">
-              🎓
-            </div>
-            <h1 class="h3 fw-extrabold text-dark mb-1">Create Account</h1>
-            <p class="text-muted small">Join 2AM Study & Student Safety Hub in less than a minute</p>
-          </div>
+<style>
+/* 2 AM Study - Signup Page Split-Card Design (Matches Login) */
+:root {
+  --su-page-bg: #f1f5f9;
+  --su-card-bg: #ffffff;
+  --su-text-dark: #0f172a;
+  --su-text-muted: #475569;
+  --su-border: #e2e8f0;
+  --su-input-border: #cbd5e1;
+  --su-accent-blue: #2563eb;
+  --su-accent-blue-hover: #1d4ed8;
+  --su-btn-dark: #0f172a;
+}
 
-          <!-- Alert Banners -->
-          <div id="auth-error-alert" class="alert alert-danger border-0 rounded-3 p-3 small mb-4 d-none">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
-              <span id="auth-error-msg">Failed to create account.</span>
-            </div>
-          </div>
+body {
+  background: var(--su-page-bg) !important;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--su-text-dark);
+}
 
-          <div id="auth-success-alert" class="alert alert-success border-0 rounded-3 p-3 small mb-4 d-none">
-            <div class="d-flex align-items-start gap-2">
-              <i class="fa-solid fa-circle-check text-success fs-5 mt-1"></i>
-              <div>
-                <strong class="d-block text-success mb-1">Account Created Successfully!</strong>
-                <span>We've sent a verification email to your address. Please check your inbox. Redirecting...</span>
-              </div>
-            </div>
-          </div>
+.su-hero-section {
+  min-height: calc(100vh - 80px);
+  padding: 40px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.07) 0%, transparent 45%),
+              radial-gradient(circle at 10% 90%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+              var(--su-page-bg);
+}
 
-          <!-- Signup Form -->
-          <form id="signupForm" novalidate>
-            <!-- Full Name -->
-            <div class="mb-3">
-              <label for="signupName" class="form-label fw-semibold text-dark small">Full Name <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
-                <input type="text" class="form-control bg-light border-start-0 py-2" id="signupName" placeholder="Nishant Kumar" required>
-              </div>
-              <div class="invalid-feedback">Please enter your full name.</div>
-            </div>
+.su-master-card {
+  max-width: 1020px;
+  width: 100%;
+  background: var(--su-card-bg);
+  border-radius: 28px;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  margin: 0 auto;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
 
-            <!-- Email -->
-            <div class="mb-3">
-              <label for="signupEmail" class="form-label fw-semibold text-dark small">Email Address <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
-                <input type="email" class="form-control bg-light border-start-0 py-2" id="signupEmail" placeholder="student@university.edu" required>
-              </div>
-              <div class="invalid-feedback">Please enter a valid email address.</div>
-            </div>
+/* Left Photo Panel */
+.su-photo-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 40px 36px;
+  overflow: hidden;
+  min-height: 580px;
+}
 
-            <!-- College / University -->
-            <div class="mb-3">
-              <label for="signupCollege" class="form-label fw-semibold text-dark small">College / University <span class="text-muted fw-normal">(Optional)</span></label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-building-columns"></i></span>
-                <input type="text" class="form-control bg-light border-start-0 py-2" id="signupCollege" placeholder="e.g. Delhi University, IIT Bombay">
-              </div>
-            </div>
+.su-panel-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 0;
+}
 
-            <!-- Password -->
-            <div class="mb-3">
-              <label for="signupPassword" class="form-label fw-semibold text-dark small">Password <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                <input type="password" class="form-control bg-light border-start-0 py-2" id="signupPassword" placeholder="Minimum 6 characters" minlength="6" required>
-              </div>
-              <div class="invalid-feedback">Password must be at least 6 characters.</div>
-            </div>
+.su-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(15,23,42,0.10) 0%, rgba(15,23,42,0.38) 40%, rgba(15,23,42,0.90) 100%);
+  z-index: 1;
+}
 
-            <!-- Confirm Password -->
-            <div class="mb-3">
-              <label for="signupConfirmPassword" class="form-label fw-semibold text-dark small">Confirm Password <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-shield-halved"></i></span>
-                <input type="password" class="form-control bg-light border-start-0 py-2" id="signupConfirmPassword" placeholder="Re-enter password" required>
-              </div>
-              <div class="invalid-feedback" id="confirmPasswordFeedback">Passwords do not match.</div>
-            </div>
+.su-panel-content { position: relative; z-index: 2; }
 
-            <!-- Terms Confirmation Checkbox -->
-            <div class="mb-3">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="termsCheck" required>
-                <label class="form-check-label text-dark small" for="termsCheck">
-                  I agree to the <a href="/terms" target="_blank" class="text-primary text-decoration-none">Terms of Service</a> and <a href="/privacy-policy" target="_blank" class="text-primary text-decoration-none">Privacy Policy</a>.
-                </label>
-                <div class="invalid-feedback">You must agree to the terms to proceed.</div>
-              </div>
-            </div>
+.su-panel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 5px 14px;
+  margin-bottom: 16px;
+}
 
-            <!-- Submit Button -->
-            <button type="submit" id="signupSubmitBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-2 shadow-sm">
-              ✨ Create Account
-            </button>
-          </form>
+.su-panel-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
 
-          <div class="d-flex align-items-center my-4">
-            <hr class="flex-grow-1 my-0 opacity-25">
-            <span class="px-3 text-muted small fw-semibold">OR</span>
-            <hr class="flex-grow-1 my-0 opacity-25">
-          </div>
+.su-panel-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.55;
+  max-width: 290px;
+  margin: 0 0 20px;
+}
 
-          <!-- Google Sign-In Button -->
-          <button type="button" id="googleSignUpBtn" class="btn btn-outline-secondary w-100 rounded-pill py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
-              <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
-              <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
-              <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
+.su-feature-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
 
-          <!-- Footer Link -->
-          <div class="text-center mt-4 pt-2">
-            <p class="text-muted small mb-0">
-              Already have an account? <a href="/login" id="toLoginLink" class="text-primary fw-bold text-decoration-none">Log In</a>
-            </p>
-          </div>
+.su-pill {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+}
 
+.su-dots { display: flex; align-items: center; gap: 8px; }
+.su-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: all 0.3s ease; }
+.su-dot.active { width: 26px; border-radius: 12px; background: rgba(255,255,255,0.9); }
+
+/* Right Form Panel */
+.su-form-panel {
+  padding: 44px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+.su-brand-header { text-align: center; margin-bottom: 22px; }
+
+.su-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--su-text-dark);
+  text-decoration: none;
+}
+
+.su-brand-logo img { height: 36px; width: auto; border-radius: 8px; }
+
+.su-brand-logo span {
+  background: linear-gradient(135deg, #0f172a 30%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.su-form-label { font-size: 0.84rem; font-weight: 600; color: #334155; margin-bottom: 5px; display: block; }
+
+.su-input-wrap { position: relative; margin-bottom: 4px; }
+
+.su-input {
+  width: 100%;
+  padding: 11px 16px;
+  background: #ffffff;
+  border: 1.5px solid var(--su-input-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--su-text-dark);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.su-input:focus { border-color: var(--su-accent-blue); box-shadow: 0 0 0 3.5px rgba(37,99,235,0.12); }
+.su-input::placeholder { color: #94a3b8; font-size: 0.87rem; }
+.su-input.is-invalid { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+
+.su-password-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.9rem;
+}
+
+.su-field-error { font-size: 0.78rem; color: #ef4444; margin-bottom: 8px; display: none; }
+.su-field-error.visible { display: block; }
+
+/* Password Strength */
+.su-strength-wrap { margin-bottom: 6px; display: none; }
+.su-strength-wrap.visible { display: block; }
+.su-strength-bar { height: 4px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 3px; margin-top: 6px; }
+.su-strength-fill { height: 100%; border-radius: 4px; transition: all 0.3s ease; width: 0%; }
+.su-strength-label { font-size: 0.74rem; font-weight: 600; }
+
+/* Terms */
+.su-terms-wrap { display: flex; align-items: flex-start; gap: 10px; margin: 6px 0 4px; }
+.su-terms-check { margin-top: 2px; width: 16px; height: 16px; cursor: pointer; accent-color: var(--su-accent-blue); flex-shrink: 0; }
+.su-terms-label { font-size: 0.82rem; color: var(--su-text-muted); line-height: 1.5; }
+.su-terms-label a { color: var(--su-accent-blue); text-decoration: none; font-weight: 600; }
+.su-terms-label a:hover { text-decoration: underline; }
+
+/* Buttons */
+.su-btn-primary {
+  width: 100%;
+  background: var(--su-btn-dark);
+  color: #ffffff;
+  border: none;
+  padding: 13px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+  margin-top: 6px;
+}
+
+.su-btn-primary:hover { background: var(--su-accent-blue); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.25); }
+.su-btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+.su-divider { display: flex; align-items: center; margin: 16px 0 14px; }
+.su-divider-line { flex: 1; height: 1px; background: #e2e8f0; }
+.su-divider-text { padding: 0 14px; font-size: 0.82rem; color: #94a3b8; font-weight: 500; }
+
+.su-btn-google {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid var(--su-input-border);
+  color: #334155;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.su-btn-google:hover { background: #f8fafc; border-color: #94a3b8; }
+
+/* Alerts */
+.su-alert { border-radius: 8px; padding: 10px 14px; font-size: 0.84rem; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 10px; }
+.su-alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.su-alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+
+.su-footer-prompt { text-align: center; margin-top: 18px; font-size: 0.86rem; color: #64748b; }
+.su-footer-link { color: var(--su-accent-blue); font-weight: 700; text-decoration: none; margin-left: 4px; }
+.su-footer-link:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .su-master-card { grid-template-columns: 1fr; max-width: 500px; border-radius: 20px; }
+  .su-photo-panel { min-height: 260px; padding: 28px 24px; }
+  .su-form-panel { padding: 32px 24px; }
+}
+</style>
+
+<section class="su-hero-section">
+  <div class="su-master-card">
+
+    <!-- Left Photo Panel -->
+    <div class="su-photo-panel">
+      <img
+        src="/assets/images/login-hero.webp"
+        alt="2 AM Study Student Campus"
+        class="su-panel-photo"
+        onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#0f172a,#1e3a8a)';"
+      >
+      <div class="su-panel-overlay"></div>
+
+      <div class="su-panel-content">
+        <h2 class="su-panel-title">2 AM Study</h2>
+        <p class="su-panel-subtitle">
+          Meet Our Founder — Nishant Kumar, driven by a vision to redefine how students learn, focus, grow, and turn ambition into achievement.
+        </p>
+
+        <div class="su-dots">
+          <span class="su-dot active"></span>
+          <span class="su-dot"></span>
+          <span class="su-dot"></span>
+          <span class="su-dot"></span>
         </div>
-
       </div>
     </div>
+
+    <!-- Right Signup Form Panel -->
+    <div class="su-form-panel">
+
+      <!-- Brand -->
+      <div class="su-brand-header">
+        <a href="/" class="su-brand-logo">
+          <img src="/assets/images/logo.jpg" alt="2 AM Study Logo" onerror="this.style.display='none';">
+          <span>2 AM Study</span>
+        </a>
+      </div>
+
+      <p style="text-align:center;font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:4px;">Create Account</p>
+      <p style="text-align:center;font-size:0.84rem;color:#475569;margin-bottom:18px;">Join 2AM Study &amp; Student Safety Hub in less than a minute</p>
+
+      <!-- Alerts -->
+      <div id="auth-error-alert" class="su-alert su-alert-danger d-none">
+        <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;flex-shrink:0;"></i>
+        <span id="auth-error-msg">Failed to create account.</span>
+      </div>
+
+      <div id="auth-success-alert" class="su-alert su-alert-success d-none">
+        <i class="fa-solid fa-circle-check" style="margin-top:2px;flex-shrink:0;"></i>
+        <div>
+          <strong style="display:block;margin-bottom:2px;">Account Created Successfully!</strong>
+          <span>We've sent a verification email. Please check your inbox. Redirecting...</span>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="signupForm" novalidate>
+
+        <!-- Name + College row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;">
+          <div>
+            <label for="signupName" class="su-form-label">Full Name <span style="color:#ef4444;">*</span></label>
+            <div class="su-input-wrap">
+              <input type="text" class="su-input" id="signupName" placeholder="Nishant Kumar" required autocomplete="name">
+            </div>
+            <div class="su-field-error" id="nameError">Please enter your full name.</div>
+          </div>
+          <div>
+            <label for="signupCollege" class="su-form-label">College <span style="font-size:0.74rem;color:#94a3b8;font-weight:400;">(Optional)</span></label>
+            <div class="su-input-wrap">
+              <input type="text" class="su-input" id="signupCollege" placeholder="e.g. Delhi University" autocomplete="organization">
+            </div>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div style="margin-bottom:4px;">
+          <label for="signupEmail" class="su-form-label">Email Address <span style="color:#ef4444;">*</span></label>
+          <div class="su-input-wrap">
+            <input type="email" class="su-input" id="signupEmail" placeholder="student@university.edu" required autocomplete="email">
+          </div>
+          <div class="su-field-error" id="emailError">Please enter a valid email address.</div>
+        </div>
+
+        <!-- Password -->
+        <div style="margin-bottom:4px;">
+          <label for="signupPassword" class="su-form-label">Password <span style="color:#ef4444;">*</span></label>
+          <div class="su-input-wrap">
+            <input type="password" class="su-input" id="signupPassword" placeholder="Minimum 6 characters" minlength="6" required autocomplete="new-password" style="padding-right:44px;">
+            <button type="button" class="su-password-toggle" id="pwToggle1" aria-label="Toggle password visibility">
+              <i class="fa-regular fa-eye" id="pwEye1"></i>
+            </button>
+          </div>
+          <div class="su-strength-wrap" id="strengthWrap">
+            <div class="su-strength-bar"><div class="su-strength-fill" id="strengthFill"></div></div>
+            <span class="su-strength-label" id="strengthLabel"></span>
+          </div>
+          <div class="su-field-error" id="passwordError">Password must be at least 6 characters.</div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div style="margin-bottom:4px;">
+          <label for="signupConfirmPassword" class="su-form-label">Confirm Password <span style="color:#ef4444;">*</span></label>
+          <div class="su-input-wrap">
+            <input type="password" class="su-input" id="signupConfirmPassword" placeholder="Re-enter password" required autocomplete="new-password" style="padding-right:44px;">
+            <button type="button" class="su-password-toggle" id="pwToggle2" aria-label="Toggle confirm password">
+              <i class="fa-regular fa-eye" id="pwEye2"></i>
+            </button>
+          </div>
+          <div class="su-field-error" id="confirmPasswordFeedback">Passwords do not match.</div>
+        </div>
+
+        <!-- Terms -->
+        <div class="su-terms-wrap">
+          <input class="su-terms-check" type="checkbox" id="termsCheck" required>
+          <label class="su-terms-label" for="termsCheck">
+            I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy-policy" target="_blank">Privacy Policy</a>.
+          </label>
+        </div>
+        <div class="su-field-error" id="termsError" style="margin-bottom:10px;">You must agree to the terms to proceed.</div>
+
+        <!-- Submit -->
+        <button type="submit" id="signupSubmitBtn" class="su-btn-primary">
+          ✨ Create Account
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="su-divider">
+        <div class="su-divider-line"></div>
+        <span class="su-divider-text">or</span>
+        <div class="su-divider-line"></div>
+      </div>
+
+      <!-- Google -->
+      <button type="button" id="googleSignUpBtn" class="su-btn-google">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" fill="#4285F4"/>
+          <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.3 7.31 24 12 24z" fill="#34A853"/>
+          <path d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 10.03 0 12s.46 3.83 1.26 5.42l4.02-3.15z" fill="#FBBC05"/>
+          <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" fill="#EA4335"/>
+        </svg>
+        <span>Sign up with Google</span>
+      </button>
+
+      <!-- Login link -->
+      <div class="su-footer-prompt">
+        <span>Already have an account?</span>
+        <a href="/login" id="toLoginLink" class="su-footer-link">Login</a>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- Firebase Auth Handler Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    updateProfile, 
-    sendEmailVerification, 
-    GoogleAuthProvider, 
-    signInWithPopup 
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    sendEmailVerification,
+    GoogleAuthProvider,
+    signInWithPopup
   } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -165,7 +450,53 @@
   const submitBtn = document.getElementById('signupSubmitBtn');
   const googleBtn = document.getElementById('googleSignUpBtn');
 
-  // Safe redirect helper — only allow relative paths starting with /
+  // Password toggle
+  function setupToggle(btnId, eyeId, inputId) {
+    const btn = document.getElementById(btnId);
+    const eye = document.getElementById(eyeId);
+    const inp = document.getElementById(inputId);
+    if (btn && inp) {
+      btn.addEventListener('click', () => {
+        const isPass = inp.getAttribute('type') === 'password';
+        inp.setAttribute('type', isPass ? 'text' : 'password');
+        eye.className = isPass ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+      });
+    }
+  }
+  setupToggle('pwToggle1', 'pwEye1', 'signupPassword');
+  setupToggle('pwToggle2', 'pwEye2', 'signupConfirmPassword');
+
+  // Password Strength Meter
+  const pwInput = document.getElementById('signupPassword');
+  const strengthWrap = document.getElementById('strengthWrap');
+  const strengthFill = document.getElementById('strengthFill');
+  const strengthLabel = document.getElementById('strengthLabel');
+
+  pwInput.addEventListener('input', () => {
+    const val = pwInput.value;
+    if (!val) { strengthWrap.classList.remove('visible'); return; }
+    strengthWrap.classList.add('visible');
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+      { label: 'Very Weak', color: '#ef4444', pct: '20%' },
+      { label: 'Weak',      color: '#f97316', pct: '40%' },
+      { label: 'Fair',      color: '#eab308', pct: '60%' },
+      { label: 'Good',      color: '#22c55e', pct: '80%' },
+      { label: 'Strong',    color: '#16a34a', pct: '100%' },
+    ];
+    const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+    strengthFill.style.width = lvl.pct;
+    strengthFill.style.background = lvl.color;
+    strengthLabel.textContent = lvl.label;
+    strengthLabel.style.color = lvl.color;
+  });
+
+  // Safe redirect
   function safeRedirect(param, fallback = '/student-safety/my-reports') {
     if (!param) return fallback;
     if (/^https?:\/\//i.test(param) || /^\/\//i.test(param) || !param.startsWith('/')) return fallback;
@@ -175,30 +506,24 @@
   const rawRedirect = new URLSearchParams(window.location.search).get('redirect');
   const safeRedirectUrl = safeRedirect(rawRedirect);
 
-  // Preserve safe redirect on Log In link
   if (rawRedirect && safeRedirectUrl !== '/student-safety/my-reports') {
     const toLogin = document.getElementById('toLoginLink');
     if (toLogin) toLogin.href = '/login?redirect=' + encodeURIComponent(safeRedirectUrl);
   }
 
-  // Sync session details to localStorage UI cache
   const syncLocalCache = (user, collegeName = '') => {
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('user_id', user.uid);
     localStorage.setItem('studentEmail', user.email || '');
     localStorage.setItem('studentName', user.displayName || user.email.split('@')[0]);
     localStorage.setItem('studentRegistered', 'true');
-    if (collegeName) {
-      localStorage.setItem('studentCollege', collegeName);
-    }
+    if (collegeName) localStorage.setItem('studentCollege', collegeName);
   };
 
-  // Full Firestore User Schema creation/upsert
   const saveUserToFirestore = async (user, collegeName = '') => {
     try {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
-
       if (!userSnap.exists()) {
         await setDoc(userRef, {
           uid: user.uid,
@@ -217,41 +542,63 @@
           lastLoginAt: serverTimestamp()
         });
       } else {
-        await updateDoc(userRef, {
-          emailVerified: user.emailVerified,
-          lastLoginAt: serverTimestamp()
-        });
+        await updateDoc(userRef, { emailVerified: user.emailVerified, lastLoginAt: serverTimestamp() });
       }
     } catch (e) {
       console.warn("Firestore user creation warning:", e);
     }
   };
 
-  // Signup Form Submit Handler
+  function showErr(id, show) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('visible', show);
+  }
+
+  function markInput(inputEl, invalid) {
+    if (inputEl) inputEl.classList.toggle('is-invalid', invalid);
+  }
+
+  // Signup submit
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     errorAlert.classList.add('d-none');
     successAlert.classList.add('d-none');
 
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const college = document.getElementById('signupCollege').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    const nameEl    = document.getElementById('signupName');
+    const emailEl   = document.getElementById('signupEmail');
+    const pwEl      = document.getElementById('signupPassword');
+    const cpwEl     = document.getElementById('signupConfirmPassword');
+    const termsEl   = document.getElementById('termsCheck');
+    const collegeEl = document.getElementById('signupCollege');
 
-    if (password !== confirmPassword) {
-      document.getElementById('signupConfirmPassword').setCustomValidity('Passwords do not match');
-    } else {
-      document.getElementById('signupConfirmPassword').setCustomValidity('');
-    }
+    const name      = nameEl.value.trim();
+    const email     = emailEl.value.trim();
+    const password  = pwEl.value;
+    const confirmPw = cpwEl.value;
+    const college   = collegeEl.value.trim();
 
-    signupForm.classList.add('was-validated');
+    let valid = true;
 
-    if (!signupForm.checkValidity()) {
-      return;
-    }
+    if (!name) { markInput(nameEl, true); showErr('nameError', true); valid = false; }
+    else        { markInput(nameEl, false); showErr('nameError', false); }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      markInput(emailEl, true); showErr('emailError', true); valid = false;
+    } else { markInput(emailEl, false); showErr('emailError', false); }
+
+    if (!password || password.length < 6) {
+      markInput(pwEl, true); showErr('passwordError', true); valid = false;
+    } else { markInput(pwEl, false); showErr('passwordError', false); }
+
+    if (password !== confirmPw) {
+      markInput(cpwEl, true); showErr('confirmPasswordFeedback', true); valid = false;
+    } else { markInput(cpwEl, false); showErr('confirmPasswordFeedback', false); }
+
+    if (!termsEl.checked) { showErr('termsError', true); valid = false; }
+    else                  { showErr('termsError', false); }
+
+    if (!valid) return;
 
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Creating Account...`;
@@ -260,30 +607,22 @@
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update displayName
       await updateProfile(user, { displayName: name });
 
-      // Send verification email
-      try {
-        await sendEmailVerification(user);
-      } catch (evErr) {
-        console.warn("Email verification send warning:", evErr);
-      }
+      try { await sendEmailVerification(user); } catch (evErr) { console.warn("Email verification send warning:", evErr); }
 
       syncLocalCache(user, college);
       await saveUserToFirestore(user, college);
 
       successAlert.classList.remove('d-none');
 
-      setTimeout(() => {
-        window.location.href = safeRedirectUrl;
-      }, 1500);
+      setTimeout(() => { window.location.href = safeRedirectUrl; }, 1500);
 
     } catch (err) {
       console.error("Signup error:", err);
       errorAlert.classList.remove('d-none');
       if (err.code === 'auth/email-already-in-use') {
-        errorMsg.textContent = 'This email address is already registered. Please log in instead.';
+        errorMsg.textContent = 'This email is already registered. Please login instead.';
       } else if (err.code === 'auth/invalid-email') {
         errorMsg.textContent = 'Please enter a valid email address.';
       } else if (err.code === 'auth/weak-password') {
@@ -297,24 +636,17 @@
     }
   });
 
-  // Google Sign-Up Button
+  // Google Sign-Up
   googleBtn.addEventListener('click', async () => {
     errorAlert.classList.add('d-none');
     const provider = new GoogleAuthProvider();
-
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
       syncLocalCache(user);
       await saveUserToFirestore(user);
-
       successAlert.classList.remove('d-none');
-
-      setTimeout(() => {
-        window.location.href = safeRedirectUrl;
-      }, 800);
-
+      setTimeout(() => { window.location.href = safeRedirectUrl; }, 800);
     } catch (err) {
       console.error("Google signup error:", err);
       if (err.code !== 'auth/popup-closed-by-user') {

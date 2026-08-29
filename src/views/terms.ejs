@@ -1,68 +1,166 @@
 <%- include('partials/header') %>
 
-<main class="container py-5 my-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 bg-white p-5 rounded-4 shadow-sm">
-      <h1 class="display-5 fw-bold mb-4 text-primary">Terms & Conditions</h1>
-      <p class="text-muted"><i class="fa-regular fa-clock me-2"></i> Last updated: <span id="current-date"></span></p>
-      
-      <div class="terms-content lh-lg">
-        <p>Welcome to 2AM Study! These terms and conditions outline the rules and regulations for the use of 2AM Study's Website.</p>
-        
-        <p>By accessing this website we assume you accept these terms and conditions. Do not continue to use 2AM Study if you do not agree to take all of the terms and conditions stated on this page.</p>
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music, Blog, & About) -->
+<section class="hero-terms-section">
+  <div class="container text-center">
+    <div class="hero-terms-badge">
+      <span class="pulse-dot"></span>
+      <span>Legal &amp; Transparency</span>
+      <i class="fa-solid fa-scale-balanced text-primary ms-1" style="font-size: 0.85rem;"></i>
+    </div>
+    
+    <h1 class="animated-2am-title">
+      Terms &amp; Conditions — <span class="gradient-2am-text">2 AM Study</span>
+    </h1>
+    
+    <p class="hero-terms-subtitle">
+      Please review our community guidelines, intellectual property terms, and platform usage policies.
+    </p>
+  </div>
+</section>
 
-        <h3 class="mt-5 mb-3 text-secondary">Terminology</h3>
-        <p>The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Client", "You" and "Your" refers to you, the person log on this website and compliant to the Company’s terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Client and ourselves.</p>
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">Cookies</h3>
-        <p>We employ the use of cookies. By accessing 2AM Study, you agreed to use cookies in agreement with the 2AM Study's Privacy Policy.</p>
-        <p>Most interactive websites use cookies to let us retrieve the user’s details for each visit. Cookies are used by our website to enable the functionality of certain areas to make it easier for people visiting our website. Some of our affiliate/advertising partners may also use cookies.</p>
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">License</h3>
-        <p>Unless otherwise stated, 2AM Study and/or its licensors own the intellectual property rights for all material on 2AM Study. All intellectual property rights are reserved. You may access this from 2AM Study for your own personal use subjected to restrictions set in these terms and conditions.</p>
-        
-        <p>You must not:</p>
-        <ul>
-          <li>Republish material from 2AM Study</li>
-          <li>Sell, rent or sub-license material from 2AM Study</li>
-          <li>Reproduce, duplicate or copy material from 2AM Study</li>
-          <li>Redistribute content from 2AM Study</li>
-        </ul>
+.hero-terms-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">User Comments</h3>
-        <p>This Agreement shall begin on the date hereof.</p>
-        <p>Parts of this website offer an opportunity for users to post and exchange opinions and information in certain areas of the website. 2AM Study does not filter, edit, publish or review Comments prior to their presence on the website. Comments do not reflect the views and opinions of 2AM Study, its agents and/or affiliates. Comments reflect the views and opinions of the person who post their views and opinions.</p>
-        <p>2AM Study reserves the right to monitor all Comments and to remove any Comments which can be considered inappropriate, offensive or causes breach of these Terms and Conditions.</p>
+.hero-terms-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">Hyperlinking to our Content</h3>
-        <p>The following organizations may link to our Website without prior written approval:</p>
-        <ul>
-          <li>Government agencies;</li>
-          <li>Search engines;</li>
-          <li>News organizations;</li>
-          <li>Online directory distributors may link to our Website in the same manner as they hyperlink to the Websites of other listed businesses; and</li>
-          <li>System wide Accredited Businesses except soliciting non-profit organizations, charity shopping malls, and charity fundraising groups which may not hyperlink to our Web site.</li>
-        </ul>
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">iFrames</h3>
-        <p>Without prior approval and written permission, you may not create frames around our Web pages that alter in any way the visual presentation or appearance of our Website.</p>
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">Content Liability</h3>
-        <p>We shall not be hold responsible for any content that appears on your Website. You agree to protect and defend us against all claims that is rising on your Website. No link(s) should appear on any Website that may be interpreted as libellous, obscene or criminal, or which infringes, otherwise violates, or advocates the infringement or other violation of, any third party rights.</p>
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">Reservation of Rights</h3>
-        <p>We reserve the right to request that you remove all links or any particular link to our Website. You approve to immediately remove all links to our Website upon request. We also reserve the right to amen these terms and conditions and it’s linking policy at any time. By continuously linking to our Website, you agree to be bound to and follow these linking terms and conditions.</p>
+.hero-terms-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
 
-        <h3 class="mt-5 mb-3 text-secondary">Disclaimer</h3>
-        <p>To the maximum extent permitted by applicable law, we exclude all representations, warranties and conditions relating to our website and the use of this website. Nothing in this disclaimer will:</p>
-        <ul>
-          <li>limit or exclude our or your liability for death or personal injury;</li>
-          <li>limit or exclude our or your liability for fraud or fraudulent misrepresentation;</li>
-          <li>limit any of our or your liabilities in any way that is not permitted under applicable law; or</li>
-          <li>exclude any of our or your liabilities that may not be excluded under applicable law.</li>
-        </ul>
-        <p>As long as the website and the information and services on the website are provided free of charge, we will not be liable for any loss or damage of any nature.</p>
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
+
+.terms-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.terms-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+</style>
+
+<main class="container py-5 my-0">
+  <div class="terms-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+      <div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill fw-semibold mb-1">Official Policy</span>
+        <h2 class="fw-bold text-dark mb-0">Platform Agreement &amp; Rules</h2>
       </div>
+      <div class="text-muted small mt-2 mt-md-0">
+        <i class="fa-regular fa-clock me-1 text-primary"></i> Last updated: <span id="current-date" class="fw-semibold text-dark"></span>
+      </div>
+    </div>
+    
+    <div class="terms-content lh-lg text-secondary" style="font-size: 0.96rem;">
+      <p class="lead text-dark fw-normal mb-4">
+        Welcome to <strong>2 AM Study</strong>! These terms and conditions outline the rules, rights, and responsibilities governing your use of our educational ecosystem, productivity tools, and online store.
+      </p>
+      
+      <div class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-primary">
+        <p class="mb-0 text-dark small">
+          By accessing and using <strong>2 AM Study</strong>, you accept these terms and conditions in full. If you do not agree with any part of these terms, please discontinue use of the platform immediately.
+        </p>
+      </div>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-book-bookmark text-primary"></i> 1. Terminology</h3>
+      <p>The following terminology applies to these Terms and Conditions, Privacy Statement, and all Platform Agreements: "Client", "You", and "Your" refers to you, the individual accessing this website. "The Company", "Ourselves", "We", "Our", and "Us", refers to <strong>2 AM Study</strong>. "Party" or "Parties" refers to both the user and ourselves.</p>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-cookie-bite text-warning"></i> 2. Cookies &amp; Data Cache</h3>
+      <p>We employ cookies and browser storage (such as LocalStorage) to keep track of your focus streaks, timer preferences, and study room settings. By continuing to use 2 AM Study, you consent to our use of essential cookies in accordance with our Privacy Policy.</p>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-certificate text-success"></i> 3. Intellectual Property Rights &amp; License</h3>
+      <p>Unless otherwise stated, <strong>2 AM Study</strong> and/or its licensors own the intellectual property rights for all material, code, and branding on 2 AM Study. All intellectual property rights are reserved. You are granted a personal, non-commercial license for your personal study and learning.</p>
+      
+      <p class="fw-semibold text-dark mb-2">You must not:</p>
+      <ul class="mb-4 ps-4">
+        <li>Republish, scrape, or distribute proprietary study materials from 2 AM Study without attribution.</li>
+        <li>Sell, rent, or sub-license material or software tools from 2 AM Study.</li>
+        <li>Reproduce, duplicate, or mirror platform features for commercial gain.</li>
+      </ul>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-comments text-info"></i> 4. Student Community &amp; Content</h3>
+      <p>Certain areas of the website allow students to post feedback, review notes, and participate in peer rooms. 2 AM Study does not endorse user-generated comments and reserves the right to remove any content deemed offensive, spam, or in breach of these Terms.</p>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-link text-primary"></i> 5. Hyperlinking &amp; Platform Access</h3>
+      <p>Educational institutions, student organizations, research bodies, and search engines may freely link to our home page or study tools provided the link is not misleading and does not falsely imply endorsement.</p>
+
+      <h3 class="terms-section-title"><i class="fa-solid fa-shield-halved text-danger"></i> 6. Disclaimer &amp; Limitation of Liability</h3>
+      <p>All study tools, timers, calculators, and materials on 2 AM Study are provided on an "as-is" basis for educational assistance. To the fullest extent permitted by law, 2 AM Study excludes liability for any incidental downtime, study interruptions, or external third-party content.</p>
     </div>
   </div>
 </main>

@@ -615,7 +615,7 @@ function showCartPopup(itemCount) {
   }, 4000);
 }
 
-// Buy now
+// Buy now — no login required here; login is only needed at final checkout
 function buyNow(productId) {
   const btn = document.querySelector('.fk-btn-buy');
   const originalText = btn ? btn.innerHTML : '';

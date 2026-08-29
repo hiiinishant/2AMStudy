@@ -149,13 +149,16 @@ function saveCollegeLifeVideos() {
 
 function extractYoutubeVideoId(url) {
   if (!url) return null;
-  if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) return url.trim();
+  const trimmed = url.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
   try {
-    const u = new URL(url);
-    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0];
+    const validUrl = trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`;
+    const u = new URL(validUrl);
+    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0].split('?')[0];
     if (u.pathname.startsWith('/live/')) return u.pathname.split('/live/')[1].split('/')[0].split('?')[0];
-    if (u.searchParams.get('v')) return u.searchParams.get('v');
+    if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('/')[0].split('?')[0];
     if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('/')[0].split('?')[0];
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
   } catch (_) {}
   return null;
 }
@@ -524,7 +527,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     secure: isProduction, // Only secure in production
-    sameSite: isProduction ? 'none' : 'lax'
+    sameSite: 'lax'
   }
 }));
 
@@ -620,15 +623,22 @@ app.post('/api/college-life/videos', requireAdminForCollegeLife, (req, res) => {
   if (!youtubeVideoId) {
     return res.status(400).json({ success: false, error: 'Invalid YouTube URL.' });
   }
+
+  // Prevent duplicate submissions of the exact same video
+  const duplicate = collegeLifeVideos.find(v => v.youtubeVideoId === youtubeVideoId);
+  if (duplicate) {
+    return res.status(409).json({ success: false, error: 'This YouTube video has already been added to College Life.' });
+  }
+
   const newVideo = {
     id: 'cl-' + uuidv4().split('-')[0],
     title: title.trim(),
     description: (description || '').trim(),
     category: (category || 'College Life').trim(),
     duration: (duration || '').trim(),
-    youtubeUrl,
+    youtubeUrl: youtubeUrl.trim(),
     youtubeVideoId,
-    thumbnail: thumbnail || `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg`,
+    thumbnail: (thumbnail && thumbnail.trim()) || `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`,
     isFeatured: Boolean(isFeatured),
     createdAt: new Date().toISOString()
   };
@@ -714,6 +724,10 @@ app.get('/signup', (req, res) => {
     pageTitle: 'Sign Up | Join 2AM Study Student Community',
     metaDescription: 'Create your free 2AM Study account to track study streaks, access student safety shield, and get student store benefits.'
   });
+});
+
+app.get('/forgot-password', (req, res) => {
+  res.redirect('/login');
 });
 
 app.get('/profile', (req, res) => {
@@ -1518,8 +1532,8 @@ app.get('/student-safety/admin', (req, res) => {
 app.post('/api/student-safety/admin/moderate', (req, res) => {
   const { caseId, action, note, moderatorUid, moderatorName } = req.body;
 
-  // Check auth: session or moderatorUid
-  const isAuthed = (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) || (moderatorUid && moderatorUid.trim() !== '');
+  // Check auth: requires authenticated admin session
+  const isAuthed = isMasterAdminAuthenticated(req);
   if (!isAuthed) {
     return res.status(401).json({ success: false, message: 'Unauthorized. Admin authentication required.' });
   }
@@ -2214,28 +2228,6 @@ app.get('/student-safety/how-it-works', (req, res) => {
   });
 });
 
-// Authentication & Profile Routes
-app.get('/login', (req, res) => {
-  res.render('login', {
-    pageTitle: '🔑 Log In | 2AM Study & Student Safety',
-    metaDescription: 'Log in to your 2AM Study account to access study tools, track impersonation reports, and manage notifications.'
-  });
-});
-
-app.get('/signup', (req, res) => {
-  res.render('signup', {
-    pageTitle: '🎓 Create Account | 2AM Study',
-    metaDescription: 'Join 2AM Study & Student Safety Hub. Create your account to report fake profiles, earn badges, and access student resources.'
-  });
-});
-
-app.get('/profile', (req, res) => {
-  res.render('profile', {
-    pageTitle: '👤 My Profile | 2AM Study Account',
-    metaDescription: 'View your student profile, trust score, badges, and account navigation dashboard.'
-  });
-});
-
 app.get('/settings', (req, res) => {
   res.render('settings', {
     pageTitle: '⚙️ Settings | 2AM Study Account',
@@ -2328,12 +2320,14 @@ app.get('/store/product/:id', (req, res) => {
 });
 
 app.get('/store/cart', (req, res) => {
+  const initialCart = req.session.cart || [];
   res.render('store-cart', {
     pageTitle: 'My Cart | 2AM Study Store',
     metaDescription: 'View and manage your selected items in the Student Store cart before proceeding to checkout.',
     hideBot: true,
     hideCartBubble: false,
-    storeProducts: STORE_PRODUCTS
+    storeProducts: STORE_PRODUCTS,
+    initialCart
   });
 });
 
@@ -2680,17 +2674,51 @@ app.get(['/api/public/products', '/store/api/public/products'], publicApiRateLim
 
 // ─── Unified Master Admin Authentication & Management System ───────────────
 
-const MASTER_ADMIN_PASSWORDS = [
+const configuredAdminPasswords = [
   process.env.ADMIN_PASSWORD,
   process.env.ADMIN_PASSCODE,
   process.env.STORE_ADMIN_PASSWORD,
-  process.env.LIVE_ADMIN_PASSWORD,
-  'nishant2am'
+  process.env.LIVE_ADMIN_PASSWORD
 ].filter(Boolean);
+
+const MASTER_ADMIN_PASSWORDS = configuredAdminPasswords.length > 0
+  ? configuredAdminPasswords
+  : ['nishant2am'];
 
 function checkMasterPassword(pass) {
   if (!pass) return false;
   return MASTER_ADMIN_PASSWORDS.includes(pass);
+}
+
+// Simple IP-based Rate Limiter for Admin Login Protection
+const adminLoginAttempts = new Map();
+function getClientIp(req) {
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+}
+
+function checkAdminRateLimit(ip) {
+  const now = Date.now();
+  const record = adminLoginAttempts.get(ip);
+  if (record && record.lockedUntil && record.lockedUntil > now) {
+    const remainingSec = Math.ceil((record.lockedUntil - now) / 1000);
+    return `Too many failed login attempts. Please wait ${remainingSec} seconds before trying again.`;
+  }
+  return null;
+}
+
+function recordAdminLoginFailure(ip) {
+  const now = Date.now();
+  const record = adminLoginAttempts.get(ip) || { count: 0, lockedUntil: null };
+  record.count += 1;
+  if (record.count >= 2) {
+    record.lockedUntil = now + (15 * 60 * 1000); // Lockout for 15 minutes after 2 failed attempts
+    record.count = 0;
+  }
+  adminLoginAttempts.set(ip, record);
+}
+
+function recordAdminLoginSuccess(ip) {
+  adminLoginAttempts.delete(ip);
 }
 
 function isMasterAdminAuthenticated(req) {
@@ -2712,6 +2740,22 @@ function requireStoreAdmin(req, res, next) {
 // 1. Single Master Admin Dashboard Route View
 app.get('/admin', async (req, res) => {
   const isAuthed = isMasterAdminAuthenticated(req);
+  if (!isAuthed) {
+    return res.render('admin', {
+      pageTitle: 'Master Admin Dashboard | 2AM Study',
+      metaDescription: 'Single master admin dashboard for managing Live Streams, Products, Orders, Blog, and Student Safety.',
+      isAuthed: false,
+      liveSession: null,
+      allStudySessions: [],
+      products: [],
+      orders: [],
+      blogs: [],
+      safetyCases: [],
+      feedbacks: [],
+      collegeVideos: [],
+      resources: []
+    });
+  }
   
   const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
   const allStudySessions = [...studySessions].sort((a, b) => new Date(b.createdAt || b.startedAt) - new Date(a.createdAt || a.startedAt));
@@ -2738,7 +2782,7 @@ app.get('/admin', async (req, res) => {
   res.render('admin', {
     pageTitle: 'Master Admin Dashboard | 2AM Study',
     metaDescription: 'Single master admin dashboard for managing Live Streams, Products, Orders, Blog, and Student Safety.',
-    isAuthed,
+    isAuthed: true,
     liveSession,
     allStudySessions,
     products: STORE_PRODUCTS,
@@ -2757,12 +2801,19 @@ app.get('/store/admin/login', (req, res) => res.redirect('/admin'));
 
 // 2. Master Admin Login Action
 app.post('/api/admin/login', (req, res) => {
+  const clientIp = getClientIp(req);
+  const rateLimitErr = checkAdminRateLimit(clientIp);
+  if (rateLimitErr) {
+    return res.status(429).json({ success: false, error: rateLimitErr });
+  }
+
   const { password } = req.body;
   if (!password) {
     return res.status(400).json({ success: false, error: 'Password is required.' });
   }
 
   if (checkMasterPassword(password)) {
+    recordAdminLoginSuccess(clientIp);
     req.session.isAdmin = true;
     req.session.isStoreAdmin = true;
     req.session.liveAdminAuthed = true;
@@ -2770,19 +2821,33 @@ app.post('/api/admin/login', (req, res) => {
     return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
+  recordAdminLoginFailure(clientIp);
   return res.status(401).json({ success: false, error: 'Invalid master admin passcode.' });
 });
 
 // Also support legacy store login endpoint
 app.post('/api/store/admin/login', (req, res) => {
+  const clientIp = getClientIp(req);
+  const rateLimitErr = checkAdminRateLimit(clientIp);
+  if (rateLimitErr) {
+    return res.status(429).json({ success: false, error: rateLimitErr });
+  }
+
   const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ success: false, error: 'Password is required.' });
+  }
+
   if (checkMasterPassword(password)) {
+    recordAdminLoginSuccess(clientIp);
     req.session.isAdmin = true;
     req.session.isStoreAdmin = true;
     req.session.liveAdminAuthed = true;
     req.session.adminLoggedInAt = new Date().toISOString();
     return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
+
+  recordAdminLoginFailure(clientIp);
   return res.status(401).json({ success: false, error: 'Invalid master admin password.' });
 });
 
@@ -3043,9 +3108,25 @@ app.get('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
   });
 });
 
+// 13b. Upload Blog Image (Cover image or in-body Image Box)
+app.post('/api/store/admin/blogs/upload-image', requireStoreAdmin, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: 'No image file provided.' });
+  }
+  const imageUrl = '/assets/images/store/' + req.file.filename;
+  res.json({ success: true, url: imageUrl });
+});
+
+// 13c. Get Single Blog Post by ID (Admin)
+app.get('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
+  const post = BLOG_POSTS.find(b => b.id === req.params.id || b.slug === req.params.id);
+  if (!post) return res.status(404).json({ success: false, error: 'Blog post not found' });
+  res.json({ success: true, post });
+});
+
 // 14. Create New Blog Post (Admin)
 app.post('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
-  const { title, slug, category, author, readTime, image, excerpt, content, status, tags } = req.body;
+  const { title, slug, category, author, readTime, image, coverImage, excerpt, content, status, tags } = req.body;
   if (!title || !content) {
     return res.status(400).json({ success: false, error: 'Title and article content are required.' });
   }
@@ -3059,15 +3140,18 @@ app.post('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
     postSlug = `${postSlug}-${Date.now().toString().slice(-4)}`;
   }
 
+  const finalImage = coverImage || image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80';
+
   const newPost = {
     id: 'blog-' + Date.now(),
     slug: postSlug,
     title: String(title).trim(),
     category: category || 'Study Tips',
-    author: author || 'Nishant Kumar',
+    author: author || '2 AM Study',
     date: new Date().toISOString().split('T')[0],
     readTime: readTime || '5 min read',
-    image: image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80',
+    image: finalImage,
+    coverImage: finalImage,
     excerpt: excerpt ? String(excerpt).trim() : String(content).replace(/<[^>]*>/g, '').slice(0, 160) + '...',
     content: content,
     status: status === 'draft' ? 'draft' : 'published',
@@ -3094,12 +3178,14 @@ app.put('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
   }
 
   const existing = BLOG_POSTS[index];
-  const { title, slug, category, author, readTime, image, excerpt, content, status, tags } = req.body;
+  const { title, slug, category, author, readTime, image, coverImage, excerpt, content, status, tags } = req.body;
 
   let postSlug = existing.slug;
   if (slug && slug !== existing.slug) {
     postSlug = String(slug).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
+
+  const finalImage = coverImage !== undefined ? coverImage : (image !== undefined ? image : existing.image);
 
   BLOG_POSTS[index] = {
     ...existing,
@@ -3108,7 +3194,8 @@ app.put('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
     category: category !== undefined ? category : existing.category,
     author: author !== undefined ? author : existing.author,
     readTime: readTime !== undefined ? readTime : existing.readTime,
-    image: image !== undefined ? image : existing.image,
+    image: finalImage,
+    coverImage: finalImage,
     excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
     content: content !== undefined ? content : existing.content,
     status: status !== undefined ? status : existing.status,
@@ -3439,7 +3526,7 @@ app.post('/store/api/store/feedback', (req, res) => {
 });
 
 // Product image upload (admin use)
-app.post('/store/api/store/products/:id/images', upload.array('images', 5), (req, res) => {
+app.post('/store/api/store/products/:id/images', requireStoreAdmin, upload.array('images', 5), (req, res) => {
   const product = STORE_PRODUCTS.find(p => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
   if (!req.files || req.files.length === 0) return res.status(400).json({ success: false, error: 'No images uploaded' });
@@ -3505,78 +3592,54 @@ app.post('/store/api/store/checkout/coupon', (req, res) => {
   const cart = req.session.cart || [];
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const hasOrderedBefore = req.session.hasOrderedBefore === true;
-  const couponLimitReached = cart.length > 2 || cart.some(i => i.qty > 1);
 
   const COUPONS = {
-    // VIP Birthday Codes — correct spelling
-    'HAPPY BIRTHDAY NISHU': { type: 'full_with_delivery_free' },
-    'HAPPY BIRTHDAY BHAIYA': { type: 'full_with_delivery_free' },
-    'HAPPY BIRTHDAY NISHI': { type: 'full_with_delivery_free' },
-    'HAPPY BIRTHDAY APP KO': { type: 'full_with_delivery_free' },
-    // VIP Birthday Codes — typo variants (BITHDAY)
-    'HAPPY BITHDAY NISHU': { type: 'full_with_delivery_free' },
-    'HAPPY BITHDAY BHAIYA': { type: 'full_with_delivery_free' },
-    'HAPPY BITHDAY NISHI': { type: 'full_with_delivery_free' },
-    'HAPPY BITHDAY APP KO': { type: 'full_with_delivery_free' },
-    // Generic Birthday Codes — 50% off
-    'HAPPY BIRTHDAY': { type: 'percent_50_no_delivery' },
-    'HAPPY BITHDAY': { type: 'percent_50_no_delivery' },
-    // Other Coupons
-    'WELCOME': { type: 'flat_first_time', value: 100 },
-    'STUDY10': { type: 'flat', value: 50 }
+    'WELCOME': { type: 'flat_first_time', value: 100, message: '₹100 Welcome discount applied!' },
+    'WELCOME100': { type: 'flat_first_time', value: 100, message: '₹100 Welcome discount applied!' },
+    'WELCOME50': { type: 'flat_first_time', value: 50, message: '₹50 Welcome discount applied!' },
+    'STUDY10': { type: 'flat', value: 50, message: '₹50 discount applied!' },
+    'STUDY20': { type: 'percent', percent: 20, message: '20% discount applied!' },
+    'STUDY50': { type: 'flat', value: 50, message: '₹50 discount applied!' },
+    '2AMSTUDY': { type: 'flat', value: 75, message: '₹75 2AM Study discount applied!' },
+    '2AM': { type: 'flat', value: 50, message: '₹50 discount applied!' },
+    'SAVE10': { type: 'percent', percent: 10, message: '10% discount applied!' },
+    'SAVE20': { type: 'percent', percent: 20, message: '20% discount applied!' },
+    'SAVE50': { type: 'flat', value: 50, message: '₹50 discount applied!' },
+    'DISCOUNT10': { type: 'percent', percent: 10, message: '10% discount applied!' },
+    'FLAT50': { type: 'flat', value: 50, message: '₹50 discount applied!' },
+    'FREESHIP': { type: 'free_delivery', message: 'Free Delivery applied!' },
+    'FREEDELIVERY': { type: 'free_delivery', message: 'Free Delivery applied!' }
   };
 
-  const upper = code.trim().toUpperCase().replace(/\s+/g, ' ');
-
-  // Dynamic Birthday coupon matching (supports variations: "HAPPY BIRTHDAY", "HAPPY BITHDAY", "BIRTHDAY", etc.)
-  const isBirthdayCoupon = upper.includes('BIRTHDAY') || upper.includes('BITHDAY');
-
-  let cfg = COUPONS[upper];
-  if (!cfg && isBirthdayCoupon) {
-    cfg = { type: 'percent_50_no_delivery' };
-  }
+  const upper = code.trim().toUpperCase().replace(/[\s\-_]+/g, '');
+  const cfg = COUPONS[upper];
 
   if (!cfg) {
     req.session.checkoutCoupon = null;
-    return res.status(400).json({ success: false, error: 'Invalid coupon code' });
+    return res.status(400).json({ success: false, error: 'Invalid coupon code. Please check and try again.' });
   }
 
   let discount = 0;
   let freeDelivery = false;
-  let message = '';
-
-  if (isBirthdayCoupon && couponLimitReached) {
-    req.session.checkoutCoupon = null;
-    return res.status(400).json({ success: false, error: 'Coupon not applicable: cart limit exceeded (max 2 items, qty 1 each)' });
-  }
+  let message = cfg.message || 'Coupon applied successfully!';
 
   switch (cfg.type) {
-    case 'full_with_delivery_free':
-      discount = subtotal;
+    case 'free_delivery':
       freeDelivery = true;
-      message = 'Congratulations! 🥳 100% Item cost waived + Free Delivery!';
-      break;
-    case 'percent_50_no_delivery':
-      discount = Math.round(subtotal * 0.5);
-      freeDelivery = false;
-      message = '🎉 50% Birthday discount applied!';
-      break;
-    case 'full_no_delivery':
-      discount = subtotal;
-      freeDelivery = false;
-      message = '🎉 Full item cost waived!';
+      discount = 0;
       break;
     case 'flat_first_time':
       if (hasOrderedBefore) {
         req.session.checkoutCoupon = null;
-        return res.status(400).json({ success: false, error: 'WELCOME coupon is only for first-time orders' });
+        return res.status(400).json({ success: false, error: 'WELCOME coupon is only valid on first-time orders.' });
       }
       discount = Math.min(cfg.value, subtotal);
-      message = `✅ ₹${discount} off applied!`;
       break;
     case 'flat':
       discount = Math.min(cfg.value, subtotal);
-      message = `✅ ₹${discount} off applied!`;
+      break;
+    case 'percent':
+      discount = Math.round(subtotal * (cfg.percent / 100));
       break;
   }
 
@@ -4074,16 +4137,40 @@ app.get('/api/live-study/all', (req, res) => {
 
 // POST — Verify admin password
 app.post('/api/live-study/auth', (req, res) => {
+  const clientIp = getClientIp(req);
+  const rateLimitErr = checkAdminRateLimit(clientIp);
+  if (rateLimitErr) {
+    return res.status(429).json({ success: false, message: rateLimitErr });
+  }
+
   const { password } = req.body;
   if (checkMasterPassword(password)) {
+    recordAdminLoginSuccess(clientIp);
     req.session.isAdmin = true;
     req.session.isStoreAdmin = true;
     req.session.liveAdminAuthed = true;
     req.session.adminLoggedInAt = new Date().toISOString();
     return res.json({ success: true });
   }
+
+  recordAdminLoginFailure(clientIp);
   return res.status(401).json({ success: false, message: 'Incorrect password.' });
 });
+
+// Helper to format elapsed session duration nicely
+function formatElapsedDuration(startIso, endIso) {
+  if (!startIso || !endIso) return '1 Hour';
+  const start = new Date(startIso).getTime();
+  const end = new Date(endIso).getTime();
+  const diffMs = Math.max(0, end - start);
+  const diffMin = Math.round(diffMs / (1000 * 60));
+  if (diffMin < 1) return '1 Min';
+  const hours = Math.floor(diffMin / 60);
+  const mins = diffMin % 60;
+  if (hours > 0 && mins > 0) return `${hours} Hr ${mins} Min`;
+  if (hours > 0) return `${hours} ${hours === 1 ? 'Hour' : 'Hours'}`;
+  return `${mins} Min`;
+}
 
 // POST — Activate a live session
 app.post('/api/live-study/activate', (req, res) => {
@@ -4107,7 +4194,7 @@ app.post('/api/live-study/activate', (req, res) => {
     description: (description || '').trim(),
     youtubeUrl: youtubeUrl.trim(),
     youtubeVideoId: videoId,
-    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
     duration: (duration || '').trim(),
     status: 'LIVE',
     scheduledAt: null,
@@ -4124,10 +4211,14 @@ app.post('/api/live-study/activate', (req, res) => {
 app.post('/api/live-study/end', (req, res) => {
   if (!isMasterAdminAuthenticated(req)) return res.status(403).json({ success: false, message: 'Not authorised.' });
   let ended = false;
+  const now = new Date().toISOString();
   studySessions.forEach(s => {
     if (s.status === 'LIVE') {
       s.status = 'COMPLETED';
-      s.endedAt = new Date().toISOString();
+      s.endedAt = now;
+      if (!s.duration || s.duration.trim() === '') {
+        s.duration = formatElapsedDuration(s.startedAt, s.endedAt);
+      }
       ended = true;
     }
   });
@@ -4145,13 +4236,19 @@ app.post('/api/live-study/add-past', (req, res) => {
   const videoId = extractYoutubeVideoId(youtubeUrl);
   if (!videoId) return res.status(400).json({ success: false, message: 'Could not extract YouTube video ID.' });
 
+  // Prevent duplicate past session submissions
+  const duplicate = studySessions.find(s => s.youtubeVideoId === videoId);
+  if (duplicate) {
+    return res.status(409).json({ success: false, message: 'This YouTube recording has already been added.' });
+  }
+
   const session = {
     id: uuidv4(),
     title: title.trim(),
     description: (description || '').trim(),
     youtubeUrl: youtubeUrl.trim(),
     youtubeVideoId: videoId,
-    thumbnail: thumbnail && thumbnail.trim() ? thumbnail.trim() : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    thumbnail: thumbnail && thumbnail.trim() ? thumbnail.trim() : `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
     duration: (duration || '').trim(),
     status: 'COMPLETED',
     scheduledAt: null,

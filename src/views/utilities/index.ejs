@@ -1,115 +1,408 @@
 <%- include('../partials/header') %>
 
-<section class="py-5 text-white text-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%); padding-top: 100px !important;">
-  <div class="container py-5 mt-4">
-    <h1 class="display-4 fw-bold mb-3"><i class="fa-solid fa-screwdriver-wrench me-3"></i> Essential Student Utilities: Writing & Environment Tools</h1>
-    <p class="lead fw-light mb-0" style="max-width: 640px; margin: 0 auto;">
-      A collection of professional digital tools for your assignments, environment, and daily productivity.
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music, Blog, & About) -->
+<section class="hero-utilities-section">
+  <div class="container text-center">
+    <div class="hero-utilities-badge">
+      <span class="pulse-dot"></span>
+      <span>Student Productivity Toolbelt</span>
+      <i class="fa-solid fa-screwdriver-wrench text-primary ms-1" style="font-size: 0.85rem;"></i>
+    </div>
+    
+    <h1 class="animated-2am-title">
+      Smart Student Utilities — <span class="gradient-2am-text">2 AM Study</span>
+    </h1>
+    
+    <p class="hero-utilities-subtitle">
+      A collection of digital instruments for academic writing, environment analysis, calculations &amp; daily study productivity.
     </p>
   </div>
 </section>
 
-<main class="container py-5">
-  <div class="row g-4">
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-    <!-- Air Quality Checker -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center transition-hover">
-        <div class="card-body">
-          <div class="feature-icon-circle bg-info bg-opacity-10 text-info mb-3 mx-auto">
-            <i class="fa-solid fa-wind fa-2x"></i>
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
+
+.hero-utilities-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.hero-utilities-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+.hero-utilities-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 660px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
+
+/* Category Filter Bar */
+.util-filter-bar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 2.5rem;
+}
+
+.util-filter-btn {
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.util-filter-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.util-filter-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+/* Utility Cards */
+.util-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.util-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.util-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 1.25rem;
+  transition: transform 0.25s ease;
+}
+
+.util-card:hover .util-icon-box {
+  transform: scale(1.08);
+}
+</style>
+
+<main class="container py-5 my-0">
+
+  <!-- Category Filter Navigation -->
+  <div class="util-filter-bar" id="utilFilterBar">
+    <button class="util-filter-btn active" data-cat="all">
+      <i class="fa-solid fa-layer-group"></i> All Utilities
+    </button>
+    <button class="util-filter-btn" data-cat="writing">
+      ✍️ Writing &amp; Grammar
+    </button>
+    <button class="util-filter-btn" data-cat="environment">
+      🌍 Environment &amp; AQI
+    </button>
+    <button class="util-filter-btn" data-cat="academic">
+      📚 Academics &amp; Calculations
+    </button>
+  </div>
+
+  <div class="row g-4" id="utilitiesGrid">
+
+    <!-- 1. Grammar & Spell Checker -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="writing">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-primary bg-opacity-10 text-primary">
+            <i class="fa-solid fa-spell-check"></i>
           </div>
-          <h4 class="fw-bold">Air Quality Tracker</h4>
-          <p class="text-muted small">Real-time local AQI data with student-focused health advice.</p>
-          <div class="mt-3">
-             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 small mb-3">Live Updates</span>
-          </div>
-          <a href="/air-quality" class="btn btn-outline-info rounded-pill w-100 fw-bold">Check Local Air</a>
+          <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 fw-bold small">
+            AI Assistant
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Smart Grammar &amp; Spell Checker</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Real-time essay analysis, punctuation correction, clarity enhancements &amp; 1-click word fixes.
+        </p>
+        <a href="/grammar-checker" class="btn btn-primary rounded-pill w-100 fw-bold shadow-sm">
+          <i class="fa-solid fa-pen-fancy me-1.5"></i> Analyze Writing
+        </a>
       </div>
     </div>
 
-    <!-- Grammar & Spell Checker -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center transition-hover">
-        <div class="card-body">
-          <div class="feature-icon-circle bg-primary bg-opacity-10 text-primary mb-3 mx-auto">
-            <i class="fa-solid fa-spell-check fa-2x"></i>
+    <!-- 2. Word & Readability Counter -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="writing">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-success bg-opacity-10 text-success">
+            <i class="fa-solid fa-hashtag"></i>
           </div>
-          <h4 class="fw-bold">Smart Grammar</h4>
-          <p class="text-muted small">Advanced AI-powered writing assistant with click-to-fix suggestions.</p>
-          <div class="mt-3">
-             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 small mb-3">Real-time Highlights</span>
-          </div>
-          <a href="/grammar-checker" class="btn btn-outline-primary rounded-pill w-100 fw-bold">Analyze Writing</a>
+          <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1 fw-bold small">
+            Essay Mode
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Word &amp; Character Counter</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Detailed metrics for total words, reading time, speaking duration, paragraph counts &amp; keyword density.
+        </p>
+        <a href="/word-counter" class="btn btn-outline-success rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-chart-simple me-1.5"></i> Open Counter
+        </a>
       </div>
     </div>
 
-    <!-- Word Counter -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center transition-hover">
-        <div class="card-body">
-          <div class="feature-icon-circle bg-success bg-opacity-10 text-success mb-3 mx-auto">
-            <i class="fa-solid fa-hashtag fa-2x"></i>
+    <!-- 3. Air Quality Tracker -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="environment">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-info bg-opacity-10 text-info">
+            <i class="fa-solid fa-wind"></i>
           </div>
-          <h4 class="fw-bold">Word Counter</h4>
-          <p class="text-muted small">Deep statistics on character counts, reading time, and clarity.</p>
-          <div class="mt-3">
-             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 small mb-3">Essay Mode</span>
-          </div>
-          <a href="/word-counter" class="btn btn-outline-success rounded-pill w-100 fw-bold">Open Counter</a>
+          <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 fw-bold small">
+            Live Sensors
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Air Quality &amp; AQI Tracker</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Live local AQI data, PM2.5 / PM10 levels, and student health advice for late-night study room ventilation.
+        </p>
+        <a href="/air-quality" class="btn btn-outline-info rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-smog me-1.5"></i> Check Air Quality
+        </a>
       </div>
     </div>
 
-    <!-- Weather Forecast -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center transition-hover opacity-75">
-        <div class="card-body">
-          <div class="feature-icon-circle bg-warning bg-opacity-10 text-warning mb-3 mx-auto">
-            <i class="fa-solid fa-cloud-sun fa-2x"></i>
+    <!-- 4. Weather Station -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="environment">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-warning bg-opacity-10 text-warning">
+            <i class="fa-solid fa-cloud-sun"></i>
           </div>
-          <h4 class="fw-bold">Weather Station</h4>
-          <p class="text-muted small">Plan your study day with local temperature and storm alerts.</p>
-          <a href="/weather" class="btn btn-outline-warning rounded-pill w-100 fw-bold">View Forecast</a>
+          <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 fw-bold small">
+            Forecast
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Study Weather Station</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Local temperature, humidity levels, wind conditions, and weather alerts for campus commutes and exam days.
+        </p>
+        <a href="/weather" class="btn btn-outline-warning rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-temperature-half me-1.5"></i> View Weather
+        </a>
       </div>
     </div>
 
-    <!-- Digital Compass -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 text-center transition-hover opacity-75">
-        <div class="card-body">
-          <div class="feature-icon-circle bg-danger bg-opacity-10 text-danger mb-3 mx-auto">
-            <i class="fa-solid fa-compass fa-2x"></i>
+    <!-- 5. Digital Compass -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="environment">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-danger bg-opacity-10 text-danger">
+            <i class="fa-solid fa-compass"></i>
           </div>
-          <h4 class="fw-bold">Digital Compass</h4>
-          <p class="text-muted small">Find your orientation on the go with our browser-based compass.</p>
-          <a href="/compass" class="btn btn-outline-danger rounded-pill w-100 fw-bold">Open Compass</a>
+          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1 fw-bold small">
+            Sensors
+          </span>
         </div>
+        <h5 class="fw-bold text-dark mb-1">Digital Orientation Compass</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Browser-based orientation sensor tool with cardinal directions and precise magnetic heading angles.
+        </p>
+        <a href="/compass" class="btn btn-outline-danger rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-location-crosshairs me-1.5"></i> Open Compass
+        </a>
+      </div>
+    </div>
+
+    <!-- 6. CGPA & Academic Calculator -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="academic">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-secondary bg-opacity-10 text-secondary">
+            <i class="fa-solid fa-calculator"></i>
+          </div>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2.5 py-1 fw-bold small">
+            Academic
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">CGPA &amp; Scientific Calculator</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Calculate semester grades, percentage-to-CGPA conversions, and perform multi-step scientific equations.
+        </p>
+        <a href="/calculator" class="btn btn-outline-secondary rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-calculator me-1.5"></i> Launch Calculator
+        </a>
+      </div>
+    </div>
+
+    <!-- 7. Flashcards & Spaced Repetition -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="academic">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-primary bg-opacity-10 text-primary">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2.5 py-1 fw-bold small">
+            Active Recall
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Flashcards &amp; Memory Decks</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Create customized revision decks and test your memory retention with automated spaced repetition intervals.
+        </p>
+        <a href="/flashcards" class="btn btn-outline-primary rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-bolt me-1.5"></i> Practice Decks
+        </a>
+      </div>
+    </div>
+
+    <!-- 8. PDF Tools Suite -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="academic">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-danger bg-opacity-10 text-danger">
+            <i class="fa-solid fa-file-pdf"></i>
+          </div>
+          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1 fw-bold small">
+            PDF Suite
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">PDF Study Tools Suite</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Merge assignments, compress lecture slides, split chapters, and extract key study notes securely in browser.
+        </p>
+        <a href="/pdf-tools" class="btn btn-outline-danger rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-file-export me-1.5"></i> Manage PDFs
+        </a>
+      </div>
+    </div>
+
+    <!-- 9. Pomodoro Focus Timer -->
+    <div class="col-md-6 col-lg-4 util-item" data-cat="academic">
+      <div class="util-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="util-icon-box bg-warning bg-opacity-10 text-warning">
+            <i class="fa-solid fa-stopwatch"></i>
+          </div>
+          <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1 fw-bold small">
+            Focus
+          </span>
+        </div>
+        <h5 class="fw-bold text-dark mb-1">Online Pomodoro Focus Timer</h5>
+        <p class="text-muted small mb-4 flex-grow-1">
+          Boost your concentration with customizable work/break rhythms, audio alerts &amp; live streak counters.
+        </p>
+        <a href="/timer" class="btn btn-outline-warning rounded-pill w-100 fw-bold">
+          <i class="fa-solid fa-play me-1.5"></i> Start Focus Timer
+        </a>
       </div>
     </div>
 
   </div>
 
   <div class="text-center mt-5">
-      <a href="/" class="btn btn-link text-muted fw-bold text-decoration-none"><i class="fa-solid fa-arrow-left me-2"></i> Back to Home</a>
+    <a href="/" class="btn btn-link text-muted fw-bold text-decoration-none">
+      <i class="fa-solid fa-arrow-left me-2"></i> Back to Main Dashboard
+    </a>
   </div>
+
 </main>
 
-<style>
-.transition-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-.transition-hover:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1) !important; }
+<script>
+  // Category filtering
+  document.querySelectorAll('.util-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.util-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-.feature-icon-circle {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-</style>
+      const selected = btn.dataset.cat;
+      const items = document.querySelectorAll('.util-item');
+
+      items.forEach(item => {
+        if (selected === 'all' || item.dataset.cat === selected) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>

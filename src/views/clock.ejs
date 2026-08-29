@@ -1,618 +1,790 @@
 <%- include('partials/header') %>
 
-  <style>
-    .clock-hub-page {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-      min-height: 100vh;
-      padding-top: 100px;
-      color: #f8fafc;
-    }
-
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1.5rem;
-      padding: 2rem;
-      height: 100%;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .glass-card:hover {
-      border-color: rgba(99, 102, 241, 0.4);
-      background: rgba(255, 255, 255, 0.07);
-      transform: translateY(-5px);
-    }
-
-    .text-muted {
-      color: #94a3b8 !important;
-    }
-
-    /* Brighter slate for dark backgrounds */
-
-    /* ── Digital Clock ── */
-    .main-clock-display {
-      font-family: 'Inter', sans-serif;
-      font-size: 5.5rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      text-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .clock-date-display {
-      font-size: 1.25rem;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-
-    /* ── World Clock ── */
-    .world-clock-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-
-    .world-clock-item {
-      background: rgba(255, 255, 255, 0.05);
-      /* Increased slightly */
-      padding: 1.25rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .world-label {
-      color: #f1f5f9;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .world-time {
-      font-weight: 700;
-      color: #818cf8;
-      font-size: 1.2rem;
-    }
-
-    /* ── Stopwatch ── */
-    .stopwatch-display {
-      font-size: 3.5rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .laps-container {
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 1rem;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 0.75rem;
-      padding: 0.5rem;
-    }
-
-    .lap-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.4rem 0.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 0.875rem;
-    }
-
-    /* ── Calendar ── */
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      text-align: center;
-    }
-
-    .calendar-day-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #6366f1;
-      padding-bottom: 5px;
-    }
-
-    .calendar-day {
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      position: relative;
-    }
-
-    .calendar-day:hover {
-      background: rgba(255, 255, 255, 0.05);
-      transform: scale(1.1);
-    }
-
-    .calendar-day.today {
-      background: #6366f1;
-      color: white;
-      font-weight: 700;
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
-    }
-
-    .calendar-day.special-event {
-      background: linear-gradient(135deg, #f43f5e, #fb923c);
-      color: white;
-      font-weight: 800;
-      box-shadow: 0 0 15px rgba(244, 63, 94, 0.6);
-    }
-
-    .event-dot {
-      position: absolute;
-      bottom: 4px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #f43f5e;
-    }
-
-    .calendar-day.other-month {
-      opacity: 0.2;
-    }
-
-    /* ── Today's Focus ── */
-    .focus-widget-container {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 999px;
-      padding: 0.5rem 0.5rem 0.5rem 2rem;
-      display: flex;
-      align-items: center;
-      width: 100%;
-      max-width: 600px;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-    }
-    .focus-widget-container:focus-within {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(99, 102, 241, 0.4);
-      box-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
-      transform: scale(1.02);
-    }
-    .focus-input {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 500;
-      width: 100%;
-      outline: none;
-      padding: 0.5rem 0;
-      text-align: left;
-    }
-    .focus-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music, Blog, & About) -->
+<section class="hero-clock-section">
+  <div class="container text-center">
+    <div class="hero-clock-badge">
+      <span class="pulse-dot"></span>
+      <span>2 AM Study Focus Studio</span>
+      <i class="fa-solid fa-clock text-primary ms-1" style="font-size: 0.85rem;"></i>
+    </div>
     
-    .focus-complete-btn {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.05);
-      color: #94a3b8;
-      display: flex; align-items: center; justify-content: center;
-      margin-left: 1rem;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    .focus-complete-btn:hover {
-      background: #10b981;
-      color: white;
-      transform: rotate(360deg);
-    }
+    <h1 class="animated-2am-title">
+      Digital Clock &amp; <span class="gradient-2am-text">2 AM Study</span> Hub
+    </h1>
     
-    .focus-widget-container.completed {
-      border-color: #10b981;
-      background: rgba(16, 185, 129, 0.05);
-    }
-    .focus-widget-container.completed .focus-input {
-      text-decoration: line-through;
-      color: #10b981;
-      opacity: 0.7;
-    }
-    .focus-widget-container.completed .focus-complete-btn {
-      background: #10b981;
-      color: white;
-    }
+    <p class="hero-clock-subtitle">
+      Real-time precision digital clock, interactive calendar, multi-city world clock, stopwatch &amp; exam countdown.
+    </p>
+  </div>
+</section>
 
-    @media (max-width: 768px) {
-      .main-clock-display {
-        font-size: 3rem;
-      }
-      .clock-date-display {
-        font-size: 1rem;
-      }
-      .world-clock-grid {
-        grid-template-columns: 1fr;
-      }
-      .stopwatch-display {
-        font-size: 2.5rem;
-      }
-      .focus-widget-container {
-        padding-left: 1rem;
-      }
-      .focus-input {
-        font-size: 1rem;
-      }
-      h1.display-4 {
-        font-size: 2.2rem;
-      }
-      .glass-card {
-        padding: 1.5rem;
-      }
-      #countdown-display .h2 {
-        font-size: 1.75rem;
-      }
-      .clock-hub-page {
-        padding-top: 80px;
-      }
-    }
-  </style>
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  <div class="clock-hub-page pb-5">
-    <div class="container">
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
 
-      <!-- Hero Clock Section -->
-      <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold mb-3">Digital Clock Hub</h1>
-        <p class="text-muted small mb-4">Integrated: Calendar • Stopwatch • World Clock • Event Countdown • Digital Clock</p>
-        
-        <!-- Today's Focus Widget -->
-        <div class="d-flex justify-content-center mb-5">
-          <div class="focus-widget-container" id="focus-widget">
-            <input type="text" id="today-focus" class="focus-input" placeholder="🎯 What is your main focus for today?" autocomplete="off">
-            <button class="focus-complete-btn" id="focus-complete" onclick="toggleFocusComplete()" title="Mark as Complete">
-              <i class="fa-solid fa-check"></i>
-            </button>
-          </div>
-        </div>
+.hero-clock-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
 
-        <div id="hub-main-clock" class="main-clock-display">00:00:00</div>
-        <div id="hub-main-date" class="clock-date-display font-monospace">Loading...</div>
-        <div class="mt-4 d-flex justify-content-center gap-3">
-          <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2">
-            <i class="fa-solid fa-earth-americas me-2"></i>Live Local Time
-          </div>
-          <button class="btn btn-sm btn-outline-info rounded-pill" onclick="toggleTimeFormat()">
-            <i class="fa-solid fa-clock me-1"></i> <span id="format-label">24H Mode</span>
+.hero-clock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+.hero-clock-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 660px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
+
+/* Page Body */
+.clock-hub-page {
+  background: #f8fafc;
+  min-height: 85vh;
+  color: #0f172a;
+}
+
+/* Clock Cockpit Stage */
+.clock-cockpit-stage {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 28px;
+  padding: 3rem 2rem;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.clock-cockpit-stage::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.main-clock-display {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: clamp(3.5rem, 8.5vw, 6.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 35px rgba(99, 102, 241, 0.5);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.clock-date-display {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Cards System */
+.clock-feature-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  height: 100%;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s ease;
+}
+
+.clock-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* World Clock */
+.world-clock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.world-clock-item {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.world-clock-item:hover {
+  border-color: #93c5fd;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.world-label {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.world-time {
+  font-weight: 800;
+  color: #1e40af;
+  font-size: 1.25rem;
+}
+
+/* Stopwatch */
+.stopwatch-display {
+  font-size: 3.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.laps-container {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-top: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+
+.lap-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+/* Calendar */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendar-day-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2563eb;
+  padding-bottom: 4px;
+}
+
+.calendar-day {
+  padding: 0.45rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.calendar-day.today {
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.calendar-day.special-event {
+  background: linear-gradient(135deg, #f43f5e, #fb923c);
+  color: white;
+  font-weight: 800;
+}
+
+.event-dot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.calendar-day.other-month {
+  opacity: 0.25;
+}
+
+/* Today's Focus */
+.focus-widget-container {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 0.4rem 0.5rem 0.4rem 1.75rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 580px;
+  transition: all 0.3s ease;
+}
+
+.focus-widget-container:focus-within {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #818cf8;
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.4);
+}
+
+.focus-input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  width: 100%;
+  outline: none;
+}
+
+.focus-input::placeholder { color: rgba(255, 255, 255, 0.45); }
+
+.focus-complete-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.focus-complete-btn:hover {
+  background: #10b981;
+  color: white;
+}
+
+.focus-widget-container.completed {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.focus-widget-container.completed .focus-input {
+  text-decoration: line-through;
+  color: #34d399;
+}
+
+.focus-widget-container.completed .focus-complete-btn {
+  background: #10b981;
+  color: white;
+}
+
+/* Fullscreen Mode */
+#clockHubCenterpiece:fullscreen {
+  background: #090d16 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  padding: 3rem !important;
+  border-radius: 0 !important;
+}
+
+#clockHubCenterpiece:fullscreen .main-clock-display {
+  font-size: min(20vw, 20vh) !important;
+  text-shadow: 0 0 50px rgba(99, 102, 241, 0.7) !important;
+}
+
+#clockHubCenterpiece:fullscreen .clock-date-display {
+  font-size: min(3.5vw, 3.5vh) !important;
+  margin-top: 1rem !important;
+}
+</style>
+
+<main class="clock-hub-page py-5 my-0">
+  <div class="container">
+
+    <!-- Hero Cockpit Clock Centerpiece (Full Container Width) -->
+    <div class="clock-cockpit-stage text-center mb-5" id="clockHubCenterpiece">
+      
+      <!-- Today's Focus Widget -->
+      <div class="d-flex justify-content-center mb-4">
+        <div class="focus-widget-container" id="focus-widget">
+          <input type="text" id="today-focus" class="focus-input" placeholder="🎯 What is your main study focus for today?" autocomplete="off">
+          <button class="focus-complete-btn" id="focus-complete" onclick="toggleFocusComplete()" title="Mark as Complete">
+            <i class="fa-solid fa-check"></i>
           </button>
         </div>
       </div>
 
-      <div class="row g-4">
-        <!-- Calendar Section -->
-        <div class="col-lg-4">
-          <div class="glass-card">
-            <div class="calendar-header">
-              <h5 class="mb-0 fw-bold" id="cal-month-year">March 2026</h5>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-light rounded-circle" onclick="changeMonth(-1)"><i
-                    class="fa-solid fa-chevron-left"></i></button>
-                <button class="btn btn-sm btn-outline-light rounded-circle" onclick="changeMonth(1)"><i
-                    class="fa-solid fa-chevron-right"></i></button>
-              </div>
-            </div>
-            <div class="calendar-grid" id="calendar-grid">
-              <!-- Labels generated by JS -->
+      <div id="hub-main-clock" class="main-clock-display">00:00:00</div>
+      <div id="hub-main-date" class="clock-date-display font-monospace mb-4">Loading date...</div>
+      
+      <!-- Controls Toolbar -->
+      <div class="d-flex flex-wrap justify-content-center gap-2 position-relative" style="z-index: 5;">
+        <div class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-40 px-3 py-2 rounded-pill d-inline-flex align-items-center">
+          <i class="fa-solid fa-earth-americas me-1.5"></i> Live Precision Time
+        </div>
+        <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2 fw-semibold" onclick="toggleTimeFormat()">
+          <i class="fa-solid fa-clock me-1"></i> <span id="format-label">24H Mode</span>
+        </button>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3 py-2 fw-semibold" onclick="toggleClockFullscreen()">
+          <i class="fa-solid fa-expand me-1"></i> <span id="fs-label">Fullscreen Desk Mode</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-Column Interactive Grid -->
+    <div class="row g-4 mb-5">
+      
+      <!-- Calendar Section -->
+      <div class="col-lg-4">
+        <div class="clock-feature-card">
+          <div class="calendar-header">
+            <h6 class="mb-0 fw-bold text-dark" id="cal-month-year">March 2026</h6>
+            <div class="d-flex gap-1">
+              <button class="btn btn-sm btn-light border rounded-circle" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn btn-sm btn-light border rounded-circle" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
           </div>
-        </div>
-
-        <!-- Stopwatch Section -->
-        <div class="col-lg-4">
-          <div class="glass-card text-center">
-            <h5 class="fw-bold mb-4 text-start"><i class="fa-solid fa-stopwatch me-2 text-warning"></i>Stopwatch</h5>
-            <div class="stopwatch-display mb-4" id="sw-display">00:00.00</div>
-            <div class="d-flex justify-content-center gap-2 mb-3">
-              <button class="btn btn-success rounded-pill px-4" id="sw-start-btn"
-                onclick="toggleStopwatch()">Start</button>
-              <button class="btn btn-outline-light rounded-pill px-4" onclick="lapStopwatch()">Lap</button>
-              <button class="btn btn-danger rounded-pill px-4" onclick="resetStopwatch()">Reset</button>
-            </div>
-            <div class="laps-container" id="sw-laps">
-              <div class="text-muted small mt-2">No laps recorded yet.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- World Clock Section -->
-        <div class="col-lg-4">
-          <div class="glass-card">
-            <h5 class="fw-bold mb-4"><i class="fa-solid fa-globe me-2 text-info"></i>World Clock</h5>
-            <div class="world-clock-grid">
-              <div class="world-clock-item">
-                <div class="world-label">New York (EST)</div>
-                <div class="world-time" id="world-est">00:00</div>
-              </div>
-              <div class="world-clock-item">
-                <div class="world-label">London (GMT)</div>
-                <div class="world-time" id="world-gmt">00:00</div>
-              </div>
-              <div class="world-clock-item">
-                <div class="world-label">Tokyo (JST)</div>
-                <div class="world-time" id="world-jst">00:00</div>
-              </div>
-              <div class="world-clock-item">
-                <div class="world-label">Sydney (AEST)</div>
-                <div class="world-time" id="world-syd">00:00</div>
-              </div>
-            </div>
-            <hr class="my-4 opacity-10">
-            <p class="small text-muted mb-0">Stay globally synced with study partners and exam schedules across
-              timezones.</p>
+          <div class="calendar-grid" id="calendar-grid">
+            <!-- Labels generated by JS -->
           </div>
         </div>
       </div>
 
-      <!-- Countdown Section -->
-      <div class="col-lg-12 pt-4">
-        <div class="glass-card shadow-lg mt-3" style="border-top: 2px solid rgba(244, 63, 94, 0.3);">
-          <div class="row g-4 align-items-center">
-            <div class="col-md-4 border-end border-white border-opacity-10">
-              <h5 class="fw-bold mb-3"><i class="fa-solid fa-hourglass-start me-2 text-danger"></i>Event Countdown</h5>
-              <p class="small text-muted mb-4">Set a target date for your next big exam or life event.</p>
-              <div class="input-group mb-3">
-                <input type="datetime-local" id="countdown-date"
-                  class="form-control bg-dark text-white border-secondary">
-                <button class="btn btn-danger" onclick="setCountdown()">Set</button>
-              </div>
-            </div>
-            <div class="col-md-8">
-              <div class="d-flex justify-content-around text-center" id="countdown-display">
-                <div>
-                  <div class="h2 fw-bold mb-0" id="cd-days">00</div>
-                  <div class="small text-muted text-uppercase">Days</div>
-                </div>
-                <div>
-                  <div class="h2 fw-bold mb-0" id="cd-hours">00</div>
-                  <div class="small text-muted text-uppercase">Hours</div>
-                </div>
-                <div>
-                  <div class="h2 fw-bold mb-0" id="cd-mins">00</div>
-                  <div class="small text-muted text-uppercase">Mins</div>
-                </div>
-                <div>
-                  <div class="h2 fw-bold mb-0 text-danger" id="cd-secs">00</div>
-                  <div class="small text-muted text-uppercase">Secs</div>
-                </div>
-              </div>
-            </div>
+      <!-- Stopwatch Section -->
+      <div class="col-lg-4">
+        <div class="clock-feature-card text-center">
+          <h6 class="fw-bold mb-3 text-start text-dark"><i class="fa-solid fa-stopwatch me-1.5 text-warning"></i> Stopwatch</h6>
+          <div class="stopwatch-display mb-3" id="sw-display">00:00.00</div>
+          <div class="d-flex justify-content-center gap-2 mb-3">
+            <button class="btn btn-success btn-sm rounded-pill px-3 py-1.5 fw-bold" id="sw-start-btn" onclick="toggleStopwatch()">Start</button>
+            <button class="btn btn-light border btn-sm rounded-pill px-3 py-1.5 fw-bold" onclick="lapStopwatch()">Lap</button>
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-bold" onclick="resetStopwatch()">Reset</button>
+          </div>
+          <div class="laps-container" id="sw-laps">
+            <div class="text-muted small mt-2">No laps recorded yet.</div>
           </div>
         </div>
       </div>
 
-      <!-- Hub Quick Access -->
-      <div class="row g-3 mt-5 justify-content-center">
-        <div class="col-md-2 col-6">
-          <a href="/timer" class="glass-card py-3 text-center text-decoration-none d-block">
-            <i class="fa-solid fa-stopwatch h4 mb-2 text-primary"></i>
-            <div class="small fw-bold">Timer</div>
-          </a>
+      <!-- World Clock Section -->
+      <div class="col-lg-4">
+        <div class="clock-feature-card">
+          <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-globe me-1.5 text-primary"></i> World Clock</h6>
+          <div class="world-clock-grid">
+            <div class="world-clock-item">
+              <div class="world-label">New York (EST)</div>
+              <div class="world-time" id="world-est">00:00</div>
+            </div>
+            <div class="world-clock-item">
+              <div class="world-label">London (GMT)</div>
+              <div class="world-time" id="world-gmt">00:00</div>
+            </div>
+            <div class="world-clock-item">
+              <div class="world-label">Tokyo (JST)</div>
+              <div class="world-time" id="world-jst">00:00</div>
+            </div>
+            <div class="world-clock-item">
+              <div class="world-label">Sydney (AEST)</div>
+              <div class="world-time" id="world-syd">00:00</div>
+            </div>
+          </div>
+          <p class="small text-muted mb-0 mt-3" style="font-size: 0.78rem;">
+            Global exam &amp; study partner time zones synced automatically.
+          </p>
         </div>
-        <div class="col-md-2 col-6">
-          <a href="/music" class="glass-card py-3 text-center text-decoration-none d-block">
-            <i class="fa-solid fa-music h4 mb-2 text-success"></i>
-            <div class="small fw-bold">Music</div>
-          </a>
-        </div>
-        <div class="col-md-2 col-6">
-          <a href="/notes" class="glass-card py-3 text-center text-decoration-none d-block">
-            <i class="fa-solid fa-pen-nib h4 mb-2 text-warning"></i>
-            <div class="small fw-bold">Notes</div>
-          </a>
-        </div>
-        <div class="col-md-2 col-6">
-          <a href="/tasks" class="glass-card py-3 text-center text-decoration-none d-block">
-            <i class="fa-solid fa-list-check h4 mb-2 text-info"></i>
-            <div class="small fw-bold">Tasks</div>
-          </a>
-        </div>
-      </div>
-
-      <div class="text-center mt-5">
-        <a href="/" class="btn btn-outline-light rounded-pill px-4">← Return to Dashboard</a>
       </div>
 
     </div>
+
+    <!-- Countdown Section (Full Width) -->
+    <div class="clock-feature-card p-4 p-md-5 mb-5">
+      <div class="row g-4 align-items-center">
+        <div class="col-md-5 border-end border-light">
+          <div class="d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-pill mb-2 bg-danger bg-opacity-10 text-danger small fw-bold">
+            <i class="fa-solid fa-hourglass-start"></i> Target Countdown
+          </div>
+          <h4 class="fw-bold text-dark mb-2">Exam &amp; Goal Countdown</h4>
+          <p class="small text-muted mb-3">Set your target deadline date to track remaining days &amp; hours live.</p>
+          <div class="input-group mb-3">
+            <input type="datetime-local" id="countdown-date" class="form-control rounded-start-3 border-secondary border-opacity-25">
+            <button class="btn btn-danger px-4 fw-bold rounded-end-3" onclick="setCountdown()">Set Goal</button>
+          </div>
+          <div class="d-flex flex-wrap gap-1.5">
+            <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small" style="font-size: 0.75rem;" onclick="setQuickCountdown(30)">⚡ 30-Day Sprint</button>
+            <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small" style="font-size: 0.75rem;" onclick="setQuickCountdown(60)">📚 Semester Finals</button>
+            <button class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small" style="font-size: 0.75rem;" onclick="setNewYearCountdown()">🎉 New Year</button>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="d-flex justify-content-around text-center py-3" id="countdown-display">
+            <div class="p-3 bg-light rounded-4 min-w-80">
+              <div class="display-6 fw-extrabold text-dark mb-0" id="cd-days">00</div>
+              <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.72rem;">Days</div>
+            </div>
+            <div class="p-3 bg-light rounded-4 min-w-80">
+              <div class="display-6 fw-extrabold text-dark mb-0" id="cd-hours">00</div>
+              <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.72rem;">Hours</div>
+            </div>
+            <div class="p-3 bg-light rounded-4 min-w-80">
+              <div class="display-6 fw-extrabold text-dark mb-0" id="cd-mins">00</div>
+              <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.72rem;">Mins</div>
+            </div>
+            <div class="p-3 bg-light rounded-4 min-w-80 border border-danger border-opacity-25">
+              <div class="display-6 fw-extrabold text-danger mb-0" id="cd-secs">00</div>
+              <div class="small text-danger fw-bold text-uppercase" style="font-size: 0.72rem;">Secs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Studio Links -->
+    <div class="row g-3 justify-content-center mb-4">
+      <div class="col-md-3 col-6">
+        <a href="/timer" class="clock-feature-card py-3 text-center text-decoration-none d-block">
+          <i class="fa-solid fa-stopwatch h4 mb-2 text-primary"></i>
+          <div class="small fw-bold text-dark">Pomodoro Timer</div>
+        </a>
+      </div>
+      <div class="col-md-3 col-6">
+        <a href="/music" class="clock-feature-card py-3 text-center text-decoration-none d-block">
+          <i class="fa-solid fa-headphones h4 mb-2 text-success"></i>
+          <div class="small fw-bold text-dark">Focus Music</div>
+        </a>
+      </div>
+      <div class="col-md-3 col-6">
+        <a href="/notes" class="clock-feature-card py-3 text-center text-decoration-none d-block">
+          <i class="fa-solid fa-pen-nib h4 mb-2 text-warning"></i>
+          <div class="small fw-bold text-dark">Study Notes</div>
+        </a>
+      </div>
+      <div class="col-md-3 col-6">
+        <a href="/quotes" class="clock-feature-card py-3 text-center text-decoration-none d-block">
+          <i class="fa-solid fa-quote-left h4 mb-2 text-info"></i>
+          <div class="small fw-bold text-dark">Inspiration Quotes</div>
+        </a>
+      </div>
+    </div>
+
   </div>
+</main>
 
-  <script>
-    (function () {
-      // ── Main Clock ──
-      let use24Hour = localStorage.getItem('hubTimeFormat') !== '12h';
+<script>
+(function () {
+  // ── Main Clock ──
+  let use24Hour = localStorage.getItem('hubTimeFormat') !== '12h';
 
-      window.toggleTimeFormat = () => {
-        use24Hour = !use24Hour;
-        localStorage.setItem('hubTimeFormat', use24Hour ? '24h' : '12h');
-        document.getElementById('format-label').textContent = use24Hour ? '24H Mode' : '12H Mode';
-        updateHubClock();
-      };
+  window.toggleTimeFormat = () => {
+    use24Hour = !use24Hour;
+    localStorage.setItem('hubTimeFormat', use24Hour ? '24h' : '12h');
+    document.getElementById('format-label').textContent = use24Hour ? '24H Mode' : '12H Mode';
+    updateHubClock();
+  };
 
-      function updateHubClock() {
-        const now = new Date();
-        const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24Hour };
-        document.getElementById('hub-main-clock').textContent = now.toLocaleTimeString('en-GB', opts);
+  function updateHubClock() {
+    const now = new Date();
+    const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24Hour };
+    document.getElementById('hub-main-clock').textContent = now.toLocaleTimeString('en-GB', opts);
 
-        document.getElementById('hub-main-date').textContent = now.toLocaleDateString(undefined, {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    document.getElementById('hub-main-date').textContent = now.toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    // World Times
+    const timezones = {
+      'world-est': 'America/New_York',
+      'world-gmt': 'Europe/London',
+      'world-jst': 'Asia/Tokyo',
+      'world-syd': 'Australia/Sydney'
+    };
+    for (const [id, tz] of Object.entries(timezones)) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = now.toLocaleTimeString('en-US', {
+          timeZone: tz, hour12: !use24Hour, hour: '2-digit', minute: '2-digit'
         });
-
-        // World Times
-        const timezones = {
-          'world-est': 'America/New_York',
-          'world-gmt': 'Europe/London',
-          'world-jst': 'Asia/Tokyo',
-          'world-syd': 'Australia/Sydney'
-        };
-        for (const [id, tz] of Object.entries(timezones)) {
-          document.getElementById(id).textContent = now.toLocaleTimeString('en-US', {
-            timeZone: tz, hour12: !use24Hour, hour: '2-digit', minute: '2-digit'
-          });
-        }
       }
-      setInterval(updateHubClock, 1000);
-      updateHubClock();
-      document.getElementById('format-label').textContent = use24Hour ? '24H Mode' : '12H Mode';
+    }
+  }
+  setInterval(updateHubClock, 1000);
+  updateHubClock();
+  const formatLabel = document.getElementById('format-label');
+  if (formatLabel) formatLabel.textContent = use24Hour ? '24H Mode' : '12H Mode';
 
-      // ── Calendar ──
-      let calDate = new Date();
-      function renderCalendar() {
-        const grid = document.getElementById('calendar-grid');
-        const display = document.getElementById('cal-month-year');
-        grid.innerHTML = '';
+  // ── Calendar ──
+  let calDate = new Date();
+  function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const display = document.getElementById('cal-month-year');
+    if (!grid || !display) return;
+    grid.innerHTML = '';
 
-        display.textContent = calDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    display.textContent = calDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-        // Day labels
-        ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
-          const el = document.createElement('div');
-          el.className = 'calendar-day-label'; el.textContent = d;
-          grid.appendChild(el);
-        });
+    // Day labels
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'calendar-day-label'; el.textContent = d;
+      grid.appendChild(el);
+    });
 
-        const firstDay = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay();
-        const daysInMonth = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0).getDate();
-        const today = new Date();
+    const firstDay = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay();
+    const daysInMonth = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0).getDate();
+    const today = new Date();
 
-        // Padding
-        for (let i = 0; i < firstDay; i++) {
-          const el = document.createElement('div');
-          el.className = 'calendar-day other-month';
-          grid.appendChild(el);
-        }
+    // Padding
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'calendar-day other-month';
+      grid.appendChild(el);
+    }
 
-        // Days
-        for (let day = 1; day <= daysInMonth; day++) {
-          const el = document.createElement('div');
-          el.className = 'calendar-day';
-          el.textContent = day;
-          if (day === today.getDate() && calDate.getMonth() === today.getMonth() && calDate.getFullYear() === today.getFullYear()) {
-            el.classList.add('today');
-          }
-
-          // Nishant’s birthday 🎂 - May 10th
-          if (day === 10 && calDate.getMonth() === 4) { // 4 is May
-            el.classList.add('special-event');
-            el.title = "🎂 2AM Celebration Mode (Nishant Birthday)";
-            const dot = document.createElement('div');
-            dot.className = 'event-dot';
-            el.appendChild(dot);
-          }
-          grid.appendChild(el);
-        }
+    // Days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const el = document.createElement('div');
+      el.className = 'calendar-day';
+      el.textContent = day;
+      if (day === today.getDate() && calDate.getMonth() === today.getMonth() && calDate.getFullYear() === today.getFullYear()) {
+        el.classList.add('today');
       }
-      window.changeMonth = (delta) => {
-        calDate.setMonth(calDate.getMonth() + delta);
-        renderCalendar();
-      };
-      renderCalendar();
 
-      // ── Stopwatch ──
-      let swInterval = null;
-      let swStartTime = 0;
-      let swElapsedTime = 0;
-      let laps = [];
+      // Special Event - May 10th
+      if (day === 10 && calDate.getMonth() === 4) {
+        el.classList.add('special-event');
+        el.title = "🎂 2 AM Study Celebration";
+        const dot = document.createElement('div');
+        dot.className = 'event-dot';
+        el.appendChild(dot);
+      }
+      grid.appendChild(el);
+    }
+  }
+  window.changeMonth = (delta) => {
+    calDate.setMonth(calDate.getMonth() + delta);
+    renderCalendar();
+  };
+  renderCalendar();
 
-      window.toggleStopwatch = () => {
-        const btn = document.getElementById('sw-start-btn');
-        if (swInterval) {
-          clearInterval(swInterval);
-          swInterval = null;
-          btn.textContent = 'Resume';
-          btn.classList.replace('btn-secondary', 'btn-success');
-        } else {
-          swStartTime = Date.now() - swElapsedTime;
-          swInterval = setInterval(updateSWDisp, 10);
-          btn.textContent = 'Pause';
-          btn.classList.replace('btn-success', 'btn-secondary');
-        }
-      };
+  // ── Stopwatch ──
+  let swInterval = null;
+  let swStartTime = 0;
+  let swElapsedTime = 0;
+  let laps = [];
 
-      window.resetStopwatch = () => {
-        clearInterval(swInterval);
-        swInterval = null;
-        swElapsedTime = 0;
-        laps = [];
-        document.getElementById('sw-display').textContent = '00:00.00';
-        document.getElementById('sw-start-btn').textContent = 'Start';
-        document.getElementById('sw-start-btn').classList.replace('btn-secondary', 'btn-success');
-        document.getElementById('sw-laps').innerHTML = '<div class="text-muted small mt-2">No laps recorded yet.</div>';
-      };
+  window.toggleStopwatch = () => {
+    const btn = document.getElementById('sw-start-btn');
+    if (swInterval) {
+      clearInterval(swInterval);
+      swInterval = null;
+      btn.textContent = 'Resume';
+      btn.classList.replace('btn-secondary', 'btn-success');
+    } else {
+      swStartTime = Date.now() - swElapsedTime;
+      swInterval = setInterval(updateSWDisp, 10);
+      btn.textContent = 'Pause';
+      btn.classList.replace('btn-success', 'btn-secondary');
+    }
+  };
 
-      window.lapStopwatch = () => {
-        if (!swElapsedTime) return;
-        laps.unshift(formatSWTime(swElapsedTime));
-        const container = document.getElementById('sw-laps');
-        container.innerHTML = laps.map((lap, i) => `
+  window.resetStopwatch = () => {
+    clearInterval(swInterval);
+    swInterval = null;
+    swElapsedTime = 0;
+    laps = [];
+    document.getElementById('sw-display').textContent = '00:00.00';
+    const startBtn = document.getElementById('sw-start-btn');
+    startBtn.textContent = 'Start';
+    startBtn.classList.replace('btn-secondary', 'btn-success');
+    document.getElementById('sw-laps').innerHTML = '<div class="text-muted small mt-2">No laps recorded yet.</div>';
+  };
+
+  window.lapStopwatch = () => {
+    if (!swElapsedTime) return;
+    laps.unshift(formatSWTime(swElapsedTime));
+    const container = document.getElementById('sw-laps');
+    container.innerHTML = laps.map((lap, i) => `
       <div class="lap-item"><span>Lap ${laps.length - i}</span><span class="fw-bold font-monospace">${lap}</span></div>
     `).join('');
-      };
+  };
 
-      function updateSWDisp() {
-        swElapsedTime = Date.now() - swStartTime;
-        document.getElementById('sw-display').textContent = formatSWTime(swElapsedTime);
-      }
+  function updateSWDisp() {
+    swElapsedTime = Date.now() - swStartTime;
+    document.getElementById('sw-display').textContent = formatSWTime(swElapsedTime);
+  }
 
-      function formatSWTime(ms) {
-        const minutes = Math.floor(ms / 60000);
-        const seconds = Math.floor((ms % 60000) / 1000);
-        const millis = Math.floor((ms % 1000) / 10);
-        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(2, '0')}`;
-      }
-      // ── Countdown Log ──
-      let countdownTarget = localStorage.getItem('hubCountdownTarget');
-      if (countdownTarget) {
-        document.getElementById('countdown-date').value = countdownTarget;
-      }
+  function formatSWTime(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const millis = Math.floor((ms % 1000) / 10);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(2, '0')}`;
+  }
 
-      window.setCountdown = () => {
-        const val = document.getElementById('countdown-date').value;
-        if (!val) return;
-        countdownTarget = val;
-        localStorage.setItem('hubCountdownTarget', val);
-        showWindow({ title: 'Countdown Set', message: 'Your event countdown has been updated.', type: 'success' });
-      };
+  // ── Countdown ──
+  let countdownTarget = localStorage.getItem('hubCountdownTarget');
+  if (countdownTarget) {
+    const cdInput = document.getElementById('countdown-date');
+    if (cdInput) cdInput.value = countdownTarget;
+  }
 
-      function updateCountdown() {
-        if (!countdownTarget) return;
-        const target = new Date(countdownTarget).getTime();
-        const now = new Date().getTime();
-        const diff = target - now;
+  window.setCountdown = () => {
+    const val = document.getElementById('countdown-date').value;
+    if (!val) return;
+    countdownTarget = val;
+    localStorage.setItem('hubCountdownTarget', val);
+    updateCountdown();
+  };
 
-        if (diff <= 0) {
-          document.getElementById('cd-days').textContent = '00';
-          document.getElementById('cd-hours').textContent = '00';
-          document.getElementById('cd-mins').textContent = '00';
-          document.getElementById('cd-secs').textContent = '00';
-          return;
-        }
+  window.setQuickCountdown = (days) => {
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    target.setHours(9, 0, 0, 0);
+    const formatted = target.toISOString().slice(0, 16);
+    document.getElementById('countdown-date').value = formatted;
+    countdownTarget = formatted;
+    localStorage.setItem('hubCountdownTarget', formatted);
+    updateCountdown();
+  };
 
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
+  window.setNewYearCountdown = () => {
+    const now = new Date();
+    const nextYear = now.getFullYear() + 1;
+    const formatted = `${nextYear}-01-01T00:00`;
+    document.getElementById('countdown-date').value = formatted;
+    countdownTarget = formatted;
+    localStorage.setItem('hubCountdownTarget', formatted);
+    updateCountdown();
+  };
 
-        document.getElementById('cd-days').textContent = String(d).padStart(2, '0');
-        document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
-        document.getElementById('cd-mins').textContent = String(m).padStart(2, '0');
-        document.getElementById('cd-secs').textContent = String(s).padStart(2, '0');
-      }
-      setInterval(updateCountdown, 1000);
-      updateCountdown();
+  function updateCountdown() {
+    if (!countdownTarget) return;
+    const target = new Date(countdownTarget).getTime();
+    const now = new Date().getTime();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById('cd-days').textContent = String(d).padStart(2, '0');
+    document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
+    document.getElementById('cd-mins').textContent = String(m).padStart(2, '0');
+    document.getElementById('cd-secs').textContent = String(s).padStart(2, '0');
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // ── Fullscreen Desk Display ──
+  window.toggleClockFullscreen = () => {
+    const centerpiece = document.getElementById('clockHubCenterpiece');
+    const fsLabel = document.getElementById('fs-label');
+    if (!document.fullscreenElement) {
+      centerpiece.requestFullscreen?.().catch(() => {});
+      if (fsLabel) fsLabel.textContent = 'Exit Fullscreen';
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+      if (fsLabel) fsLabel.textContent = 'Fullscreen Desk Mode';
+    }
+  };
+
+  document.addEventListener('fullscreenchange', () => {
+    const fs = !!document.fullscreenElement;
+    const fsLabel = document.getElementById('fs-label');
+    if (fsLabel) fsLabel.textContent = fs ? 'Exit Fullscreen' : 'Fullscreen Desk Mode';
+  });
+
   // ── Today's Focus ──
   const focusInput = document.getElementById('today-focus');
   const focusWidget = document.getElementById('focus-widget');
-  
+
   if (focusInput) {
     focusInput.value = localStorage.getItem('hubTodayFocus') || '';
     if (localStorage.getItem('hubFocusCompleted') === 'true') {
@@ -631,11 +803,6 @@
       if (!focusInput.value) return;
       const isDone = focusWidget.classList.toggle('completed');
       localStorage.setItem('hubFocusCompleted', isDone ? 'true' : 'false');
-      
-      if (isDone) {
-        // Subtle haptic or visual alert
-        showWindow({ title: 'Goal Completed!', message: 'Great job staying focused today.', type: 'success' });
-      }
     };
   }
 
@@ -645,7 +812,6 @@
     if ('wakeLock' in navigator) {
       try {
         hubWakeLock = await navigator.wakeLock.request('screen');
-        console.log('Hub Wake Lock Active');
       } catch (err) {}
     }
   }
@@ -654,6 +820,6 @@
     if (hubWakeLock !== null && document.visibilityState === 'visible') requestHubWakeLock();
   });
 })();
-  </script>
+</script>
 
-  <%- include('partials/footer') %>
+<%- include('partials/footer') %>

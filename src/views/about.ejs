@@ -1,63 +1,196 @@
 <%- include('partials/header') %>
 
-<section class="py-5 bg-primary text-white text-center pb-5" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); padding-top: 100px !important;">
-    <div class="container py-5 mt-5">
-        <h1 class="display-3 fw-bold mb-3">About 2AM Study & Our Mission</h1>
-        <p class="lead fw-light mb-0" style="max-width: 700px; margin: 0 auto;">Your ultimate companion for late-night focus and academic success.</p>
+<!-- Top Hero Banner (Compact & Animated with 2 AM Study - Matches Music & Blog) -->
+<section class="hero-about-section">
+  <div class="container text-center">
+    <div class="hero-about-badge">
+      <span class="pulse-dot"></span>
+      <span>Empowering Student Excellence</span>
+      <i class="fa-solid fa-graduation-cap text-primary ms-1" style="font-size: 0.85rem;"></i>
     </div>
+    
+    <h1 class="animated-2am-title">
+      About <span class="gradient-2am-text">2 AM Study</span> &amp; Our Mission
+    </h1>
+    
+    <p class="hero-about-subtitle">
+      Your ultimate companion for late-night focus, smart study productivity &amp; academic excellence.
+    </p>
+  </div>
 </section>
 
-<main class="container py-5 my-3" style="margin-top: -60px !important;">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 bg-white p-5 rounded-4 shadow-lg">
-      <div class="row align-items-center g-5">
-        <div class="col-md-6 order-md-2">
-            <img src="/assets/images/logo.jpg" alt="2AM Study Logo" class="img-fluid rounded-4 shadow-sm" style="max-height: 400px; object-fit: cover; width: 100%;">
+<style>
+/* Hero Section & Animations (Matches Music & Blog Page Hero) */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+}
+
+.hero-about-section {
+  padding: 85px 16px 24px !important;
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 65%), #f8fafc;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.hero-about-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  border-radius: 50px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+.animated-2am-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.gradient-2am-text {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 45%, #ec4899 75%, #2563eb 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+.hero-about-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .animated-2am-title {
+    font-size: 1.65rem;
+  }
+}
+
+/* Feature Cards & Content */
+.about-feature-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 2rem 1.5rem;
+  transition: all 0.25s ease;
+  height: 100%;
+}
+
+.about-feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.about-feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 1rem;
+}
+</style>
+
+<main class="container py-5 my-0">
+  
+  <!-- Mission Card (Full Container Width) -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-white border border-light">
+    <div class="row align-items-center g-5">
+      <div class="col-md-5 order-md-2 text-center">
+        <div class="position-relative d-inline-block w-100">
+          <img src="/assets/images/logo.jpg" alt="2 AM Study Logo" class="img-fluid rounded-4 shadow-sm border" style="max-height: 340px; width: 100%; object-fit: cover;">
         </div>
-        <div class="col-md-6 order-md-1">
-            <h2 class="fw-bold mb-4 text-dark">Our Mission: Enhancing Student Productivity</h2>
-            <p class="text-muted lh-lg">
-                At <strong>2AM Study</strong>, we believe that every student has the potential to achieve greatness. The late hours of the night often represent the quietest, most focused moments of a student's life. Our mission is to transform those challenging study sessions into highly productive, engaging, and successful experiences.
-            </p>
-            <p class="text-muted lh-lg mb-0">
-                Created with love for students everywhere, our platform provides a comprehensive suite of completely free tools—from Pomodoro timers and flashcards, to scientific calculators and ambient focus music.
-            </p>
+      </div>
+      <div class="col-md-7 order-md-1">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3 bg-primary bg-opacity-10 text-primary fw-bold small">
+          <i class="fa-solid fa-bullseye"></i> Our Purpose
+        </div>
+        <h2 class="fw-extrabold mb-3 text-dark display-6" style="letter-spacing: -0.02em;">Enhancing Student Focus &amp; Productivity</h2>
+        <p class="text-muted lh-lg mb-3">
+          At <strong>2 AM Study</strong>, we believe every student has the innate potential to achieve academic greatness. The late hours of the night often represent the quietest, most distraction-free moments of a student's life. Our mission is to transform those demanding late-night sessions into highly focused, rewarding, and confident achievements.
+        </p>
+        <p class="text-muted lh-lg mb-4">
+          Built for students by students, our ecosystem brings together a full suite of free productivity tools—from Pomodoro focus timers, live study rooms, and flashcards, to ambient lofi music, study blogs, and dedicated student safety networks.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/timer" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+            <i class="fa-solid fa-stopwatch me-1"></i> Launch Focus Timer
+          </a>
+          <a href="/music" class="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-bold">
+            <i class="fa-solid fa-headphones me-1"></i> Ambient Music
+          </a>
         </div>
       </div>
-
-      <hr class="my-5 opacity-25">
-
-      <div class="text-center mb-5">
-          <h2 class="fw-bold text-dark">Why Choose 2AM Study for Exam Preparation?</h2>
-          <p class="text-muted">We provide everything you need in one place.</p>
-      </div>
-
-      <div class="row g-4 text-center">
-          <div class="col-md-4">
-              <div class="p-4 bg-light rounded-4 h-100">
-                  <div class="text-primary fs-1 mb-3"><i class="fa-solid fa-bolt"></i></div>
-                  <h4 class="fw-bold">Fast & Free</h4>
-                  <p class="text-muted small mb-0">All our tools are highly optimized for speed and cost absolutely nothing.</p>
-              </div>
-          </div>
-          <div class="col-md-4">
-              <div class="p-4 bg-light rounded-4 h-100">
-                  <div class="text-primary fs-1 mb-3"><i class="fa-solid fa-box-open"></i></div>
-                  <h4 class="fw-bold">All-in-One</h4>
-                  <p class="text-muted small mb-0">PDF tools, calculators, timers, and music—all in a single platform.</p>
-              </div>
-          </div>
-          <div class="col-md-4">
-              <div class="p-4 bg-light rounded-4 h-100">
-                  <div class="text-primary fs-1 mb-3"><i class="fa-solid fa-shield-halved"></i></div>
-                  <h4 class="fw-bold">Privacy First</h4>
-                  <p class="text-muted small mb-0">Your files and study habits are your own business. We respect your data.</p>
-              </div>
-          </div>
-      </div>
-
     </div>
   </div>
+
+  <!-- Why Choose 2 AM Study -->
+  <div class="text-center mb-5 mt-4">
+    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Built For Students</span>
+    <h2 class="fw-bold text-dark display-6 mb-2">Why Choose 2 AM Study?</h2>
+    <p class="text-muted" style="max-width: 580px; margin: 0 auto;">Everything you need for exam readiness, deep focus, and academic excellence in one place.</p>
+  </div>
+
+  <div class="row g-4 text-center mb-4">
+    <div class="col-md-4">
+      <div class="about-feature-card">
+        <div class="about-feature-icon bg-primary bg-opacity-10 text-primary">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">Fast &amp; 100% Free</h4>
+        <p class="text-muted small mb-0">All our core study tools are tuned for high performance with zero subscriptions and zero paywalls.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="about-feature-card">
+        <div class="about-feature-icon bg-warning bg-opacity-10 text-warning">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">All-in-One Studio</h4>
+        <p class="text-muted small mb-0">Pomodoro timers, lofi music streams, calculators, flashcards, and student essentials in one unified hub.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="about-feature-card">
+        <div class="about-feature-icon bg-success bg-opacity-10 text-success">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">Privacy &amp; Safety First</h4>
+        <p class="text-muted small mb-0">Your focus streaks and study notes are your business. We prioritize student data safety and community integrity.</p>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <%- include('partials/footer') %>
+

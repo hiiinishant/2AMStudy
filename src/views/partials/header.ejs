@@ -151,15 +151,14 @@
                       <h6 class="dropdown-header text-uppercase small fw-bold opacity-50 ps-3">Learning Tools</h6>
                     </li>
                     <li><a class="dropdown-item" href="/timer">Timer</a></li>
-                    <li><a class="dropdown-item" href="/streak">Goals / Streak</a></li>
+                    <li><a class="dropdown-item" href="/streak">Streak</a></li>
                     <li><a class="dropdown-item" href="/music">Music</a></li>
                     <li><a class="dropdown-item" href="/quotes">Quotes</a></li>
                     <li><a class="dropdown-item" href="/game">Study Game</a></li>
                     <li><a class="dropdown-item" href="/calculators">Calculator Tools</a></li>
-                    <li><a class="dropdown-item" href="/college-student">College Student Support</a></li>
-                    <li><a class="dropdown-item" href="/clock">Digital Clock Hub</a></li>
-                    <li><a class="dropdown-item" href="/#pdf-features-section">PDF Tools Hub</a></li>
-                    <li><a class="dropdown-item" href="/utilities">Utilities Hub (AQI, Grammar)</a></li>
+                    <li><a class="dropdown-item" href="/college-student">Student Support</a></li>
+                    <li><a class="dropdown-item" href="/clock">Digital Clock</a></li>
+                    <li><a class="dropdown-item" href="/utilities">Utilities Hub</a></li>
                   </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -357,7 +356,7 @@
           logoutBtn.addEventListener('click', async () => {
             try {
               await signOut(auth);
-              localStorage.clear();
+              ['isLoggedIn', 'user_id', 'studentEmail', 'studentName', 'studentRegistered', 'studentCollege'].forEach(k => localStorage.removeItem(k));
               window.location.href = '/login';
             } catch (e) {
               console.error("Logout error:", e);
