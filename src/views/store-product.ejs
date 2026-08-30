@@ -58,6 +58,8 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 .fk-rating-bar-label{font-size:13px;width:16px;text-align:center}
 .fk-rating-bar-track{flex:1;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden}
 .fk-rating-bar-fill{height:100%;background:var(--fk-green);border-radius:3px;transition:width .3s}
+.star-filled{color:#ffc107}.star-empty{color:#ddd}
+.review-hidden{display:none}
 .fk-rating-bar-count{font-size:12px;color:var(--fk-text2);width:24px}
 .fk-review-card{border-bottom:1px solid var(--fk-border);padding:16px 0}.fk-review-card:last-child{border-bottom:none}
 .fk-review-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -80,7 +82,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 .fk-related-img-wrap { height:200px; background:#f8f9fa; display:flex; align-items:center; justify-content:center; overflow:hidden;}
 .fk-related-img { width:100%; height:100%; object-fit:cover; }
 .fk-related-content { padding: 14px 16px 16px; }
-.fk-related-title { font-size: 14px; font-weight: 500; color: #212121; margin-bottom: 6px; line-height: 1.4; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; transition: color 0.3s; }
+.fk-related-title { font-size: 14px; font-weight: 500; color: #212121; margin-bottom: 6px; line-height: 1.4; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; transition: color 0.3s; }
 .fk-related-price-row { margin-bottom:0; display:flex; align-items:center; flex-wrap:wrap; }
 .fk-related-price { font-size:17px; font-weight:700; color:#212121; }
 .fk-related-orig { font-size:12px; color:#878787; text-decoration:line-through; margin-left:8px; }
@@ -380,7 +382,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
           <div class="fk-rating-summary">
             <div class="fk-rating-big"><%= product.rating %></div>
             <div class="fk-rating-stars">
-              <% for (let s = 1; s <= 5; s++) { %><i class="fa-solid fa-star" style="color:<%= s <= Math.round(product.rating) ? '#ffc107' : '#ddd' %>"></i><% } %>
+              <% for (let s = 1; s <= 5; s++) { %><i class="fa-solid fa-star <%= s <= Math.round(product.rating) ? 'star-filled' : 'star-empty' %>"></i><% } %>
             </div>
             <div class="fk-rating-total"><%= product.ratingCount ? product.ratingCount.toLocaleString() : '0' %> Ratings</div>
           </div>
@@ -390,7 +392,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
             <% for (let s = 5; s >= 1; s--) { %>
             <div class="fk-rating-bar-row">
               <span class="fk-rating-bar-label"><%= s %></span>
-              <div class="fk-rating-bar-track"><div class="fk-rating-bar-fill" style="width:<%= product.reviews && product.reviews.length > 0 ? Math.round((rc[s-1] / product.reviews.length) * 100) : 0 %>%"></div></div>
+              <div class="fk-rating-bar-track"><div class="fk-rating-bar-fill" data-pct="<%= product.reviews && product.reviews.length > 0 ? Math.round((rc[s-1] / product.reviews.length) * 100) : 0 %>"></div></div>
               <span class="fk-rating-bar-count"><%= rc[s-1] %></span>
             </div>
             <% } %>
@@ -400,7 +402,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
         <div id="reviewsList">
           <% if (product.reviews && product.reviews.length) { %>
           <% product.reviews.forEach(function(r, idx) { %>
-          <div class="fk-review-card review-item-card" style="<%= idx >= 2 ? 'display: none;' : '' %>">
+          <div class="fk-review-card review-item-card<%= idx >= 2 ? ' review-hidden' : '' %>">
             <div class="fk-review-header">
               <div class="fk-review-avatar"><%= r.user.charAt(0) %></div>
               <span class="fk-review-user"><%= r.user %></span>
@@ -425,10 +427,10 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 
       <!-- Action Buttons (Sticky Right Bottom) -->
       <div class="fk-image-actions fk-sticky-desktop">
-        <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>, this)">
+        <button class="fk-btn-cart" data-pid="<%= product.id %>" onclick="addToCart(PRODUCT_ID, this)">
           <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
         </button>
-        <button class="fk-btn-buy" onclick="buyNow(<%= product.id %>)">
+        <button class="fk-btn-buy" data-pid="<%= product.id %>" onclick="buyNow(PRODUCT_ID)">
           <i class="fa-solid fa-bolt"></i> BUY NOW
         </button>
       </div>
@@ -447,7 +449,7 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
     <div class="fk-related-grid">
       <% storeProducts.filter(p => p.cat === product.cat && p.id !== product.id).slice(0, 4).forEach(function(rp) { %>
       <% const rd = Math.round(((rp.orig - rp.price) / rp.orig) * 100); %>
-      <div class="fk-related-card" onclick="viewProduct(<%= rp.id %>)">
+      <div class="fk-related-card" data-pid="<%= rp.id %>" onclick="viewProduct(+this.dataset.pid)">
         <div class="fk-related-img-wrap">
           <img src="<%= rp.images && rp.images.length ? rp.images[0] : (rp.image || '/assets/images/store/placeholder.jpg') %>" class="fk-related-img" alt="<%= rp.name %>" onerror="this.src='/assets/images/store/placeholder.jpg'">
         </div>
@@ -474,10 +476,10 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
       <span class="fk-sticky-price">Rs. <%= product.price %></span>
     </div>
     <div class="fk-sticky-actions">
-      <button class="fk-btn-cart" onclick="addToCart(<%= product.id %>, this)">
+      <button class="fk-btn-cart" onclick="addToCart(PRODUCT_ID, this)">
         <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
       </button>
-      <button class="fk-btn-buy" onclick="buyNow(<%= product.id %>)">
+      <button class="fk-btn-buy" onclick="buyNow(PRODUCT_ID)">
         <i class="fa-solid fa-bolt"></i> BUY NOW
       </button>
     </div>
@@ -485,6 +487,9 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 </div>
 
 </div>
+<div id="__productMeta" data-pid="<%= product.id %>" style="display:none"></div>
+
+
 
 <% } else { %>
 <div class="container" style="padding-top:100px;text-align:center;padding-bottom:60px;">
@@ -495,8 +500,13 @@ body{background:var(--fk-bg);color:var(--fk-text);font-family:'Inter',sans-serif
 <% } %>
 
 <script>
-const PRODUCT_ID = <%= product ? product.id : 0 %>;
+const PRODUCT_ID = +(document.getElementById('__productMeta') || {}).dataset.pid || 0;
 let selectedRating = 0;
+
+// Init rating bar widths from data-pct (replaces inline EJS styles)
+document.querySelectorAll('.fk-rating-bar-fill[data-pct]').forEach(function(el) {
+  el.style.width = el.getAttribute('data-pct') + '%';
+});
 
 // CSS handles sticky bar completely now
 

@@ -3158,12 +3158,7 @@ function checkMasterPassword(pass) {
   if (!pass) return false;
   const input = String(pass).trim();
 
-  // 1. Always explicitly allow master password 'nishant2am'
-  if (input === 'nishant2am' || input.toLowerCase() === 'nishant2am') {
-    return true;
-  }
-
-  // 2. Also check any environment-configured passwords (trimming and stripping quotes)
+  // Check environment-configured passwords (trimming and stripping quotes)
   const envPasswords = [
     process.env.ADMIN_PASSWORD,
     process.env.ADMIN_PASSCODE,
@@ -3172,6 +3167,11 @@ function checkMasterPassword(pass) {
   ]
     .filter(Boolean)
     .map(p => String(p).trim().replace(/^["']|["']$/g, ''));
+
+  if (envPasswords.length === 0) {
+    console.warn('[Admin Auth] Warning: No admin passwords configured in environment variables.');
+    return false;
+  }
 
   return envPasswords.some(p => p === input || p.toLowerCase() === input.toLowerCase());
 }
