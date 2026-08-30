@@ -1409,7 +1409,7 @@
     if (loginForm) {
       loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const pass = document.getElementById('masterPassInput').value;
+        const pass = (document.getElementById('masterPassInput').value || '').trim();
         const errAlert = document.getElementById('loginErrorAlert');
         const btn = document.getElementById('loginSubmitBtn');
 
