@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/doubt",
+      "destination": "/api/doubt"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://twoamstudy-1.onrender.com/api/:path*"
+    },
+    {
+      "source": "/store/api/:path*",
+      "destination": "https://twoamstudy-1.onrender.com/store/api/:path*"
+    }
+  ]
+}
