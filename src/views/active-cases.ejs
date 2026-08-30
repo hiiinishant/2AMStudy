@@ -399,11 +399,13 @@
     btnElement.disabled = true;
     btnElement.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
 
+    const userEmail = localStorage.getItem('studentEmail') || '';
+
     try {
       const res = await fetch(`/student-safety/cases/${cId}/support`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId })
+        body: JSON.stringify({ userId: userId, userEmail: userEmail })
       });
 
       const data = await res.json();
@@ -425,14 +427,15 @@
         countSpan.innerText = data.supportCount;
       }
 
+      const modalMsg = data.message || '✅ Thank you! You supported this case.';
       if (typeof window.showWindow === 'function') {
         window.showWindow({
-          title: 'Thank You!',
-          message: '✅ Thank you! You supported this case.',
+          title: 'Trust Score Increased! 🌟',
+          message: modalMsg,
           type: 'success'
         });
       } else {
-        alert('✅ Thank you! You supported this case.');
+        alert(modalMsg);
       }
 
     } catch (err) {

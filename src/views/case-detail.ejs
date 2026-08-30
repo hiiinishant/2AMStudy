@@ -63,7 +63,8 @@
         
         <div class="progress-timeline d-flex justify-content-between position-relative text-center">
           <div class="timeline-line position-absolute top-50 start-0 w-100 translate-middle-y bg-light" style="height: 4px; z-index: 1;"></div>
-          <div class="timeline-progress position-absolute top-50 start-0 translate-middle-y bg-success" style="height: 4px; z-index: 2; width: <%= caseData.status === 'Resolved' ? '100%' : '75%' %>;"></div>
+          <% const isResolved = (typeof caseData !== 'undefined' && caseData.status === 'Resolved'); %>
+          <div class="timeline-progress position-absolute top-50 start-0 translate-middle-y bg-success <%= isResolved ? 'w-100' : 'w-75' %>" style="height: 4px; z-index: 2;"></div>
 
           <!-- Step 1: Submitted -->
           <div class="timeline-step position-relative z-3 bg-white px-2">
@@ -251,6 +252,7 @@
           }
 
           const userId = getUserId();
+          const userEmail = localStorage.getItem('studentEmail') || '';
 
           btn.disabled = true;
           btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
@@ -259,7 +261,7 @@
             const res = await fetch(`/student-safety/cases/${caseId}/support`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: userId })
+              body: JSON.stringify({ userId: userId, userEmail: userEmail })
             });
 
             const data = await res.json();
@@ -280,14 +282,15 @@
               }
             });
 
+            const modalMsg = data.message || '✅ Thank you! You supported this case.';
             if (typeof window.showWindow === 'function') {
               window.showWindow({
-                title: 'Thank You!',
-                message: '✅ Thank you! You supported this case.',
+                title: 'Trust Score Increased! 🌟',
+                message: modalMsg,
                 type: 'success'
               });
             } else {
-              alert('✅ Thank you! You supported this case.');
+              alert(modalMsg);
             }
 
           } catch (err) {

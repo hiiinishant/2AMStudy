@@ -1106,17 +1106,18 @@ async function sendSafetyEmail(to, subject, html) {
   }
 }
 
-// Cloudinary Evidence Upload Helper
+// Cloudinary / Local Disk Evidence Upload Helper
 async function uploadToCloudinary(fileBuffer, mimetype, filename) {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || '2amstudy';
-  const apiKey = process.env.CLOUDINARY_API_KEY || '';
-  const apiSecret = process.env.CLOUDINARY_API_SECRET || '';
-  const publicId = `student-safety/case_${Date.now()}_${uuidv4().substring(0, 6)}`;
-  const isPdf = mimetype.includes('pdf') || filename?.toLowerCase().endsWith('.pdf');
-  const ext = isPdf ? 'pdf' : 'png';
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const isPdf = (mimetype && mimetype.includes('pdf')) || filename?.toLowerCase().endsWith('.pdf');
+  const ext = isPdf ? 'pdf' : (path.extname(filename || '').replace('.', '') || 'png');
+  const safeBaseName = `case_${Date.now()}_${uuidv4().substring(0, 8)}.${ext}`;
 
   if (cloudName && apiKey && apiSecret) {
     try {
+      const publicId = `student-safety/case_${Date.now()}_${uuidv4().substring(0, 6)}`;
       const timestamp = Math.floor(Date.now() / 1000);
       const signatureStr = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
       const signature = crypto.createHash('sha1').update(signatureStr).digest('hex');
@@ -1144,18 +1145,34 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
           uploadedAt: new Date().toISOString()
         };
       }
-      throw new Error(data.error?.message || 'Cloudinary upload returned no URL.');
     } catch (err) {
-      console.warn("Direct Cloudinary API upload warning:", err.message || err);
-      throw new Error('Evidence upload failed. Please try again in a moment.');
+      console.warn("[Cloudinary] Upload failed, falling back to local storage:", err.message || err);
     }
   }
 
-  throw new Error('Evidence upload is not configured. Please contact support.');
+  // Local Disk Storage Fallback (Always resilient and guaranteed)
+  try {
+    const uploadDir = path.join(__dirname, 'public', 'assets', 'uploads', 'safety');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const filePath = path.join(uploadDir, safeBaseName);
+    fs.writeFileSync(filePath, fileBuffer);
+
+    return {
+      url: `/assets/uploads/safety/${safeBaseName}`,
+      publicId: `local_${safeBaseName}`,
+      type: isPdf ? 'pdf' : 'image',
+      uploadedAt: new Date().toISOString()
+    };
+  } catch (fsErr) {
+    console.error("[Local Evidence Upload] Error saving file:", fsErr);
+    throw new Error('Could not save evidence file. Please try again.');
+  }
 }
 
-app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
-  uploadEvidence(req, res, async function (err) {
+app.post('/student-safety/report', (req, res, next) => {
+  uploadEvidence(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ success: false, message: 'File size exceeds maximum limit of 10 MB per file.' });
@@ -1167,7 +1184,10 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
     } else if (err) {
       return res.status(400).json({ success: false, message: err.message });
     }
-
+    next();
+  });
+}, verifyFirebaseToken, async (req, res) => {
+  try {
     const {
       platform,
       fakeUsername,
@@ -1176,6 +1196,8 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
       reason,
       description,
       college,
+      reporterName,
+      reporterEmail: inputReporterEmail,
       anonymous,
       truthConfirmed
     } = req.body;
@@ -1201,14 +1223,14 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const finalUserId = req.firebaseUid;
-    const reporterEmail = req.firebaseEmail || null;
+    const reporterEmail = req.firebaseEmail || inputReporterEmail || null;
+    const finalUserId = req.firebaseUid || (reporterEmail ? ('USER-' + Buffer.from(reporterEmail).toString('hex').substring(0, 10)) : ('USER-' + Date.now().toString(36)));
 
     // Rate Limiting Check (Maximum 3 reports per verified user per day)
     const now = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
     const userRecentReports = studentSafetyCases.filter(c => {
-      if (c.userId !== finalUserId) return false;
+      if (c.userId !== finalUserId && (!reporterEmail || c.reporterEmail !== reporterEmail)) return false;
       const createdTime = new Date(c.createdAt).getTime();
       return (now - createdTime) < oneDayMs;
     });
@@ -1258,6 +1280,7 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
     const newCase = {
       caseId: generatedCaseId,
       userId: finalUserId,
+      reporterName: reporterName || '',
       reporterEmail: reporterEmail,
       platform: platform,
       fakeUsername: fakeUsername,
@@ -1308,10 +1331,87 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
       </div>`
     );
 
+    // ── Admin Alert Email ── Send instant notification to admin on every new report
+    sendSafetyEmail(
+      'hiiinishant@gmail.com',
+      `🚨 [Action Required] New Fake Profile Report — Case ${generatedCaseId}`,
+      `<div style="font-family:Inter,sans-serif;max-width:640px;margin:auto;padding:0;">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:28px 32px;border-radius:12px 12px 0 0;">
+          <div style="color:#fecaca;font-size:13px;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">🛡️ STUDENT IDENTITY SHIELD — ADMIN ALERT</div>
+          <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;">🚨 New Fake Profile Report</h1>
+          <div style="color:#fca5a5;font-size:13px;margin-top:6px;">Submitted on ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</div>
+        </div>
+
+        <!-- Case Details -->
+        <div style="background:#ffffff;padding:28px 32px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+          <table style="width:100%;border-collapse:collapse;">
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;width:38%;">Case ID</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${generatedCaseId}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;">${platform}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Username</td>
+              <td style="padding:10px 0;color:#dc2626;font-size:13px;font-weight:700;">@${fakeUsername}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile URL</td>
+              <td style="padding:10px 0;font-size:13px;"><a href="${fakeProfileUrl}" style="color:#2563eb;word-break:break-all;">${fakeProfileUrl}</a></td>
+            </tr>
+            ${realProfileUrl ? `<tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Real Profile URL</td>
+              <td style="padding:10px 0;font-size:13px;"><a href="${realProfileUrl}" style="color:#16a34a;word-break:break-all;">${realProfileUrl}</a></td>
+            </tr>` : ''}
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Reason</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;">${reason}</td>
+            </tr>
+            ${college ? `<tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">College</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;">${college}</td>
+            </tr>` : ''}
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Reporter Email</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;">${reporterEmail || '<em style="color:#94a3b8;">Not provided</em>'}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Anonymous</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;">${(anonymous === 'true' || anonymous === 'on' || anonymous === true) ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Evidence Files</td>
+              <td style="padding:10px 0;color:#0f172a;font-size:13px;">${(newCase.evidence || []).length} file(s) uploaded</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;vertical-align:top;">Description</td>
+              <td style="padding:10px 0;color:#334155;font-size:13px;line-height:1.6;">${(description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="background:#f8fafc;padding:24px 32px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+          <a href="https://2amstudy.online/admin-moderation" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;">
+            🔍 Review & Moderate Now
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#1e293b;padding:16px 32px;border-radius:0 0 12px 12px;text-align:center;">
+          <p style="color:#64748b;font-size:12px;margin:0;">2AM Study · Student Identity Shield · Admin Alert System<br>This is an automated admin notification. Do not reply to this email.</p>
+        </div>
+      </div>`
+    );
+
     if (req.xhr || req.headers.accept?.includes('json')) {
       return res.json({
         success: true,
         caseId: generatedCaseId,
+        userId: finalUserId,
         case: sanitizeCaseForOwner(newCase),
         message: '✅ Report Submitted Successfully\n\nOur moderation team will review your report within 24–48 hours.\n\nStatus: Pending Review'
       });
@@ -1324,7 +1424,13 @@ app.post('/student-safety/report', verifyFirebaseToken, async (req, res) => {
       caseId: generatedCaseId,
       errorMessage: null
     });
-  });
+  } catch (routeErr) {
+    console.error("Error processing report:", routeErr);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error processing your report. Please try again.'
+    });
+  }
 });
 
 // Moderation Audit Logs JSON persistence
@@ -1760,15 +1866,93 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
     };
 
     if (action === 'approve') {
-      // Smart Notification System (Push First, Email Fallback)
+      // 1. Notify the reporter — Smart Notification (Push First, Email Fallback)
       dispatchSmartNotification({
         userId: targetCase.userId,
         userEmail: targetCase.reporterEmail,
         caseId,
         title: `[2AM Study] Case ${caseId} Verified ✅`,
         message: `Your report for ${targetCase.fakeUsername || 'fake profile'} has been verified by our moderation team.`,
-        targetUrl: `/student-safety#${caseId}`
+        targetUrl: `/student-safety/cases/${caseId}`
       });
+
+      // 2. Notify all supporters — In-app notification + Email
+      const approveSupport = studentSafetySupports.filter(s => s.caseId === caseId);
+      approveSupport.forEach(supporter => {
+        // Skip if supporter is the reporter themselves
+        if (supporter.userId === targetCase.userId) return;
+
+        // In-app notification
+        studentSafetyNotifications.unshift({
+          notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+          userId: supporter.userId,
+          caseId,
+          title: '✅ Case You Supported is Now Verified!',
+          type: 'success',
+          message: `Great news! A case you supported (${caseId}) about a fake ${targetCase.platform || 'social media'} account (@${targetCase.fakeUsername || 'unknown'}) has been officially verified by our moderation team. Visit the case page to help spread awareness!`,
+          isRead: false,
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+
+        // Email notification to supporter
+        if (supporter.userEmail) {
+          sendSafetyEmail(
+            supporter.userEmail,
+            `✅ Case You Supported is Verified — Help Spread the Word! | 2AM Study`,
+            `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:0;">
+              <!-- Header -->
+              <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:28px 32px;border-radius:12px 12px 0 0;">
+                <div style="color:#bbf7d0;font-size:13px;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">🛡️ STUDENT IDENTITY SHIELD — CASE UPDATE</div>
+                <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;">✅ Case Verified — Action Needed!</h1>
+                <div style="color:#86efac;font-size:13px;margin-top:6px;">A case you supported has been officially verified</div>
+              </div>
+
+              <!-- Body -->
+              <div style="background:#ffffff;padding:28px 32px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+                <p style="color:#334155;font-size:15px;line-height:1.7;margin-top:0;">Hi there 👋</p>
+                <p style="color:#334155;font-size:15px;line-height:1.7;">A fake profile report you supported on <strong>2AM Study Student Safety</strong> has just been <strong style="color:#16a34a;">officially verified</strong> by our moderation team!</p>
+
+                <!-- Case Summary Card -->
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin:20px 0;">
+                  <table style="width:100%;border-collapse:collapse;">
+                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;width:40%;">Case ID</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${caseId}</td></tr>
+                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;">${targetCase.platform || 'Social Media'}</td></tr>
+                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Account</td><td style="padding:8px 0;color:#dc2626;font-size:13px;font-weight:700;">@${targetCase.fakeUsername || 'unknown'}</td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:8px 0;"><span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">✅ Verified</span></td></tr>
+                  </table>
+                </div>
+
+                <!-- How to Help Section -->
+                <div style="background:#fffbeb;border:1px solid #fef08a;border-radius:12px;padding:20px;margin:20px 0;">
+                  <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:12px;">🚀 How You Can Help Right Now</div>
+                  <ul style="margin:0;padding-left:20px;color:#78350f;font-size:13px;line-height:2;">
+                    <li>Visit the <strong>case page</strong> and click <strong>Support This Case</strong> to increase its community score</li>
+                    <li>Go to <strong>${targetCase.platform || 'the platform'}</strong> and <strong>report the fake account</strong> directly using the platform's report button</li>
+                    <li>Share the case link with friends who may know the victim to gather more community support</li>
+                  </ul>
+                </div>
+
+                <p style="color:#64748b;font-size:13px;line-height:1.6;">Every action you take helps protect students from impersonation and online scams. Thank you for being a community guardian! 🛡️</p>
+              </div>
+
+              <!-- CTA -->
+              <div style="background:#f8fafc;padding:24px 32px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+                <a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;margin-bottom:12px;">🔍 View Verified Case & Support</a>
+                <br>
+                <a href="https://2amstudy.online/student-safety/cases" style="display:inline-block;color:#2563eb;font-size:13px;text-decoration:none;margin-top:8px;">Browse All Active Cases →</a>
+              </div>
+
+              <!-- Footer -->
+              <div style="background:#1e293b;padding:16px 32px;border-radius:0 0 12px 12px;text-align:center;">
+                <p style="color:#64748b;font-size:12px;margin:0;">2AM Study · Student Identity Shield · Community Notifications<br>You received this because you supported this case. <a href="https://2amstudy.online/settings" style="color:#475569;">Manage notification preferences</a></p>
+              </div>
+            </div>`
+          );
+        }
+      });
+      saveNotifications();
+
     } else if (emailTemplates[action]) {
       sendSafetyEmail(targetCase.reporterEmail || null, emailTemplates[action].subject, emailTemplates[action].body);
     }
@@ -2151,9 +2335,9 @@ app.get('/student-safety/cases/:caseId', (req, res) => {
 });
 
 // Support a Case (Logged-in users only, one support per user per case - Step 4)
-app.post('/student-safety/cases/:caseId/support', (req, res) => {
+app.post('/student-safety/cases/:caseId/support', async (req, res) => {
   const { caseId } = req.params;
-  const { userId } = req.body;
+  const { userId, userEmail } = req.body;
 
   if (!userId) {
     return res.status(401).json({ success: false, message: 'You must be logged in to support a case.' });
@@ -2175,11 +2359,12 @@ app.post('/student-safety/cases/:caseId/support', (req, res) => {
     });
   }
 
-  // Create support record
+  // Create support record — also save userEmail so we can notify on case updates
   const supportRecord = {
     supportId: 'SUPPORT-' + uuidv4().substring(0, 8).toUpperCase(),
     caseId: caseId,
     userId: userId,
+    userEmail: userEmail || null,
     createdAt: new Date().toISOString()
   };
 
@@ -2191,10 +2376,72 @@ app.post('/student-safety/cases/:caseId/support', (req, res) => {
   studentSafetyCases[caseIndex].updatedAt = new Date().toISOString();
   saveStudentSafetyCases();
 
+  // ── Trust Score Boost ──
+  // Each support action gives +2 trust score (capped at 100)
+  // Also checks if a new badge has been unlocked
+  const TRUST_BOOST = 2;
+  let newTrustScore = null;
+  let newBadge = null;
+
+  try {
+    if (firestoreDb) {
+      const userRef = firestoreDb.collection('users').doc(userId);
+      const userSnap = await userRef.get();
+
+      // Recalculate score dynamically from all activity
+      const userCases = studentSafetyCases.filter(c => c.userId === userId);
+      const verifiedCases = userCases.filter(c => c.status === 'Verified' || c.status === 'Resolved');
+      const allSupports = studentSafetySupports.filter(s => s.userId === userId).length; // includes the one just added
+      const totalReports = userCases.length;
+
+      const oldScore = userSnap.exists() ? (userSnap.data().trustScore || 0) : 0;
+      newTrustScore = Math.min(100,
+        10 +
+        (verifiedCases.length * 20) +
+        (allSupports * TRUST_BOOST) +
+        (totalReports * 5)
+      );
+
+      // Check if a new badge was just unlocked
+      const oldSupports = allSupports - 1; // before this support
+      if (oldSupports < 5 && allSupports >= 5) {
+        newBadge = { id: 'top_contributor', label: 'Top Contributor', icon: '⭐', desc: 'Supported 5+ community cases' };
+      }
+      if (oldScore < 75 && newTrustScore >= 75) {
+        newBadge = { id: 'trusted_reporter', label: 'Trusted Reporter', icon: '🏆', desc: 'Trust score of 75 or above' };
+      }
+
+      // Update Firestore
+      await userRef.set({ trustScore: newTrustScore }, { merge: true });
+    }
+  } catch (tsErr) {
+    console.warn('[TrustScore] Could not update trust score for user', userId, tsErr.message);
+  }
+
+  // ── In-app notification for trust score increase ──
+  const trustNotifMsg = newBadge
+    ? `🎉 Your trust score increased to ${newTrustScore}/100! You also unlocked a new badge: ${newBadge.icon} ${newBadge.label}!`
+    : `⬆️ Your trust score increased by +${TRUST_BOOST} points for supporting a verified case! New score: ${newTrustScore || '?'}/100.`;
+
+  studentSafetyNotifications.unshift({
+    notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+    userId,
+    caseId,
+    title: newBadge ? `🏅 New Badge + Trust Score Up!` : `⬆️ Trust Score Increased!`,
+    type: 'success',
+    message: trustNotifMsg,
+    isRead: false,
+    read: false,
+    createdAt: new Date().toISOString()
+  });
+  saveNotifications();
+
   return res.json({
     success: true,
     supportCount: studentSafetyCases[caseIndex].supportCount,
-    message: '✅ Thank you! You supported this case.'
+    trustScore: newTrustScore,
+    newBadge: newBadge || null,
+    message: `✅ Thank you! You supported this case.${newTrustScore ? ` Your trust score is now ${newTrustScore}/100.` : ''}`
   });
 });
 

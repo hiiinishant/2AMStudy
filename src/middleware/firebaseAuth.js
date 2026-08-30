@@ -27,9 +27,9 @@ function createFirebaseAuthMiddleware(firebaseAdmin, firestoreDb) {
       }
     }
 
-    // Fallback: Check body or headers
-    const fallbackUid = req.body?.userId || req.headers['x-user-id'] || req.session?.user?.uid;
-    const fallbackEmail = req.body?.reporterEmail || req.headers['x-user-email'] || req.session?.user?.email;
+    // Fallback: Check body or headers or guest identifier
+    const fallbackUid = req.body?.userId || req.headers['x-user-id'] || req.session?.user?.uid || (req.body?.reporterEmail ? ('USER-' + Buffer.from(req.body.reporterEmail).toString('hex').substring(0, 10)) : ('GUEST-' + Date.now().toString(36)));
+    const fallbackEmail = req.body?.reporterEmail || req.headers['x-user-email'] || req.session?.user?.email || null;
 
     if (fallbackUid) {
       req.firebaseUid = fallbackUid;
