@@ -122,6 +122,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -132,26 +133,39 @@
     appId: "1:270924691236:web:7ada12dcf50c290d0925b1"
   };
 
-  let db;
+  let db = null;
+  let auth = null;
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app);
   } catch (err) {
     console.error("Firebase init error:", err);
   }
 
-  const checkUserLoggedIn = () => localStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('studentRegistered') === 'true';
-  const getUserId = () => localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null;
+  const checkUserLoggedIn = () => {
+    return (
+      (auth && auth.currentUser) ||
+      localStorage.getItem('isLoggedIn') === 'true' ||
+      localStorage.getItem('studentRegistered') === 'true' ||
+      Boolean(localStorage.getItem('studentEmail')) ||
+      Boolean(localStorage.getItem('mySubmittedCases'))
+    );
+  };
 
-  const statusBadge = (status) => {
+  const getUserId = () => {
+    return (auth && auth.currentUser && auth.currentUser.uid) || localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null;
+  };
+
+  const statusBadgeStyle = (status) => {
     const map = {
-      'Pending Review': 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
-      'Needs Evidence': 'bg-orange-100 text-orange border border-orange',
-      'Verified': 'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
-      'Rejected': 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
-      'Resolved': 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25'
+      'Pending Review': 'background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;',
+      'Needs Evidence': 'background: #ffedd5; color: #9a3412; border: 1px solid #fdba74;',
+      'Verified': 'background: #dcfce7; color: #166534; border: 1px solid #86efac;',
+      'Rejected': 'background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;',
+      'Resolved': 'background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;'
     };
-    return map[status] || 'bg-light text-muted border';
+    return map[status] || 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;';
   };
 
   const timelineStages = [
@@ -170,51 +184,61 @@
     return 0;
   };
 
-  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown';
+  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now';
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    if (!checkUserLoggedIn()) {
+  async function loadUserReports(user = null) {
+    const userId = (user && user.uid) || getUserId();
+    const userEmail = (user && user.email) || localStorage.getItem('studentEmail') || localStorage.getItem('userEmail') || '';
+    
+    let submittedCaseIds = [];
+    try {
+      submittedCaseIds = JSON.parse(localStorage.getItem('mySubmittedCases') || '[]');
+    } catch (e) {
+      submittedCaseIds = [];
+    }
+
+    if (!userId && !userEmail && submittedCaseIds.length === 0 && !checkUserLoggedIn()) {
       document.getElementById('loginRequired').classList.remove('d-none');
+      document.getElementById('mainContent').classList.add('d-none');
       return;
     }
 
-    const userId = getUserId();
-    if (!userId) {
-      document.getElementById('loginRequired').classList.remove('d-none');
-      return;
-    }
-
+    document.getElementById('loginRequired').classList.add('d-none');
     document.getElementById('mainContent').classList.remove('d-none');
 
     // Fetch trust score + badges
-    try {
-      const tsRes = await fetch(`/api/student-safety/trust-score/${encodeURIComponent(userId)}`);
-      const tsData = await tsRes.json();
+    if (userId) {
+      try {
+        const tsRes = await fetch(`/api/student-safety/trust-score/${encodeURIComponent(userId)}`);
+        const tsData = await tsRes.json();
 
-      if (tsData.success) {
-        const score = tsData.trustScore || 0;
-        document.getElementById('trustScoreCircle').textContent = score;
-        document.getElementById('trustProgressBar').style.width = score + '%';
-        document.getElementById('trustProgressBar').setAttribute('aria-valuenow', score);
-        document.getElementById('trustScoreLabel').textContent = score >= 75 ? 'Trusted Reporter 🏆' : score >= 50 ? 'Active Contributor' : score >= 25 ? 'Growing Reporter' : 'New Reporter';
+        if (tsData.success) {
+          const score = tsData.trustScore || 0;
+          document.getElementById('trustScoreCircle').textContent = score;
+          document.getElementById('trustProgressBar').style.width = score + '%';
+          document.getElementById('trustProgressBar').setAttribute('aria-valuenow', score);
+          document.getElementById('trustScoreLabel').textContent = score >= 75 ? 'Trusted Reporter 🏆' : score >= 50 ? 'Active Contributor' : score >= 25 ? 'Growing Reporter' : 'New Reporter';
 
-        const badgesGrid = document.getElementById('badgesGrid');
-        const noBadges = document.getElementById('noBadges');
+          const badgesGrid = document.getElementById('badgesGrid');
+          const noBadges = document.getElementById('noBadges');
 
-        if (tsData.badges && tsData.badges.length > 0) {
-          tsData.badges.forEach(badge => {
-            const b = document.createElement('div');
-            b.className = 'badge-card d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2';
-            b.title = badge.desc;
-            b.innerHTML = `<span class="fs-5">${badge.icon}</span><span class="small fw-bold text-dark">${badge.label}</span>`;
-            badgesGrid.appendChild(b);
-          });
-        } else {
-          noBadges.classList.remove('d-none');
+          if (tsData.badges && tsData.badges.length > 0) {
+            badgesGrid.innerHTML = '';
+            tsData.badges.forEach(badge => {
+              const b = document.createElement('div');
+              b.className = 'badge-card d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2';
+              b.title = badge.desc;
+              b.innerHTML = `<span class="fs-5">${badge.icon}</span><span class="small fw-bold text-dark">${badge.label}</span>`;
+              badgesGrid.appendChild(b);
+            });
+            noBadges.classList.add('d-none');
+          } else {
+            noBadges.classList.remove('d-none');
+          }
         }
+      } catch (e) {
+        console.error('Trust score error:', e);
       }
-    } catch (e) {
-      console.error('Trust score error:', e);
     }
 
     // Fetch leaderboard
@@ -251,21 +275,32 @@
     }
 
     // Fetch user cases from server API
-    const userEmail = localStorage.getItem('studentEmail') || localStorage.getItem('userEmail') || '';
     let myCases = [];
     try {
       const casesRes = await fetch('/api/student-safety/cases');
       const casesData = await casesRes.json();
-      myCases = (casesData.cases || []).filter(c => c.userId === userId || (userEmail && c.reporterEmail === userEmail));
+      const allCases = casesData.cases || [];
 
-      // Also try Firestore for real-time data
+      myCases = allCases.filter(c => {
+        const matchesUid = userId && c.userId === userId;
+        const matchesEmail = userEmail && c.reporterEmail && c.reporterEmail.toLowerCase() === userEmail.toLowerCase();
+        const matchesStoredCase = submittedCaseIds.includes(c.caseId);
+        return matchesUid || matchesEmail || matchesStoredCase;
+      });
+
+      // Also sync from Firestore if available
       if (db) {
         try {
           const snap = await getDocs(collection(db, "studentSafetyCases"));
           const fsCases = [];
           snap.forEach(doc => {
             const d = doc.data();
-            if (d.userId === userId || (userEmail && d.reporterEmail === userEmail)) fsCases.push({ docId: doc.id, ...d });
+            const matchesUid = userId && d.userId === userId;
+            const matchesEmail = userEmail && d.reporterEmail && d.reporterEmail.toLowerCase() === userEmail.toLowerCase();
+            const matchesStoredCase = submittedCaseIds.includes(d.caseId);
+            if (matchesUid || matchesEmail || matchesStoredCase) {
+              fsCases.push({ docId: doc.id, ...d });
+            }
           });
           if (fsCases.length > 0) {
             const map = new Map();
@@ -286,7 +321,6 @@
     const pending = myCases.filter(c => c.status === 'Pending Review' || c.status === 'Needs Evidence').length;
     const verified = myCases.filter(c => c.status === 'Verified').length;
     const resolved = myCases.filter(c => c.status === 'Resolved').length;
-    const supportsReceived = myCases.reduce((sum, c) => sum + (c.supportCount || 0), 0);
 
     document.getElementById('statTotal').textContent = total;
     document.getElementById('statPending').textContent = pending;
@@ -295,37 +329,24 @@
 
     const listEl = document.getElementById('myReportsList');
     const emptyEl = document.getElementById('emptyReports');
+    listEl.innerHTML = '';
 
     if (myCases.length === 0) {
       emptyEl.classList.remove('d-none');
       return;
     }
 
+    emptyEl.classList.add('d-none');
+
     myCases.forEach(c => {
       const stageIdx = getTimelineStageIndex(c.status);
-      const stagesHtml = timelineStages.map((stage, i) => {
-        const done = i <= stageIdx;
-        const active = i === stageIdx;
-        return `
-          <div class="d-flex flex-column align-items-center text-center" style="flex: 1; min-width: 60px;">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold small mb-1
-              ${done ? 'bg-success text-white' : 'bg-light text-muted border'}
-              ${active && c.status !== 'Rejected' && c.status !== 'Resolved' ? 'pulse-badge' : ''}"
-              style="width:32px;height:32px;font-size:12px;">
-              ${done ? '✓' : (i + 1)}
-            </div>
-            <div class="small lh-sm ${done ? 'fw-semibold text-dark' : 'text-muted'}" style="font-size:10px;">${stage.label}</div>
-          </div>
-        `;
-      }).join('<div class="d-flex align-items-center" style="flex:0.5; height:32px;"><div style="height:2px;width:100%;background:${stageIdx > 0 ? \'#16a34a\' : \'#e2e8f0\'};" class="flex-grow-1"></div></div>');
-
       const card = document.createElement('div');
       card.className = 'card border-0 shadow-sm rounded-4 p-4';
       card.innerHTML = `
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
           <div>
             <span class="badge bg-light text-dark border small me-2">🛡️ ${c.platform || 'Other'}</span>
-            <span class="badge ${statusBadge(c.status)} px-3 py-1 rounded-pill small">${c.status}</span>
+            <span class="badge px-3 py-1 rounded-pill small fw-bold" style="${statusBadgeStyle(c.status)}">${c.status === 'Pending Review' ? '🟡 Pending Review' : c.status}</span>
           </div>
           <span class="text-muted small font-monospace">${c.caseId}</span>
         </div>
@@ -367,6 +388,18 @@
       `;
       listEl.appendChild(card);
     });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUserReports();
+
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          loadUserReports(user);
+        }
+      });
+    }
   });
 </script>
 

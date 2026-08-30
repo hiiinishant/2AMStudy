@@ -131,8 +131,8 @@
             <h4 class="fw-bold text-success mb-1">Report Submitted Successfully</h4>
             <p class="mb-2 text-dark small">Our moderation team will review your report within 24–48 hours.</p>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-              <span class="badge bg-success bg-opacity-20 text-success fw-bold px-3 py-2 rounded-pill fs-6">
-                Status: Pending Review
+              <span class="badge px-3 py-2 rounded-pill fw-bold shadow-sm" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px;">
+                🟡 Status: Pending Review
               </span>
               <span id="case-id-display"></span>
             </div>
@@ -1102,14 +1102,32 @@
           }
         }
 
-        // 4. Success Display
+        // 4. Store Case ID in localStorage for instant tracking in My Reports
+        try {
+          let myCases = JSON.parse(localStorage.getItem('mySubmittedCases') || '[]');
+          if (result.caseId && !myCases.includes(result.caseId)) {
+            myCases.unshift(result.caseId);
+            localStorage.setItem('mySubmittedCases', JSON.stringify(myCases));
+          }
+          if (reporterEmail) {
+            localStorage.setItem('studentEmail', reporterEmail);
+          }
+          if (userId) {
+            localStorage.setItem('user_id', userId);
+          }
+          localStorage.setItem('isLoggedIn', 'true');
+        } catch (storageErr) {
+          console.warn("Storage sync notice:", storageErr);
+        }
+
+        // 5. Success Display
         form.reset();
         form.classList.remove('was-validated');
         attachedFiles = [];
         renderFilePreviews();
 
         successAlert.classList.remove('d-none');
-        caseIdDisplay.innerHTML = `<strong>Case ID:</strong> <span class="badge bg-secondary font-monospace">${result.caseId}</span>`;
+        caseIdDisplay.innerHTML = `<strong>Case ID:</strong> <span class="badge bg-dark font-monospace px-2 py-1">${result.caseId}</span>`;
 
         window.scrollTo({ top: successAlert.offsetTop - 100, behavior: 'smooth' });
 
