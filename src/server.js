@@ -1895,72 +1895,91 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
         targetUrl: `/student-safety/cases/${caseId}`
       });
 
-      // 2. Notify all supporters — In-app notification + Email
-      const approveSupport = studentSafetySupports.filter(s => s.caseId === caseId);
-      approveSupport.forEach(supporter => {
-        // Skip if supporter is the reporter themselves
-        if (supporter.userId === targetCase.userId) return;
+      // 2. Notify ALL registered Firebase users who haven't opted out
+      //    Check each user's safetyAlerts preference in Firestore; skip if false
+      (async () => {
+        try {
+          let allUserEmails = [];
 
-        // In-app notification
-        studentSafetyNotifications.unshift({
-          notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
-          userId: supporter.userId,
-          caseId,
-          title: '✅ Case You Supported is Now Verified!',
-          type: 'success',
-          message: `Great news! A case you supported (${caseId}) about a fake ${targetCase.platform || 'social media'} account (@${targetCase.fakeUsername || 'unknown'}) has been officially verified by our moderation team. Visit the case page to help spread awareness!`,
-          isRead: false,
-          read: false,
-          createdAt: new Date().toISOString()
-        });
+          // Fetch all users from Firestore 'users' collection
+          if (firestoreDb) {
+            const usersSnap = await firestoreDb.collection('users').get();
+            usersSnap.forEach(userDoc => {
+              const userData = userDoc.data();
+              // Skip if user opted out of safety alerts
+              if (userData.safetyAlerts === false) return;
+              // Skip if no email
+              if (!userData.email) return;
+              // Skip the reporter themselves (they get a separate targeted notification)
+              if (userData.email === targetCase.reporterEmail) return;
+              allUserEmails.push(userData.email);
+            });
+          }
 
-        // Email notification to supporter
-        if (supporter.userEmail) {
-          sendSafetyEmail(
-            supporter.userEmail,
-            `✅ Case You Supported is Verified — Help Spread the Word! | 2AM Study`,
-            `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:0;">
+          // Fallback: also include supporters who supported this case (in case not in Firestore)
+          const approveSupport = studentSafetySupports.filter(s => s.caseId === caseId);
+          approveSupport.forEach(supporter => {
+            if (supporter.userId === targetCase.userId) return;
+            if (supporter.userEmail && !allUserEmails.includes(supporter.userEmail)) {
+              allUserEmails.push(supporter.userEmail);
+            }
+            // In-app notification for supporters
+            studentSafetyNotifications.unshift({
+              notificationId: 'NOTIF-' + uuidv4().substring(0, 8).toUpperCase(),
+              userId: supporter.userId,
+              caseId,
+              title: '✅ Case You Supported is Now Verified!',
+              type: 'success',
+              message: `Great news! A case you supported (${caseId}) about a fake ${targetCase.platform || 'social media'} account (@${targetCase.fakeUsername || 'unknown'}) has been officially verified. Help take it down!`,
+              isRead: false,
+              read: false,
+              createdAt: new Date().toISOString()
+            });
+          });
+
+          // Build email HTML once
+          const verifiedEmailHtml = `<div style="font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:0;">
               <!-- Header -->
               <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:28px 32px;border-radius:12px 12px 0 0;">
-                <div style="color:#bbf7d0;font-size:13px;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">🛡️ STUDENT IDENTITY SHIELD — CASE UPDATE</div>
-                <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;">✅ Case Verified — Action Needed!</h1>
-                <div style="color:#86efac;font-size:13px;margin-top:6px;">A case you supported has been officially verified</div>
+                <div style="color:#bbf7d0;font-size:13px;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">🛡️ 2AM STUDY — STUDENT IDENTITY SHIELD</div>
+                <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;">⚠️ Verified Fake Profile Alert</h1>
+                <div style="color:#86efac;font-size:13px;margin-top:6px;">Our team has confirmed a fake student profile on ${targetCase.platform || 'social media'}</div>
               </div>
 
               <!-- Body -->
               <div style="background:#ffffff;padding:28px 32px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
                 <p style="color:#334155;font-size:15px;line-height:1.7;margin-top:0;">Hi there 👋</p>
-                <p style="color:#334155;font-size:15px;line-height:1.7;">A fake profile report you supported on <strong>2AM Study Student Safety</strong> has just been <strong style="color:#16a34a;">officially verified</strong> by our moderation team!</p>
+                <p style="color:#334155;font-size:15px;line-height:1.7;">Our moderation team has just <strong style="color:#16a34a;">verified a fake student profile</strong> on <strong>${targetCase.platform || 'social media'}</strong>. This profile is impersonating a student and could be harming someone in your community.</p>
 
-                <!-- Case Summary Card -->
+                <!-- Case Card -->
                 <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin:20px 0;">
                   <table style="width:100%;border-collapse:collapse;">
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;width:40%;">Case ID</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${caseId}</td></tr>
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;">${targetCase.platform || 'Social Media'}</td></tr>
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Account</td><td style="padding:8px 0;color:#dc2626;font-size:13px;font-weight:700;">@${targetCase.fakeUsername || 'unknown'}</td></tr>
-                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile Link</td><td style="padding:8px 0;"><a href="${targetCase.fakeProfileUrl}" target="_blank" style="color:#dc2626;word-break:break-all;font-weight:700;font-size:13px;">${targetCase.fakeProfileUrl}</a></td></tr>
-                    <tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:8px 0;"><span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">✅ Verified</span></td></tr>
+                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile</td><td style="padding:8px 0;"><a href="${targetCase.fakeProfileUrl}" target="_blank" style="color:#dc2626;word-break:break-all;font-weight:700;font-size:13px;">${targetCase.fakeProfileUrl}</a></td></tr>
+                    <tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:8px 0;"><span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">✅ Verified by Admin</span></td></tr>
                   </table>
                 </div>
 
-                <!-- How to Help Section -->
+                <!-- Action Steps -->
                 <div style="background:#fffbeb;border:1px solid #fef08a;border-radius:12px;padding:20px;margin:20px 0;">
-                  <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:12px;">🚀 Quick Action — Take Down the Fake Profile</div>
+                  <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:12px;">🚀 Help Take It Down — 3 Quick Steps</div>
                   <ul style="margin:0;padding-left:20px;color:#78350f;font-size:13px;line-height:2;">
-                    <li><strong>Step 1:</strong> Click the red button below to open the fake profile directly on <strong>${targetCase.platform || 'the platform'}</strong> and report it.</li>
-                    <li><strong>Step 2:</strong> Click <strong>View Case on 2AM Study</strong> to see verified evidence and boost its community support count.</li>
-                    <li><strong>Step 3:</strong> Share the case link with friends to help take down the impersonator quickly.</li>
+                    <li><strong>Step 1:</strong> Click the red button below to open the fake profile on <strong>${targetCase.platform || 'the platform'}</strong> and report it directly.</li>
+                    <li><strong>Step 2:</strong> View the verified case on 2AM Study and click <strong>Support This Case</strong>.</li>
+                    <li><strong>Step 3:</strong> Share the case link with classmates who might know the victim.</li>
                   </ul>
                 </div>
 
-                <p style="color:#64748b;font-size:13px;line-height:1.6;">Every report submitted on ${targetCase.platform || 'the social platform'} brings the victim one step closer to getting the fake account deleted. Thank you for protecting fellow students! 🛡️</p>
+                <p style="color:#64748b;font-size:13px;line-height:1.6;">Every report you submit brings this fake account one step closer to being taken down. Thank you for protecting fellow students! 🛡️</p>
               </div>
 
               <!-- CTA Buttons -->
               <div style="background:#f8fafc;padding:24px 20px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
                 <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">
                   <a href="${targetCase.fakeProfileUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;padding:14px 24px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;">
-                    🚨 Open & Report on ${targetCase.platform || 'Platform'} →
+                    🚨 Open &amp; Report on ${targetCase.platform || 'Platform'} →
                   </a>
                   <a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;padding:14px 24px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;">
                     🔍 View Case on 2AM Study
@@ -1973,13 +1992,29 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
 
               <!-- Footer -->
               <div style="background:#1e293b;padding:16px 32px;border-radius:0 0 12px 12px;text-align:center;">
-                <p style="color:#64748b;font-size:12px;margin:0;">2AM Study · Student Identity Shield · Community Notifications<br>You received this because you supported this case. <a href="https://2amstudy.online/settings" style="color:#475569;">Manage notification preferences</a></p>
+                <p style="color:#64748b;font-size:12px;margin:0;">2AM Study · Student Identity Shield · Community Alert<br>You received this as a 2AM Study community member. <a href="https://2amstudy.online/settings" style="color:#475569;">Turn off these alerts</a></p>
               </div>
-            </div>`
-          );
+            </div>`;
+
+          // Send to all collected emails (stagger to avoid rate limits)
+          console.log(`[Safety Alert] Broadcasting verified case ${caseId} to ${allUserEmails.length} users`);
+          allUserEmails.forEach((email, idx) => {
+            setTimeout(() => {
+              sendSafetyEmail(
+                email,
+                `🛡️ Verified Fake Profile Alert — Help Us Take It Down | 2AM Study`,
+                verifiedEmailHtml
+              );
+            }, idx * 200); // 200ms stagger between emails
+          });
+
+        } catch (broadcastErr) {
+          console.error('[Safety Broadcast Error]:', broadcastErr.message);
         }
-      });
-      saveNotifications();
+        saveNotifications();
+      })();
+
+
 
     } else if (emailTemplates[action]) {
       sendSafetyEmail(targetCase.reporterEmail || null, emailTemplates[action].subject, emailTemplates[action].body);

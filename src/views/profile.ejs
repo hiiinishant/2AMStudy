@@ -95,6 +95,29 @@
         </div>
       </div>
 
+      <!-- Fake Profile Alert Email Preference -->
+      <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5 mt-4">
+        <h3 class="h5 fw-bold text-dark mb-1">🛡️ Fake Profile Alert Emails</h3>
+        <p class="text-muted small mb-4">When admin verifies a fake student profile report, you'll get an alert email with a direct link to report the impersonator on Instagram/Facebook.</p>
+
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;">
+          <div>
+            <div class="fw-bold text-dark mb-1">📧 Receive Community Safety Alerts</div>
+            <div class="text-muted small" id="safetyAlertStatusText">Turn off if you don't want alert emails for verified fake profile reports.</div>
+          </div>
+          <div class="form-check form-switch fs-4 mb-0">
+            <input class="form-check-input" type="checkbox" role="switch" id="profileSafetyAlertsToggle" checked>
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex align-items-center gap-3">
+          <button id="saveSafetyPrefBtn" class="btn btn-dark rounded-pill px-4 py-2 fw-bold">
+            Save Preference
+          </button>
+          <span id="saveSafetyPrefStatus" class="text-muted small"></span>
+        </div>
+      </div>
+
       <!-- My Orders Section -->
       <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5 mt-4">
         <h3 class="h5 fw-bold text-dark mb-4">🧾 My Orders</h3>
@@ -114,7 +137,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -150,6 +173,12 @@
         const data = snap.data();
         if (data.college) document.getElementById('profileCollege').textContent = data.college;
         if (data.trustScore !== undefined) document.getElementById('profileTrustScore').textContent = `${data.trustScore} / 100`;
+        // Load safety alert preference (default ON)
+        const safetyOn = data.safetyAlerts !== false;
+        document.getElementById('profileSafetyAlertsToggle').checked = safetyOn;
+        document.getElementById('safetyAlertStatusText').textContent = safetyOn
+          ? '✅ You will receive fake profile alert emails.'
+          : '🔕 Alert emails are turned off. Toggle to re-enable.';
       }
     } catch (e) {
       console.warn("Profile fetch error:", e);
@@ -157,6 +186,33 @@
 
     // Load My Orders from localStorage
     loadOrders();
+
+    // Save safety alert preference
+    document.getElementById('saveSafetyPrefBtn').addEventListener('click', async () => {
+      const enabled = document.getElementById('profileSafetyAlertsToggle').checked;
+      const statusEl = document.getElementById('saveSafetyPrefStatus');
+      const btn = document.getElementById('saveSafetyPrefBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          safetyAlerts: enabled,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        document.getElementById('safetyAlertStatusText').textContent = enabled
+          ? '✅ You will receive fake profile alert emails.'
+          : '🔕 Alert emails are turned off. Toggle to re-enable.';
+        statusEl.textContent = 'Saved!';
+        statusEl.style.color = '#16a34a';
+      } catch(err) {
+        statusEl.textContent = 'Save failed. Try again.';
+        statusEl.style.color = '#dc2626';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Save Preference';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+      }
+    });
   });
 
   // Sign Out
