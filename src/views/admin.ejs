@@ -1422,8 +1422,8 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: pass })
           });
-          const data = await res.json();
-          if (data.success) {
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success) {
             const urlParams = new URLSearchParams(window.location.search);
             const redirectParam = urlParams.get('redirect');
             if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -1432,13 +1432,13 @@
               window.location.reload();
             }
           } else {
-            errAlert.textContent = data.error || 'Incorrect passcode. Please try again.';
+            errAlert.textContent = data.error || data.message || 'Incorrect passcode. Please try again.';
             errAlert.classList.remove('d-none');
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard';
           }
         } catch(err) {
-          errAlert.textContent = 'Server connection error.';
+          errAlert.textContent = err.message || 'Server connection error. Please try again.';
           errAlert.classList.remove('d-none');
           btn.disabled = false;
           btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard';

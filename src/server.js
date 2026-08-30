@@ -185,6 +185,7 @@ const uploadEvidence = multer({
 }).array('evidence', 5);
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Enable CORS for cross-origin requests (strict validation + Hiii Nishant integration + localhost for dev)
 const ALLOWED_ORIGINS = [
@@ -3123,9 +3124,6 @@ function checkMasterPassword(pass) {
 
 // Simple IP-based Rate Limiter for Admin Login Protection
 const adminLoginAttempts = new Map();
-function getClientIp(req) {
-  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
-}
 
 function checkAdminRateLimit(ip) {
   const now = Date.now();
@@ -3141,8 +3139,8 @@ function recordAdminLoginFailure(ip) {
   const now = Date.now();
   const record = adminLoginAttempts.get(ip) || { count: 0, lockedUntil: null };
   record.count += 1;
-  if (record.count >= 2) {
-    record.lockedUntil = now + (15 * 60 * 1000); // Lockout for 15 minutes after 2 failed attempts
+  if (record.count >= 6) {
+    record.lockedUntil = now + (60 * 1000); // 1 minute cooldown after 6 failed attempts
     record.count = 0;
   }
   adminLoginAttempts.set(ip, record);
@@ -3249,7 +3247,10 @@ app.post('/api/admin/login', (req, res) => {
     req.session.isStoreAdmin = true;
     req.session.liveAdminAuthed = true;
     req.session.adminLoggedInAt = new Date().toISOString();
-    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    return req.session.save((saveErr) => {
+      if (saveErr) console.warn('[Session Save Warning]:', saveErr.message);
+      return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    });
   }
 
   recordAdminLoginFailure(clientIp);
@@ -3275,7 +3276,10 @@ app.post('/api/store/admin/login', (req, res) => {
     req.session.isStoreAdmin = true;
     req.session.liveAdminAuthed = true;
     req.session.adminLoggedInAt = new Date().toISOString();
-    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    return req.session.save((saveErr) => {
+      if (saveErr) console.warn('[Session Save Warning]:', saveErr.message);
+      return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    });
   }
 
   recordAdminLoginFailure(clientIp);
