@@ -772,32 +772,72 @@
                   <tr>
                     <th>Case ID</th>
                     <th>Reported Target</th>
-                    <th>College</th>
+                    <th>Reason / Details</th>
+                    <th>Evidence</th>
                     <th>Status</th>
                     <th class="text-end">Moderate</th>
                   </tr>
                 </thead>
                 <tbody>
                   <% safetyCases.forEach(function(c) { %>
-                  <tr>
-                    <td class="fw-bold text-white">#<%= c.caseId %></td>
-                    <td>
-                      <div class="fw-bold text-white"><%= c.platform %>: <%= c.fakeProfileUsername || c.targetName || 'Profile' %></div>
-                      <a href="<%= c.fakeProfileUrl %>" target="_blank" class="text-primary text-decoration-none small" style="font-size: 11px;">View Link</a>
+                  <tr id="safety-row-<%= c.caseId %>">
+                    <td class="fw-bold text-white font-monospace">
+                      #<%= c.caseId %>
                     </td>
-                    <td class="text-white-50 small"><%= c.college || '—' %></td>
+                    <td>
+                      <div class="fw-bold text-white"><%= c.platform %>: @<%= c.fakeUsername || c.fakeProfileUsername || c.targetName || 'Profile' %></div>
+                      <a href="<%= c.fakeProfileUrl %>" target="_blank" class="text-danger text-decoration-none small" style="font-size: 11px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Open Fake Profile
+                      </a>
+                      <% if (c.realProfileUrl) { %>
+                        <br>
+                        <a href="<%= c.realProfileUrl %>" target="_blank" class="text-success text-decoration-none small" style="font-size: 11px;">
+                          <i class="fa-solid fa-check me-1"></i>Real Profile
+                        </a>
+                      <% } %>
+                    </td>
+                    <td>
+                      <span class="badge bg-light bg-opacity-10 text-white rounded-pill px-2" style="font-size: 10px;"><%= c.reason || 'Impersonation' %></span>
+                      <% if (c.college) { %><div class="text-white-50 small mt-1" style="font-size: 11px;"><i class="fa-solid fa-school me-1"></i><%= c.college %></div><% } %>
+                      <% if (c.description) { %><div class="text-white-50 small text-truncate mt-1" style="max-width: 200px; font-size: 11px;"><%= c.description %></div><% } %>
+                    </td>
+                    <td>
+                      <% if (Array.isArray(c.evidence) && c.evidence.length > 0) { %>
+                        <div class="d-flex gap-1 flex-wrap">
+                          <% c.evidence.forEach(function(ev, idx) { %>
+                            <% const evUrl = typeof ev === 'object' ? ev.url : ev; %>
+                            <a href="<%= evUrl %>" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2 text-white" style="font-size: 10px;">
+                              📎 #<%= idx + 1 %>
+                            </a>
+                          <% }); %>
+                        </div>
+                      <% } else { %>
+                        <span class="text-muted small">None</span>
+                      <% } %>
+                    </td>
                     <td>
                       <% if (c.status === 'Verified') { %>
-                        <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-0" style="font-size: 10px;">Verified</span>
-                      <% } else if (c.status === 'Pending') { %>
-                        <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2 py-0" style="font-size: 10px;">Pending</span>
+                        <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-1" style="font-size: 11px;">✅ Verified</span>
+                      <% } else if (c.status === 'Resolved') { %>
+                        <span class="badge bg-primary bg-opacity-25 text-info rounded-pill px-2 py-1" style="font-size: 11px;">🎉 Resolved</span>
+                      <% } else if (c.status === 'Rejected') { %>
+                        <span class="badge bg-danger bg-opacity-25 text-danger rounded-pill px-2 py-1" style="font-size: 11px;">❌ Rejected</span>
                       <% } else { %>
-                        <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill px-2 py-0" style="font-size: 10px;"><%= c.status %></span>
+                        <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2 py-1" style="font-size: 11px;">🟡 Pending Review</span>
                       <% } %>
                     </td>
                     <td class="text-end">
-                      <button class="btn btn-sm btn-outline-success rounded-pill py-0 px-2" onclick="moderateCase('<%= c.caseId %>', 'approve')" style="font-size: 11px;">Verify</button>
-                      <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="moderateCase('<%= c.caseId %>', 'reject')" style="font-size: 11px;">Reject</button>
+                      <div class="d-flex gap-1 justify-content-end flex-wrap">
+                        <% if (c.status !== 'Verified') { %>
+                          <button class="btn btn-sm btn-outline-success rounded-pill py-0 px-2 fw-semibold" onclick="moderateCase('<%= c.caseId %>', 'approve')" style="font-size: 11px;">Verify</button>
+                        <% } %>
+                        <% if (c.status === 'Verified') { %>
+                          <button class="btn btn-sm btn-outline-info rounded-pill py-0 px-2 fw-semibold" onclick="moderateCase('<%= c.caseId %>', 'resolve')" style="font-size: 11px;">Resolve</button>
+                        <% } %>
+                        <% if (c.status !== 'Rejected') { %>
+                          <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2 fw-semibold" onclick="moderateCase('<%= c.caseId %>', 'reject')" style="font-size: 11px;">Reject</button>
+                        <% } %>
+                      </div>
                     </td>
                   </tr>
                   <% }); %>
@@ -2015,6 +2055,37 @@
         }
       } catch(err) {
         showToast('Error deleting card.', true);
+      }
+    }
+
+    // Student Safety Moderation Actions
+    async function moderateCase(caseId, action) {
+      const actionLabels = {
+        approve: 'verify and approve',
+        reject: 'reject',
+        resolve: 'mark as resolved'
+      };
+      const label = actionLabels[action] || action;
+      if (!confirm(`Are you sure you want to ${label} case #${caseId}?`)) return;
+
+      try {
+        const res = await fetch('/api/student-safety/admin/moderate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caseId, action, moderatorName: 'Master Admin' })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          showToast(`Case #${caseId} ${action === 'approve' ? 'verified' : action} successfully!`);
+          setTimeout(() => {
+            window.location.hash = 'safety';
+            window.location.reload();
+          }, 800);
+        } else {
+          showToast(data.message || data.error || 'Failed to moderate case.', true);
+        }
+      } catch(err) {
+        showToast('Error connecting to server.', true);
       }
     }
   </script>
