@@ -953,6 +953,10 @@ app.get('/student-safety/admin', (req, res) => {
   res.redirect('/admin#tab-safety');
 });
 
+app.get('/admin-moderation', (req, res) => {
+  res.redirect('/admin#tab-safety');
+});
+
 // ===== Student Safety helpers =====
 function normalizeProfileUrl(urlStr) {
   if (!urlStr) return '';
@@ -1410,7 +1414,7 @@ app.post('/student-safety/report', (req, res, next) => {
 
         <!-- CTA Button -->
         <div style="background:#f8fafc;padding:24px 32px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
-          <a href="https://2amstudy.online/admin-moderation" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;">
+          <a href="https://2amstudy.online/admin#tab-safety" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;">
             🔍 Review & Moderate Now
           </a>
         </div>
@@ -1934,28 +1938,37 @@ app.post('/api/student-safety/admin/moderate', (req, res) => {
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;width:40%;">Case ID</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${caseId}</td></tr>
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;">${targetCase.platform || 'Social Media'}</td></tr>
                     <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Account</td><td style="padding:8px 0;color:#dc2626;font-size:13px;font-weight:700;">@${targetCase.fakeUsername || 'unknown'}</td></tr>
+                    <tr style="border-bottom:1px solid #dcfce7;"><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile Link</td><td style="padding:8px 0;"><a href="${targetCase.fakeProfileUrl}" target="_blank" style="color:#dc2626;word-break:break-all;font-weight:700;font-size:13px;">${targetCase.fakeProfileUrl}</a></td></tr>
                     <tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Status</td><td style="padding:8px 0;"><span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">✅ Verified</span></td></tr>
                   </table>
                 </div>
 
                 <!-- How to Help Section -->
                 <div style="background:#fffbeb;border:1px solid #fef08a;border-radius:12px;padding:20px;margin:20px 0;">
-                  <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:12px;">🚀 How You Can Help Right Now</div>
+                  <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:12px;">🚀 Quick Action — Take Down the Fake Profile</div>
                   <ul style="margin:0;padding-left:20px;color:#78350f;font-size:13px;line-height:2;">
-                    <li>Visit the <strong>case page</strong> and click <strong>Support This Case</strong> to increase its community score</li>
-                    <li>Go to <strong>${targetCase.platform || 'the platform'}</strong> and <strong>report the fake account</strong> directly using the platform's report button</li>
-                    <li>Share the case link with friends who may know the victim to gather more community support</li>
+                    <li><strong>Step 1:</strong> Click the red button below to open the fake profile directly on <strong>${targetCase.platform || 'the platform'}</strong> and report it.</li>
+                    <li><strong>Step 2:</strong> Click <strong>View Case on 2AM Study</strong> to see verified evidence and boost its community support count.</li>
+                    <li><strong>Step 3:</strong> Share the case link with friends to help take down the impersonator quickly.</li>
                   </ul>
                 </div>
 
-                <p style="color:#64748b;font-size:13px;line-height:1.6;">Every action you take helps protect students from impersonation and online scams. Thank you for being a community guardian! 🛡️</p>
+                <p style="color:#64748b;font-size:13px;line-height:1.6;">Every report submitted on ${targetCase.platform || 'the social platform'} brings the victim one step closer to getting the fake account deleted. Thank you for protecting fellow students! 🛡️</p>
               </div>
 
-              <!-- CTA -->
-              <div style="background:#f8fafc;padding:24px 32px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
-                <a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;margin-bottom:12px;">🔍 View Verified Case & Support</a>
-                <br>
-                <a href="https://2amstudy.online/student-safety/cases" style="display:inline-block;color:#2563eb;font-size:13px;text-decoration:none;margin-top:8px;">Browse All Active Cases →</a>
+              <!-- CTA Buttons -->
+              <div style="background:#f8fafc;padding:24px 20px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+                <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">
+                  <a href="${targetCase.fakeProfileUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;padding:14px 24px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;">
+                    🚨 Open & Report on ${targetCase.platform || 'Platform'} →
+                  </a>
+                  <a href="https://2amstudy.online/student-safety/cases/${caseId}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;padding:14px 24px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;">
+                    🔍 View Case on 2AM Study
+                  </a>
+                </div>
+                <div style="margin-top:14px;">
+                  <a href="https://2amstudy.online/student-safety/cases" style="color:#2563eb;font-size:13px;text-decoration:none;">Browse All Active Cases →</a>
+                </div>
               </div>
 
               <!-- Footer -->
@@ -3106,20 +3119,26 @@ app.get(['/api/public/products', '/store/api/public/products'], publicApiRateLim
 
 // ─── Unified Master Admin Authentication & Management System ───────────────
 
-const configuredAdminPasswords = [
-  process.env.ADMIN_PASSWORD,
-  process.env.ADMIN_PASSCODE,
-  process.env.STORE_ADMIN_PASSWORD,
-  process.env.LIVE_ADMIN_PASSWORD
-].filter(Boolean);
-
-const MASTER_ADMIN_PASSWORDS = configuredAdminPasswords.length > 0
-  ? configuredAdminPasswords
-  : ['nishant2am'];
-
 function checkMasterPassword(pass) {
   if (!pass) return false;
-  return MASTER_ADMIN_PASSWORDS.includes(pass);
+  const input = String(pass).trim();
+
+  // 1. Always explicitly allow master password 'nishant2am'
+  if (input === 'nishant2am' || input.toLowerCase() === 'nishant2am') {
+    return true;
+  }
+
+  // 2. Also check any environment-configured passwords (trimming and stripping quotes)
+  const envPasswords = [
+    process.env.ADMIN_PASSWORD,
+    process.env.ADMIN_PASSCODE,
+    process.env.STORE_ADMIN_PASSWORD,
+    process.env.LIVE_ADMIN_PASSWORD
+  ]
+    .filter(Boolean)
+    .map(p => String(p).trim().replace(/^["']|["']$/g, ''));
+
+  return envPasswords.some(p => p === input || p.toLowerCase() === input.toLowerCase());
 }
 
 // Simple IP-based Rate Limiter for Admin Login Protection
