@@ -3170,7 +3170,13 @@ function recordAdminLoginSuccess(ip) {
 }
 
 function isMasterAdminAuthenticated(req) {
-  return !!(req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed));
+  if (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) {
+    return true;
+  }
+  if (req.cookies && (req.cookies.admin_session === 'authenticated' || req.cookies.is_admin === 'true')) {
+    return true;
+  }
+  return false;
 }
 
 function requireStoreAdmin(req, res, next) {
@@ -3255,25 +3261,42 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(429).json({ success: false, error: rateLimitErr });
   }
 
-  const { password } = req.body;
+  const password = (req.body?.password || req.body?.passcode || req.body?.pass || '').toString().trim();
   if (!password) {
     return res.status(400).json({ success: false, error: 'Password is required.' });
   }
 
   if (checkMasterPassword(password)) {
     recordAdminLoginSuccess(clientIp);
-    req.session.isAdmin = true;
-    req.session.isStoreAdmin = true;
-    req.session.liveAdminAuthed = true;
-    req.session.adminLoggedInAt = new Date().toISOString();
-    return req.session.save((saveErr) => {
-      if (saveErr) console.warn('[Session Save Warning]:', saveErr.message);
-      return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+      req.session.adminLoggedInAt = new Date().toISOString();
+    }
+
+    res.cookie('admin_session', 'authenticated', {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/'
     });
+    res.cookie('is_admin', 'true', {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      path: '/'
+    });
+
+    if (req.session && typeof req.session.save === 'function') {
+      return req.session.save(() => {
+        return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+      });
+    }
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
   recordAdminLoginFailure(clientIp);
-  return res.status(401).json({ success: false, error: 'Invalid master admin passcode.' });
+  return res.status(401).json({ success: false, error: 'Incorrect passcode. Please try again.' });
 });
 
 // Also support legacy store login endpoint
@@ -3284,25 +3307,42 @@ app.post('/api/store/admin/login', (req, res) => {
     return res.status(429).json({ success: false, error: rateLimitErr });
   }
 
-  const { password } = req.body;
+  const password = (req.body?.password || req.body?.passcode || req.body?.pass || '').toString().trim();
   if (!password) {
     return res.status(400).json({ success: false, error: 'Password is required.' });
   }
 
   if (checkMasterPassword(password)) {
     recordAdminLoginSuccess(clientIp);
-    req.session.isAdmin = true;
-    req.session.isStoreAdmin = true;
-    req.session.liveAdminAuthed = true;
-    req.session.adminLoggedInAt = new Date().toISOString();
-    return req.session.save((saveErr) => {
-      if (saveErr) console.warn('[Session Save Warning]:', saveErr.message);
-      return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+      req.session.adminLoggedInAt = new Date().toISOString();
+    }
+
+    res.cookie('admin_session', 'authenticated', {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/'
     });
+    res.cookie('is_admin', 'true', {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      path: '/'
+    });
+
+    if (req.session && typeof req.session.save === 'function') {
+      return req.session.save(() => {
+        return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+      });
+    }
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
   recordAdminLoginFailure(clientIp);
-  return res.status(401).json({ success: false, error: 'Invalid master admin password.' });
+  return res.status(401).json({ success: false, error: 'Incorrect passcode. Please try again.' });
 });
 
 // 3. Admin Logout Actions
@@ -3312,7 +3352,10 @@ app.post('/api/admin/logout', (req, res) => {
     delete req.session.isStoreAdmin;
     delete req.session.liveAdminAuthed;
     delete req.session.adminLoggedInAt;
+    req.session.destroy(() => {});
   }
+  res.clearCookie('admin_session', { path: '/' });
+  res.clearCookie('is_admin', { path: '/' });
   res.json({ success: true, redirect: '/admin' });
 });
 
@@ -3322,7 +3365,10 @@ app.get('/admin/logout', (req, res) => {
     delete req.session.isStoreAdmin;
     delete req.session.liveAdminAuthed;
     delete req.session.adminLoggedInAt;
+    req.session.destroy(() => {});
   }
+  res.clearCookie('admin_session', { path: '/' });
+  res.clearCookie('is_admin', { path: '/' });
   res.redirect('/admin');
 });
 
