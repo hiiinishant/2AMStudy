@@ -2,10 +2,10 @@
   "name": "2amstudy",
   "version": "1.0.0",
   "description": "Node.js + Nodemailer backend for the NGO website",
-  "main": "src/server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
   },
   "dependencies": {
     "compression": "^1.8.1",

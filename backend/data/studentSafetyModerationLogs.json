@@ -1,5 +1,17 @@
 [
   {
+    "logId": "LOG-90384A5D",
+    "caseId": "CASE-0F7373FC",
+    "moderatorName": "Master Admin",
+    "action": "resolve",
+    "previousStatus": "Verified",
+    "newStatus": "Resolved",
+    "reason": "resolve action executed",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "createdAt": "2026-08-30T19:36:49.684Z"
+  },
+  {
     "logId": "LOG-9F027AD3",
     "caseId": "CASE-0F7373FC",
     "moderatorUid": "MASTER-ADMIN",

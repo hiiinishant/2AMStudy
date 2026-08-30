@@ -46,17 +46,5 @@
     "thumbnail": "https://img.youtube.com/vi/94hXyaOHxwU/hqdefault.jpg",
     "isFeatured": false,
     "createdAt": "2026-08-27T08:57:51.031Z"
-  },
-  {
-    "id": "cl-003",
-    "title": "Study Break & College Hangout Memories",
-    "category": "Study Break",
-    "description": "Recharging between heavy lecture schedules with friends on campus lawns.",
-    "youtubeUrl": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
-    "youtubeVideoId": "jfKfPfyJRdk",
-    "thumbnail": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=340&q=80",
-    "duration": "12 Min",
-    "isFeatured": false,
-    "createdAt": "2026-08-26T15:00:00.000Z"
   }
 ]
