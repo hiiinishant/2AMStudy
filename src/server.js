@@ -2183,6 +2183,35 @@ app.get('/api/student-safety/moderation-logs', (req, res) => {
   res.json({ success: true, logs: studentSafetyModerationLogs });
 });
 
+// Secure Authenticated Endpoint: My Reports (Cross-device, UID-first)
+app.get('/api/student-safety/my-reports', verifyFirebaseToken, (req, res) => {
+  const authUid = req.firebaseUid;
+  const authEmail = (req.firebaseEmail || '').toLowerCase().trim();
+
+  if (!authUid && !authEmail) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required. Please log in to view your reports.'
+    });
+  }
+
+  // Filter cases belonging strictly to the authenticated Firebase user
+  const userCases = studentSafetyCases
+    .filter(c => {
+      const uidMatch = c.userId && authUid && c.userId === authUid;
+      const emailMatch = authEmail && c.reporterEmail && c.reporterEmail.toLowerCase().trim() === authEmail;
+      return uidMatch || emailMatch;
+    })
+    .map(c => sanitizeCaseForOwner(c))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  res.json({
+    success: true,
+    count: userCases.length,
+    cases: userCases
+  });
+});
+
 // Admin: ALL cases (every status) — used by admin dashboard
 app.get('/api/student-safety/cases', (req, res) => {
   const cases = studentSafetyCases

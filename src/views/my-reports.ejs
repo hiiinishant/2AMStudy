@@ -17,7 +17,15 @@
     <div class="p-5 bg-white rounded-4 shadow-sm mx-auto" style="max-width: 480px;">
       <div class="fs-1 mb-3">🔒</div>
       <h3 class="fw-bold text-dark">Login Required</h3>
-      <p class="text-muted small">Please register or login to view your reports and track case progress.</p>
+      <p class="text-muted small mb-4">Please log in to your account to view your reports, track status updates, and view your trust score across all your devices.</p>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="/login?redirect=/student-safety/my-reports" class="btn btn-primary rounded-pill px-4 fw-bold">
+          🔑 Sign In to View Reports
+        </a>
+        <a href="/signup?redirect=/student-safety/my-reports" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+          Create Account
+        </a>
+      </div>
     </div>
   </div>
 
@@ -153,10 +161,6 @@
     );
   };
 
-  const getUserId = () => {
-    return (auth && auth.currentUser && auth.currentUser.uid) || localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null;
-  };
-
   const statusBadgeStyle = (status) => {
     const map = {
       'Pending Review': 'background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;',
@@ -187,17 +191,11 @@
   const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now';
 
   async function loadUserReports(user = null) {
-    const userId = (user && user.uid) || getUserId();
-    const userEmail = (user && user.email) || localStorage.getItem('studentEmail') || localStorage.getItem('userEmail') || '';
+    const currentUser = user || (auth && auth.currentUser) || null;
+    const userId = currentUser ? currentUser.uid : (localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || null);
+    const userEmail = (currentUser && currentUser.email) || localStorage.getItem('studentEmail') || localStorage.getItem('userEmail') || '';
     
-    let submittedCaseIds = [];
-    try {
-      submittedCaseIds = JSON.parse(localStorage.getItem('mySubmittedCases') || '[]');
-    } catch (e) {
-      submittedCaseIds = [];
-    }
-
-    if (!userId && !userEmail && submittedCaseIds.length === 0 && !checkUserLoggedIn()) {
+    if (!currentUser && !checkUserLoggedIn()) {
       document.getElementById('loginRequired').classList.remove('d-none');
       document.getElementById('mainContent').classList.add('d-none');
       return;
@@ -206,7 +204,7 @@
     document.getElementById('loginRequired').classList.add('d-none');
     document.getElementById('mainContent').classList.remove('d-none');
 
-    // Fetch trust score + badges
+    // ── 1. Fetch Trust Score & Badges ──
     if (userId) {
       try {
         const tsRes = await fetch(`/api/student-safety/trust-score/${encodeURIComponent(userId)}`);
@@ -241,7 +239,7 @@
       }
     }
 
-    // Fetch leaderboard
+    // ── 2. Fetch Leaderboard ──
     try {
       const lbRes = await fetch('/api/student-safety/leaderboard');
       const lbData = await lbRes.json();
@@ -274,31 +272,47 @@
       document.getElementById('leaderboardList').innerHTML = '<p class="text-muted small text-center">Could not load leaderboard.</p>';
     }
 
-    // Fetch user cases from server API
+    // ── 3. Fetch User Cases from Authenticated Server API (Cross-device, UID-first) ──
     let myCases = [];
     try {
-      const casesRes = await fetch('/api/student-safety/cases');
-      const casesData = await casesRes.json();
-      const allCases = casesData.cases || [];
+      const reqHeaders = {};
+      if (currentUser) {
+        try {
+          const idToken = await currentUser.getIdToken();
+          if (idToken) reqHeaders['Authorization'] = `Bearer ${idToken}`;
+        } catch (tokErr) {
+          console.warn("Token acquisition notice:", tokErr.message);
+        }
+      }
+      if (userId) reqHeaders['x-user-id'] = userId;
+      if (userEmail) reqHeaders['x-user-email'] = userEmail;
 
-      myCases = allCases.filter(c => {
-        const matchesUid = userId && c.userId === userId;
-        const matchesEmail = userEmail && c.reporterEmail && c.reporterEmail.toLowerCase() === userEmail.toLowerCase();
-        const matchesStoredCase = submittedCaseIds.includes(c.caseId);
-        return matchesUid || matchesEmail || matchesStoredCase;
+      const casesRes = await fetch('/api/student-safety/my-reports', {
+        headers: reqHeaders
       });
 
-      // Also sync from Firestore if available
-      if (db) {
+      if (casesRes.ok) {
+        const casesData = await casesRes.json();
+        myCases = casesData.cases || [];
+      } else {
+        // Fallback to legacy endpoint if not yet verified
+        const fallbackRes = await fetch('/api/student-safety/cases');
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          myCases = (fallbackData.cases || []).filter(c => c.userId === userId || (userEmail && c.reporterEmail === userEmail));
+        }
+      }
+
+      // Also sync real-time from Firestore if available
+      if (db && userId) {
         try {
           const snap = await getDocs(collection(db, "studentSafetyCases"));
           const fsCases = [];
           snap.forEach(doc => {
             const d = doc.data();
-            const matchesUid = userId && d.userId === userId;
+            const matchesUid = d.userId === userId;
             const matchesEmail = userEmail && d.reporterEmail && d.reporterEmail.toLowerCase() === userEmail.toLowerCase();
-            const matchesStoredCase = submittedCaseIds.includes(d.caseId);
-            if (matchesUid || matchesEmail || matchesStoredCase) {
+            if (matchesUid || matchesEmail) {
               fsCases.push({ docId: doc.id, ...d });
             }
           });
