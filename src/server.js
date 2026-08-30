@@ -1106,15 +1106,20 @@ async function sendSafetyEmail(to, subject, html) {
   }
 }
 
-// Cloudinary / Local Disk Evidence Upload Helper
+// Cloudinary / Local Disk / Base64 DataURI Evidence Upload Helper (Resilient Multi-tier Fallback)
 async function uploadToCloudinary(fileBuffer, mimetype, filename) {
+  if (!fileBuffer || fileBuffer.length === 0) return null;
+
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   const isPdf = (mimetype && mimetype.includes('pdf')) || filename?.toLowerCase().endsWith('.pdf');
   const ext = isPdf ? 'pdf' : (path.extname(filename || '').replace('.', '') || 'png');
   const safeBaseName = `case_${Date.now()}_${uuidv4().substring(0, 8)}.${ext}`;
+  const effectiveMime = mimetype || (isPdf ? 'application/pdf' : 'image/png');
+  const dataUri = `data:${effectiveMime};base64,${fileBuffer.toString('base64')}`;
 
+  // ── Tier 1: Cloudinary Upload (if credentials configured) ──
   if (cloudName && apiKey && apiSecret) {
     try {
       const publicId = `student-safety/case_${Date.now()}_${uuidv4().substring(0, 6)}`;
@@ -1122,12 +1127,10 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
       const signatureStr = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
       const signature = crypto.createHash('sha1').update(signatureStr).digest('hex');
 
-      const dataUri = `data:${mimetype};base64,${fileBuffer.toString('base64')}`;
-
       const formData = new URLSearchParams();
       formData.append('file', dataUri);
       formData.append('api_key', apiKey);
-      formData.append('timestamp', timestamp);
+      formData.append('timestamp', timestamp.toString());
       formData.append('public_id', publicId);
       formData.append('signature', signature);
 
@@ -1136,21 +1139,23 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
         body: formData
       });
 
-      const data = await fetchRes.json();
-      if (data.secure_url) {
-        return {
-          url: data.secure_url,
-          publicId: data.public_id || publicId,
-          type: isPdf ? 'pdf' : 'image',
-          uploadedAt: new Date().toISOString()
-        };
+      if (fetchRes.ok) {
+        const data = await fetchRes.json();
+        if (data.secure_url) {
+          return {
+            url: data.secure_url,
+            publicId: data.public_id || publicId,
+            type: isPdf ? 'pdf' : 'image',
+            uploadedAt: new Date().toISOString()
+          };
+        }
       }
     } catch (err) {
-      console.warn("[Cloudinary] Upload failed, falling back to local storage:", err.message || err);
+      console.warn("[Cloudinary] Upload failed, trying local disk fallback:", err.message || err);
     }
   }
 
-  // Local Disk Storage Fallback (Always resilient and guaranteed)
+  // ── Tier 2: Local Disk Storage ──
   try {
     const uploadDir = path.join(__dirname, 'public', 'assets', 'uploads', 'safety');
     if (!fs.existsSync(uploadDir)) {
@@ -1166,9 +1171,17 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
       uploadedAt: new Date().toISOString()
     };
   } catch (fsErr) {
-    console.error("[Local Evidence Upload] Error saving file:", fsErr);
-    throw new Error('Could not save evidence file. Please try again.');
+    console.warn("[Local Evidence Upload] Local write failed (e.g. read-only serverless host), using Data URI fallback:", fsErr.message);
   }
+
+  // ── Tier 3: Zero-Failure In-Memory Data URI Fallback ──
+  // Ensures student reports NEVER fail even on serverless read-only platforms
+  return {
+    url: dataUri,
+    publicId: `inline_${safeBaseName}`,
+    type: isPdf ? 'pdf' : 'image',
+    uploadedAt: new Date().toISOString()
+  };
 }
 
 app.post('/student-safety/report', (req, res, next) => {
@@ -1263,16 +1276,17 @@ app.post('/student-safety/report', (req, res, next) => {
       });
     }
 
-    let structuredEvidence;
-    try {
-      structuredEvidence = await Promise.all(
-        req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
-      );
-    } catch (uploadErr) {
-      return res.status(502).json({
-        success: false,
-        message: uploadErr.message || 'Evidence upload failed. Please try again.'
-      });
+    let structuredEvidence = [];
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      try {
+        const uploaded = await Promise.all(
+          req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
+        );
+        structuredEvidence = uploaded.filter(Boolean);
+      } catch (uploadErr) {
+        console.warn("[Evidence Upload Notice]:", uploadErr.message);
+        structuredEvidence = [];
+      }
     }
 
     const generatedCaseId = 'CASE-' + uuidv4().substring(0, 8).toUpperCase();
