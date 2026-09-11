@@ -2429,9 +2429,9 @@
     featureCards.forEach(card => card.addEventListener('click', recordActivity));
 
     document.addEventListener('click', async event => {
-      const link = event.target.closest('a[href]');
+      const link = event.target.closest('a[href], a[data-nohref]');
       if (!link) return;
-      const href = link.getAttribute('href');
+      const href = link.getAttribute('href') || link.getAttribute('data-nohref');
       if (link.dataset.loginProtected && !isLoggedIn()) {
         event.preventDefault();
         await showWindow({
@@ -2728,6 +2728,90 @@
     
     // Periodically sync cart state
     setInterval(updateFloatingCart, 10000); 
+  </script>
+
+  <!-- Suppress Native Browser Bottom-Left Link URL Preview on Hover -->
+  <style>
+    a[data-nohref] {
+      cursor: pointer !important;
+    }
+  </style>
+  <script>
+    (function () {
+      // Hide bottom-left URL preview by safely swapping href to data-nohref on hover
+      document.addEventListener('mouseover', function (e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
+          a.setAttribute('data-nohref', href);
+          a.removeAttribute('href');
+          if (!a.hasAttribute('tabindex')) {
+            a.setAttribute('tabindex', '0');
+          }
+        }
+      }, true);
+
+      // Handle normal clicks
+      document.addEventListener('click', function (e) {
+        const a = e.target.closest('a[data-nohref]');
+        if (!a || e.defaultPrevented) return;
+        const url = a.getAttribute('data-nohref');
+        if (!url) return;
+
+        const target = a.getAttribute('target');
+        if (e.ctrlKey || e.metaKey || target === '_blank') {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+          window.location.href = url;
+        }
+      }, true);
+
+      // Handle middle clicks
+      document.addEventListener('auxclick', function (e) {
+        if (e.button === 1) {
+          const a = e.target.closest('a[data-nohref]');
+          if (a) {
+            const url = a.getAttribute('data-nohref');
+            if (url) {
+              e.preventDefault();
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }
+          }
+        }
+      }, true);
+
+      // Temporarily restore href on right-click context menu so "Open in new tab" / "Copy link" works
+      document.addEventListener('contextmenu', function (e) {
+        const a = e.target.closest('a[data-nohref]');
+        if (a) {
+          a.setAttribute('href', a.getAttribute('data-nohref'));
+          setTimeout(() => {
+            if (a.hasAttribute('data-nohref')) {
+              a.removeAttribute('href');
+            }
+          }, 800);
+        }
+      }, true);
+
+      // Keyboard navigation (Enter key)
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          const a = e.target.closest('a[data-nohref]');
+          if (a && !e.defaultPrevented) {
+            const url = a.getAttribute('data-nohref');
+            if (url) {
+              const target = a.getAttribute('target');
+              if (e.ctrlKey || e.metaKey || target === '_blank') {
+                window.open(url, '_blank', 'noopener,noreferrer');
+              } else {
+                window.location.href = url;
+              }
+            }
+          }
+        }
+      }, true);
+    })();
   </script>
 </body>
 
