@@ -553,7 +553,7 @@
           </div>
         </div>
 
-        <!-- RIGHT: Today's Progress + Stats -->
+        <!-- RIGHT: Today's Progress + Session History -->
         <div class="col-lg-5 d-flex flex-column gap-4">
 
           <!-- Today's Progress -->
@@ -596,54 +596,7 @@
             </div>
           </div>
 
-          <!-- Stat Cards (2×2 grid) -->
-          <div class="row g-3">
-            <div class="col-6">
-              <div class="stat-card study-card">
-                <div class="stat-icon-wrap" style="background:rgba(79,70,229,0.1);">
-                  <i class="fa-solid fa-book-open" style="color:#4f46e5;"></i>
-                </div>
-                <div class="stat-val" id="statStudyHours" style="color:#4f46e5;">0h 00m</div>
-                <div class="stat-label">Study Time</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="stat-card break-card">
-                <div class="stat-icon-wrap" style="background:rgba(245,158,11,0.1);">
-                  <i class="fa-solid fa-mug-hot" style="color:#f59e0b;"></i>
-                </div>
-                <div class="stat-val" id="statBreakHours" style="color:#f59e0b;">0h 00m</div>
-                <div class="stat-label">Break Time</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="stat-card session-card">
-                <div class="stat-icon-wrap" style="background:rgba(16,185,129,0.1);">
-                  <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
-                </div>
-                <div class="stat-val" id="statSessions" style="color:#10b981;">0</div>
-                <div class="stat-label">Sessions Done</div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="stat-card ratio-card">
-                <div class="stat-icon-wrap" style="background:rgba(239,68,68,0.1);">
-                  <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
-                </div>
-                <div class="stat-val" id="statFocusRatio" style="color:#ef4444;">—</div>
-                <div class="stat-label">Focus Ratio</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ── BOTTOM ROW: Session Log + Settings ── -->
-      <div class="row g-4">
-
-        <!-- Session Log -->
-        <div class="col-lg-7">
+          <!-- Session History -->
           <div class="log-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <div class="d-flex align-items-center gap-2">
@@ -658,60 +611,14 @@
                 <i class="fa-solid fa-trash-can me-1"></i>Clear All
               </button>
             </div>
-            <div class="session-log-box" id="sessionLog">
+            <div class="session-log-box" id="sessionLog" style="max-height: 250px;">
               <div class="text-center py-4">
                 <div style="font-size:2rem;margin-bottom:8px;">⏳</div>
                 <p class="text-muted mb-0" style="font-size:0.83rem;">No sessions yet — start the timer to begin!</p>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Settings -->
-        <div class="col-lg-5">
-          <div class="settings-card">
-            <div class="d-flex align-items-center gap-2 mb-4">
-              <div class="rounded-circle d-flex align-items-center justify-content-center"
-                   style="width:32px;height:32px;background:#f1f5f9;">
-                <i class="fa-solid fa-sliders" style="color:#475569;font-size:0.8rem;"></i>
-              </div>
-              <h6 class="fw-bold mb-0" style="color:#0f172a;">Custom Settings</h6>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-6">
-                <label>📚 Study (min)</label>
-                <div class="input-icon-wrap mt-1">
-                  <input type="number" id="studyInput" class="form-control" min="1" max="120" value="25" oninput="applyCustomDuration()">
-                </div>
-              </div>
-              <div class="col-6">
-                <label>☕ Break (min)</label>
-                <div class="input-icon-wrap mt-1">
-                  <input type="number" id="breakInput" class="form-control" min="1" max="60" value="5" oninput="applyCustomDuration()">
-                </div>
-              </div>
-              <div class="col-12">
-                <label>🎯 Daily Study Goal (hours)</label>
-                <div class="input-icon-wrap mt-1">
-                  <input type="number" id="goalInput" class="form-control" min="1" max="16" value="4" oninput="saveGoal()">
-                </div>
-              </div>
-              <div class="col-12">
-                <button class="btn w-100 fw-semibold rounded-3" onclick="resetAllStats()"
-                        style="background:#fff5f5;color:#ef4444;border:1.5px solid #fecaca;font-size:0.88rem;padding:10px;">
-                  <i class="fa-solid fa-arrow-rotate-left me-1"></i>Reset All Statistics
-                </button>
-              </div>
-            </div>
-
-            <div class="mt-3 pt-3 border-top" style="border-color:#f1f5f9 !important;">
-              <p class="mb-0 text-muted" style="font-size:0.75rem;line-height:1.5;">
-                <i class="fa-solid fa-info-circle me-1"></i>
-                Stats are saved locally in your browser and reset daily. The Focus Ratio is study time ÷ total time.
-              </p>
-            </div>
-          </div>
         </div>
 
       </div>
