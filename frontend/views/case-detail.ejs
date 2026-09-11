@@ -199,7 +199,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCvJRS3UusvUrVCd2JSicBGL-uRD82GpNM",
@@ -250,7 +250,8 @@
     if (isCaseSupported(caseId)) {
       supportBtns.forEach(b => {
         if (b) {
-          b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+          b.classList.remove('btn-danger');
+          b.classList.add('btn-success');
           b.innerText = '👍 Supported';
           b.disabled = true;
         }
@@ -261,7 +262,8 @@
       if (btn) {
         btn.addEventListener('click', async () => {
           if (isCaseSupported(caseId)) {
-            btn.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-success');
             btn.innerText = '👍 Supported';
             btn.disabled = true;
             return;
@@ -298,7 +300,12 @@
                 document.getElementById('detailSupportCount').innerText = data.supportCount;
               }
               supportBtns.forEach(b => {
-                if (b) { b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold'; b.innerText = '👍 Supported'; b.disabled = true; }
+                if (b) {
+                  b.classList.remove('btn-danger');
+                  b.classList.add('btn-success');
+                  b.innerText = '👍 Supported';
+                  b.disabled = true;
+                }
               });
               return;
             }
@@ -314,7 +321,8 @@
             document.getElementById('detailSupportCount').innerText = data.supportCount;
             supportBtns.forEach(b => {
               if (b) {
-                b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+                b.classList.remove('btn-danger');
+                b.classList.add('btn-success');
                 b.innerText = '👍 Supported';
                 b.disabled = true;
               }

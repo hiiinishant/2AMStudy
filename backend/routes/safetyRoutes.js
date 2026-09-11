@@ -60,6 +60,7 @@ function sanitizeCaseForPublic(caseObj) {
     supportCount: count,
     createdAt: caseObj.createdAt,
     updatedAt: caseObj.updatedAt,
+    verifiedAt: caseObj.verifiedAt || null,
     moderatorNote: caseObj.moderatorNote || '',
     rejectionReason: caseObj.rejectionReason || ''
   };
@@ -151,7 +152,12 @@ async function dispatchSmartNotification({ userId, userEmail, caseId, title, mes
   if (!userId && !userEmail) return null;
 
   const notifLogs = safetyStore.getNotificationLogs();
-  const existingLog = notifLogs.find(l => (l.userId === userId || l.userEmail === userEmail) && l.caseId === caseId && l.status !== 'failed');
+  const existingLog = notifLogs.find(l => {
+    if (l.caseId !== caseId || l.status === 'failed') return false;
+    const uidMatch = userId && l.userId && l.userId === userId;
+    const emailMatch = userEmail && l.userEmail && l.userEmail === userEmail;
+    return uidMatch || emailMatch;
+  });
   if (existingLog) {
     return existingLog;
   }
@@ -340,6 +346,7 @@ router.post('/student-safety/report', (req, res, next) => {
     const userRecentReports = studentSafetyCases.filter(c => {
       if (c.userId !== finalUserId && (!reporterEmail || c.reporterEmail !== reporterEmail)) return false;
       const createdTime = new Date(c.createdAt).getTime();
+      if (isNaN(createdTime)) return false; // skip malformed entries
       return (now - createdTime) < oneDayMs;
     });
 
@@ -663,7 +670,13 @@ router.get('/api/student-safety/my-reports', verifyFirebaseToken, (req, res) => 
 });
 
 router.get('/api/student-safety/cases', (req, res) => {
-  res.json({ success: true, cases: safetyStore.getCases() });
+  // Only master admin gets raw data; all other callers get sanitized owner-view
+  if (isMasterAdminAuthenticated(req)) {
+    return res.json({ success: true, cases: safetyStore.getCases() });
+  }
+  // Non-admin: return sanitized cases (hides reporterEmail on anonymous reports)
+  const sanitized = safetyStore.getCases().map(c => sanitizeCaseForOwner(c));
+  res.json({ success: true, cases: sanitized });
 });
 
 router.get('/api/student-safety/public-cases', (req, res) => {
@@ -692,6 +705,82 @@ router.get('/api/student-safety/public-cases', (req, res) => {
   }
 
   res.json({ success: true, cases: publicCases, total: publicCases.length });
+});
+
+// Trust Score for a specific user
+router.get('/api/student-safety/trust-score/:userId', (req, res) => {
+  const { userId } = req.params;
+  if (!userId) return res.status(400).json({ success: false, message: 'userId is required.' });
+
+  const allCases = safetyStore.getCases();
+  const allSupports = safetyStore.getSupports();
+
+  const userCases = allCases.filter(c => c.userId === userId || c.reporterEmail === userId);
+  const verifiedReports = userCases.filter(c => c.status === 'Verified' || c.status === 'Resolved').length;
+  const pendingReports = userCases.filter(c => c.status === 'Pending Review').length;
+  const rejectedReports = userCases.filter(c => c.status === 'Rejected').length;
+  const supportsGiven = allSupports.filter(s => s.userId === userId).length;
+
+  // Trust score formula: verified*15 + pending*2 + supportsGiven*3 - rejected*5, capped at 100
+  let trustScore = Math.min(100, Math.max(0, (verifiedReports * 15) + (pendingReports * 2) + (supportsGiven * 3) - (rejectedReports * 5)));
+  if (userCases.length === 0 && supportsGiven === 0) trustScore = 0;
+
+  const badgeDefinitions = [
+    { key: 'student_protector', label: 'Student Protector', icon: '🛡️', desc: 'Submitted at least one report', earned: userCases.length >= 1 },
+    { key: 'verified_reporter', label: 'Verified Reporter', icon: '✅', desc: 'Had a report verified by admins', earned: verifiedReports >= 1 },
+    { key: 'community_guardian', label: 'Community Guardian', icon: '🏅', desc: 'Supported 3+ verified cases', earned: supportsGiven >= 3 },
+    { key: 'trusted_reporter', label: 'Trusted Reporter', icon: '🏆', desc: 'Achieved trust score of 75+', earned: trustScore >= 75 },
+    { key: 'multi_reporter', label: 'Multi Reporter', icon: '📋', desc: 'Submitted 3+ reports', earned: userCases.length >= 3 }
+  ];
+
+  const badges = badgeDefinitions.filter(b => b.earned).map(({ key, label, icon, desc }) => ({ key, label, icon, desc }));
+
+  res.json({
+    success: true,
+    userId,
+    trustScore,
+    badges,
+    stats: { totalReports: userCases.length, verifiedReports, pendingReports, rejectedReports, supportsGiven }
+  });
+});
+
+// Leaderboard — top contributors by trust score
+router.get('/api/student-safety/leaderboard', (req, res) => {
+  const allCases = safetyStore.getCases();
+  const allSupports = safetyStore.getSupports();
+
+  // Aggregate per userId
+  const userMap = {};
+
+  allCases.forEach(c => {
+    const uid = c.userId || c.reporterEmail;
+    if (!uid) return;
+    if (!userMap[uid]) userMap[uid] = { userId: uid, totalReports: 0, verifiedReports: 0, rejectedReports: 0, supportsGiven: 0 };
+    userMap[uid].totalReports++;
+    if (c.status === 'Verified' || c.status === 'Resolved') userMap[uid].verifiedReports++;
+    if (c.status === 'Rejected') userMap[uid].rejectedReports++;
+  });
+
+  allSupports.forEach(s => {
+    const uid = s.userId;
+    if (!uid) return;
+    if (!userMap[uid]) userMap[uid] = { userId: uid, totalReports: 0, verifiedReports: 0, rejectedReports: 0, supportsGiven: 0 };
+    userMap[uid].supportsGiven++;
+  });
+
+  const leaderboard = Object.values(userMap)
+    .map(u => {
+      const score = Math.min(100, Math.max(0, (u.verifiedReports * 15) + (u.supportsGiven * 3) - (u.rejectedReports * 5)));
+      // Anonymize: show only first 3 chars + *** of userId
+      const uid = String(u.userId);
+      const displayId = uid.length > 6 ? uid.substring(0, 3) + '***' + uid.slice(-3) : uid.substring(0, 3) + '***';
+      return { userId: u.userId, displayId, verifiedReports: u.verifiedReports, supportsGiven: u.supportsGiven, score };
+    })
+    .filter(u => u.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  res.json({ success: true, leaderboard });
 });
 
 // View active cases & detail

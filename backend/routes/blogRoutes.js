@@ -3,9 +3,19 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const blogStore = require('../models/blogStore');
-const { requireStoreAdmin } = require('../middleware/adminAuth');
+const { requireStoreAdmin, isMasterAdminAuthenticated } = require('../middleware/adminAuth');
 const { uploadProductImage } = require('../middleware/upload');
 const { uploadToCloudinary } = require('../config/cloudinary');
+
+let saveViewsTimeout = null;
+function debouncedSaveBlogs() {
+  if (!saveViewsTimeout) {
+    saveViewsTimeout = setTimeout(() => {
+      saveViewsTimeout = null;
+      blogStore.savePersistedBlogs();
+    }, 5000);
+  }
+}
 
 // ─── Blog Admin & Public APIs ──────────────────────────────────────────────────
 
@@ -84,6 +94,7 @@ router.post('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
     category: category || 'Study Tips',
     author: author || '2 AM Study',
     date: new Date().toISOString().split('T')[0],
+    createdAt: new Date().toISOString(),
     readTime: readTime || '5 min read',
     image: finalImage,
     coverImage: finalImage,
@@ -119,6 +130,9 @@ router.put('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
   let postSlug = existing.slug;
   if (slug && slug !== existing.slug) {
     postSlug = String(slug).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (BLOG_POSTS.some(b => b.id !== existing.id && b.slug === postSlug)) {
+      postSlug = `${postSlug}-${Date.now().toString().slice(-4)}`;
+    }
   }
 
   const finalImage = coverImage !== undefined ? coverImage : (image !== undefined ? image : existing.image);
@@ -173,7 +187,8 @@ router.get('/api/public/blogs', (req, res) => {
 });
 
 router.get('/api/public/blogs/:slug', (req, res) => {
-  const post = blogStore.getBlogs().find(b => b.slug === req.params.slug && b.status === 'published');
+  const param = (req.params.slug || '').toLowerCase().trim();
+  const post = blogStore.getBlogs().find(b => (b.slug === param || b.id === param) && b.status === 'published');
   if (!post) return res.status(404).json({ success: false, error: 'Blog post not found' });
   res.json({ success: true, post });
 });
@@ -190,13 +205,40 @@ router.get('/blog', (req, res) => {
 
 router.get('/blog/:slug', (req, res) => {
   const BLOG_POSTS = blogStore.getBlogs();
-  const slug = req.params.slug.toLowerCase().trim();
+  const slug = (req.params.slug || '').toLowerCase().trim();
 
-  // 1. Check dynamic blog posts first
+  // Guard against direct template names
+  if (!slug || slug === 'index' || slug === 'post') {
+    return res.redirect('/blog');
+  }
+
+  // 1. Fallback to existing dedicated static EJS views if file exists
+  const staticFilePath = path.join(__dirname, '..', '..', 'frontend', 'views', 'blog', `${slug}.ejs`);
+  const hasStaticFile = fs.existsSync(staticFilePath);
   const dynamicPost = BLOG_POSTS.find(b => b.slug === slug);
-  if (dynamicPost) {
-    if (dynamicPost.status === 'published' || req.session?.isStoreAdmin) {
+
+  if (hasStaticFile) {
+    if (dynamicPost) {
       dynamicPost.views = (dynamicPost.views || 0) + 1;
+      debouncedSaveBlogs();
+    }
+    const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return res.render(`blog/${slug}`, {
+      pageTitle: dynamicPost ? `${dynamicPost.title} | 2AM Study Blog` : `${formattedTitle} | 2AM Study Blog`,
+      metaDescription: dynamicPost ? (dynamicPost.excerpt || `Read ${formattedTitle} on 2AM Study Blog.`) : `Read ${formattedTitle} - Expert study tips, focus routines, and academic productivity guide on 2AM Study.`,
+      ogTitle: dynamicPost ? `${dynamicPost.title} | 2AM Study Blog` : `${formattedTitle} | 2AM Study Blog`,
+      ogDescription: dynamicPost ? (dynamicPost.excerpt || `Read ${formattedTitle} on 2AM Study Blog.`) : `Read ${formattedTitle} on 2AM Study Blog.`,
+      ogImage: dynamicPost ? (dynamicPost.coverImage || dynamicPost.image) : 'https://2amstudy.com/assets/images/smart_study_banner.png',
+      post: dynamicPost
+    });
+  }
+
+  // 2. Check dynamic blog posts
+  if (dynamicPost) {
+    if (dynamicPost.status === 'published' || isMasterAdminAuthenticated(req)) {
+      dynamicPost.views = (dynamicPost.views || 0) + 1;
+      debouncedSaveBlogs();
+
       const blogCover = dynamicPost.coverImage
         ? (dynamicPost.coverImage.startsWith('http') ? dynamicPost.coverImage : `https://2amstudy.com${dynamicPost.coverImage}`)
         : 'https://2amstudy.com/assets/images/smart_study_banner.png';
@@ -219,7 +261,7 @@ router.get('/blog/:slug', (req, res) => {
             "url": "https://2amstudy.com/assets/images/logo.jpg"
           }
         },
-        "datePublished": dynamicPost.createdAt || new Date().toISOString()
+        "datePublished": dynamicPost.createdAt || (dynamicPost.date ? new Date(dynamicPost.date).toISOString() : new Date().toISOString())
       };
 
       return res.render('blog/post', {
@@ -232,18 +274,6 @@ router.get('/blog/:slug', (req, res) => {
         post: dynamicPost
       });
     }
-  }
-
-  // 2. Fallback to existing static EJS views if file exists
-  const staticFilePath = path.join(__dirname, '..', '..', 'frontend', 'views', 'blog', `${slug}.ejs`);
-  if (fs.existsSync(staticFilePath)) {
-    const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    return res.render(`blog/${slug}`, {
-      pageTitle: `${formattedTitle} | 2AM Study Blog`,
-      metaDescription: `Read ${formattedTitle} - Expert study tips, focus routines, and academic productivity guide on 2AM Study.`,
-      ogTitle: `${formattedTitle} | 2AM Study Blog`,
-      ogDescription: `Read ${formattedTitle} on 2AM Study Blog.`
-    });
   }
 
   return res.status(404).redirect('/blog');

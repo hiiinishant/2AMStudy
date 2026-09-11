@@ -325,7 +325,7 @@
 
     <div class="blog-meta">
       <div class="blog-author-badge">
-        <div class="blog-author-avatar"><%= (post.author || 'N')[0].toUpperCase() %></div>
+        <div class="blog-author-avatar"><%= ((post.author && post.author.trim()) || 'N')[0].toUpperCase() %></div>
         <span><%= post.author || 'Nishant Kumar' %></span>
       </div>
       <span>•</span>
@@ -362,7 +362,7 @@
     <a href="https://twitter.com/intent/tweet?text=<%= encodeURIComponent(post.title + ' https://2amstudy.com/blog/' + post.slug) %>" target="_blank" class="share-btn" style="background:#000; color:#fff;">
       <i class="fa-brands fa-x-twitter"></i> Post
     </a>
-    <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!');" class="share-btn" style="background:#f1f5f9; color:#334155; border: 1px solid #cbd5e1; cursor:pointer;">
+    <button onclick="if(navigator.clipboard){navigator.clipboard.writeText(window.location.href).then(()=>{alert('Link copied to clipboard!');}).catch(()=>{prompt('Copy link:',window.location.href);});}else{prompt('Copy link:',window.location.href);}" class="share-btn" style="background:#f1f5f9; color:#334155; border: 1px solid #cbd5e1; cursor:pointer;">
       <i class="fa-regular fa-copy"></i> Copy Link
     </button>
   </div>

@@ -1010,7 +1010,7 @@
         const formData = new FormData(form);
 
         // Append files from attachedFiles array
-        formData.delete('evidenceInput');
+        // Remove any browser-appended file field before adding our managed list
         formData.delete('evidence');
         attachedFiles.forEach(file => {
           formData.append('evidence', file, file.name);
