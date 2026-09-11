@@ -116,6 +116,22 @@
       color: #fff;
       box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
     }
+    .preset-pill-break {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .preset-pill-break:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #15803d;
+    }
+    .preset-pill-break.active-preset {
+      background: #10b981 !important;
+      border-color: #10b981 !important;
+      color: #fff !important;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28) !important;
+    }
 
     /* ── Timer Centerpiece ── */
     .pomo-ring {
@@ -405,10 +421,12 @@
                 <span class="text-muted" style="font-size:0.75rem;"><i class="fa-regular fa-clock me-1"></i>One-click interval switch</span>
               </div>
               <div class="d-flex flex-wrap gap-2" id="presetContainer">
-                <span class="preset-pill" id="preset-15" onclick="applyPreset(15, 3, this)">⚡ 15m Sprint</span>
                 <span class="preset-pill active-preset" id="preset-25" onclick="applyPreset(25, 5, this)">🎯 25m Classic</span>
                 <span class="preset-pill" id="preset-45" onclick="applyPreset(45, 10, this)">🧠 45m Deep Work</span>
                 <span class="preset-pill" id="preset-60" onclick="applyPreset(60, 15, this)">🔥 60m Marathon</span>
+                <span class="preset-pill" id="preset-15" onclick="applyPreset(15, 3, this)">⚡ 15m Sprint</span>
+                <span class="preset-pill preset-pill-break" id="preset-break-5" onclick="applyBreakPreset(5, this)">☕ 5m Break</span>
+                <span class="preset-pill preset-pill-break" id="preset-break-15" onclick="applyBreakPreset(15, this)">🌴 15m Break</span>
               </div>
             </div>
 
@@ -734,25 +752,77 @@
         document.getElementById('btnModeShortBreak')?.classList.toggle('active-shortBreak', m === 'shortBreak');
         document.getElementById('btnModeLongBreak')?.classList.toggle('active-longBreak', m === 'longBreak');
 
+        syncPresetPill();
         updateDisplay();
         hideBanner();
       };
 
-      // ── Preset Applier ──
+      function syncPresetPill() {
+        document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active-preset'));
+        if (mode === 'study') {
+          const sMin = Math.round(studySec / 60);
+          const activeEl = document.getElementById('preset-' + sMin) || document.getElementById('preset-25');
+          activeEl?.classList.add('active-preset');
+        } else if (mode === 'shortBreak') {
+          const bMin = Math.round(shortBreakSec / 60);
+          const activeEl = document.getElementById('preset-break-' + bMin) || document.getElementById('preset-break-5');
+          activeEl?.classList.add('active-preset');
+        } else if (mode === 'longBreak') {
+          const lMin = Math.round(longBreakSec / 60);
+          const activeEl = document.getElementById('preset-break-' + lMin) || document.getElementById('preset-break-15');
+          activeEl?.classList.add('active-preset');
+        }
+      }
+
+      // ── Preset Applier (Focus) ──
       window.applyPreset = function (studyM, breakM, el) {
         if (isRunning) return;
         studySec = studyM * 60;
         shortBreakSec = breakM * 60;
         longBreakSec = Math.max(15, breakM * 2) * 60;
 
-        if (mode === 'study') remaining = studySec;
-        else if (mode === 'shortBreak') remaining = shortBreakSec;
-        else remaining = longBreakSec;
+        mode = 'study';
+        remaining = studySec;
+
+        const badge = document.getElementById('pomoModeBadge');
+        const textEl = document.getElementById('pomoModeText');
+        if (badge && textEl) {
+          textEl.textContent = 'FOCUS SESSION';
+          badge.style.color = '#818cf8';
+        }
 
         document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active-preset'));
         if (el) el.classList.add('active-preset');
 
         updateDisplay();
+        hideBanner();
+      };
+
+      // ── Preset Applier (Break) ──
+      window.applyBreakPreset = function (breakM, el) {
+        if (isRunning) return;
+        const isLong = breakM >= 15;
+        mode = isLong ? 'longBreak' : 'shortBreak';
+        if (isLong) {
+          longBreakSec = breakM * 60;
+          remaining = longBreakSec;
+        } else {
+          shortBreakSec = breakM * 60;
+          remaining = shortBreakSec;
+        }
+
+        const badge = document.getElementById('pomoModeBadge');
+        const textEl = document.getElementById('pomoModeText');
+        if (badge && textEl) {
+          textEl.textContent = isLong ? 'LONG BREAK' : 'SHORT BREAK';
+          badge.style.color = isLong ? '#f59e0b' : '#2dd4bf';
+        }
+
+        document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active-preset'));
+        if (el) el.classList.add('active-preset');
+
+        updateDisplay();
+        hideBanner();
       };
 
       // ── Controls ──
