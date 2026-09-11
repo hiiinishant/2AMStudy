@@ -275,11 +275,20 @@
           btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
 
           try {
-            const res = await fetch(`/student-safety/cases/${caseId}/support`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: userId, userEmail: userEmail })
-            });
+            let res;
+            try {
+              res = await fetch(`/api/student-safety/cases/${caseId}/support`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, userEmail: userEmail })
+              });
+            } catch (err) {
+              res = await fetch(`/student-safety/cases/${caseId}/support`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, userEmail: userEmail })
+              });
+            }
 
             const data = await res.json();
 

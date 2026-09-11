@@ -6,6 +6,10 @@
       "destination": "/api/doubt"
     },
     {
+      "source": "/student-safety/cases/:caseId/support",
+      "destination": "https://twoamstudy-1.onrender.com/api/student-safety/cases/:caseId/support"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://twoamstudy-1.onrender.com/api/:path*"
     },

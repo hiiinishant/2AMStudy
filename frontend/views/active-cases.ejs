@@ -103,7 +103,7 @@
               <div>
                 <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
                   <span>📅 Verified: <%= verifiedDate %></span>
-                  <span class="fw-bold text-primary">👍 <span id="support-count-<%= item.caseId %>"><%= item.supportCount || 0 %></span> Supporters</span>
+                  <span class="fw-bold text-primary">👍 <span id="support-count-<%= item.caseId %>"><%= item.supportCount || 0 %></span> <span id="support-label-<%= item.caseId %>"><%= (item.supportCount === 1) ? 'Supporter' : 'Supporters' %></span></span>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -270,8 +270,11 @@
         if (data && data.cases && Array.isArray(data.cases)) {
           verifiedCases = data.cases;
           verifiedCases.forEach(c => {
+            const count = c.supportCount || 0;
             const countSpan = document.getElementById(`support-count-${c.caseId}`);
-            if (countSpan) countSpan.innerText = c.supportCount || 0;
+            if (countSpan) countSpan.innerText = count;
+            const labelSpan = document.getElementById(`support-label-${c.caseId}`);
+            if (labelSpan) labelSpan.innerText = count === 1 ? 'Supporter' : 'Supporters';
           });
         }
       })
@@ -387,7 +390,7 @@
             <div>
               <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
                 <span>📅 Verified: ${verifiedDate}</span>
-                <span class="fw-bold text-primary">👍 <span id="support-count-${item.caseId}">${item.supportCount || 0}</span> Supporters</span>
+                <span class="fw-bold text-primary">👍 <span id="support-count-${item.caseId}">${item.supportCount || 0}</span> <span id="support-label-${item.caseId}">${item.supportCount === 1 ? 'Supporter' : 'Supporters'}</span></span>
               </div>
 
               <div class="d-flex gap-2">
@@ -436,11 +439,20 @@
     btnElement.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
 
     try {
-      const res = await fetch(`/student-safety/cases/${cId}/support`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId, userEmail: userEmail })
-      });
+      let res;
+      try {
+        res = await fetch(`/api/student-safety/cases/${cId}/support`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId, userEmail: userEmail })
+        });
+      } catch (err) {
+        res = await fetch(`/student-safety/cases/${cId}/support`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId, userEmail: userEmail })
+        });
+      }
 
       const data = await res.json();
 
@@ -452,6 +464,8 @@
         if (data.supportCount !== undefined) {
           const countSpan = document.getElementById(`support-count-${cId}`);
           if (countSpan) countSpan.innerText = data.supportCount;
+          const labelSpan = document.getElementById(`support-label-${cId}`);
+          if (labelSpan) labelSpan.innerText = data.supportCount === 1 ? 'Supporter' : 'Supporters';
         }
         if (typeof window.showWindow === 'function') {
           window.showWindow({
@@ -482,6 +496,8 @@
       if (targetCase) targetCase.supportCount = data.supportCount;
       const countSpan = document.getElementById(`support-count-${cId}`);
       if (countSpan) countSpan.innerText = data.supportCount;
+      const labelSpan = document.getElementById(`support-label-${cId}`);
+      if (labelSpan) labelSpan.innerText = data.supportCount === 1 ? 'Supporter' : 'Supporters';
 
       const modalMsg = data.message || '✅ Thank you! You supported this case.';
       if (typeof window.showWindow === 'function') {

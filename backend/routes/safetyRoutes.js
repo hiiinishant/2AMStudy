@@ -36,6 +36,15 @@ function sanitizeCaseForOwner(caseObj) {
 }
 
 function sanitizeCaseForPublic(caseObj) {
+  let count = caseObj.supportCount || 0;
+  try {
+    const supports = safetyStore.getSupports ? safetyStore.getSupports() : [];
+    const actualCount = supports.filter(s => s && s.caseId === caseObj.caseId).length;
+    count = Math.max(count, actualCount);
+  } catch (e) {
+    // fallback to caseObj.supportCount
+  }
+
   return {
     caseId: caseObj.caseId,
     platform: caseObj.platform,
@@ -48,7 +57,7 @@ function sanitizeCaseForPublic(caseObj) {
     evidence: caseObj.evidence || [],
     anonymous: caseObj.anonymous,
     status: caseObj.status,
-    supportCount: caseObj.supportCount || 0,
+    supportCount: count,
     createdAt: caseObj.createdAt,
     updatedAt: caseObj.updatedAt,
     moderatorNote: caseObj.moderatorNote || '',
@@ -718,8 +727,8 @@ router.get('/student-safety/cases/:caseId', (req, res) => {
   });
 });
 
-// Support a case
-router.post('/student-safety/cases/:caseId/support', async (req, res) => {
+// Support a case (accepts both /student-safety/cases/:caseId/support and /api/student-safety/cases/:caseId/support)
+router.post(['/student-safety/cases/:caseId/support', '/api/student-safety/cases/:caseId/support'], async (req, res) => {
   const { caseId } = req.params;
   let { userId, userEmail } = req.body || {};
   if (!userId || typeof userId !== 'string' || !userId.trim()) {
