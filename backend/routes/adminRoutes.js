@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 
 const productStore = require('../models/productStore');
 const sessionStore = require('../models/sessionStore');
@@ -10,6 +11,8 @@ const collegeLifeStore = require('../models/collegeLifeStore');
 const resourceStore = require('../models/resourceStore');
 const { firestoreDb } = require('../config/firebase');
 const { isMasterAdminAuthenticated, requireStoreAdmin } = require('../middleware/adminAuth');
+const { uploadProductImage } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // 1. Single Master Admin Dashboard Route View
 router.get('/admin', async (req, res) => {
@@ -73,7 +76,7 @@ router.get('/admin', async (req, res) => {
 });
 
 // Legacy Admin URL Redirects to Unified Dashboard
-router.get('/store/admin', (req, res) => res.redirect('/admin#tab-products'));
+router.get('/store/admin', (req, res) => res.redirect('/admin#products'));
 router.get('/store/admin/login', (req, res) => res.redirect('/admin'));
 
 // Check Current Admin Session Status
@@ -127,6 +130,37 @@ router.get('/api/store/admin/products', requireStoreAdmin, (req, res) => {
   });
 });
 
+// Upload Product Image (Admin -> Cloudinary)
+router.post('/api/store/admin/products/upload-image', requireStoreAdmin, (req, res) => {
+  uploadProductImage.single('image')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, error: err.message || 'Image upload failed.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file received.' });
+    }
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, {
+        mimetype: req.file.mimetype,
+        filename: req.file.originalname,
+        folder: 'store-products',
+        prefix: 'prod'
+      });
+      return res.json({
+        success: true,
+        url: result.url,
+        publicId: result.publicId
+      });
+    } catch (uploadErr) {
+      console.error('[Cloudinary Product Upload Error]:', uploadErr.message);
+      return res.status(500).json({
+        success: false,
+        error: uploadErr.message || 'Cloudinary upload failed.'
+      });
+    }
+  });
+});
+
 // Create New Product (Admin)
 router.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
   const STORE_PRODUCTS = productStore.getProducts();
@@ -154,6 +188,7 @@ router.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
     desc: String(desc || '').trim(),
     price: Number(price),
     orig: Number(orig) || Number(price),
+    image: (Array.isArray(images) && images[0]) || '/assets/images/store/placeholder.jpg',
     images: Array.isArray(images) && images.length > 0 ? images : ['/assets/images/store/placeholder.jpg'],
     stock: Number(stock) >= 0 ? Number(stock) : 10,
     rating: 4.5,
@@ -183,7 +218,9 @@ router.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
   }
 
   const existing = STORE_PRODUCTS[index];
-  const { name, cat, desc, price, orig, stock, badge, badgeLabel, images, features, specs, rating, ratingCount } = req.body;
+  const { name, cat, desc, price, orig, stock, badge, badgeLabel, emoji, images, features, specs, rating, ratingCount } = req.body;
+
+  const finalImages = Array.isArray(images) && images.length > 0 ? images : (existing.images || (existing.image ? [existing.image] : ['/assets/images/store/placeholder.jpg']));
 
   STORE_PRODUCTS[index] = {
     ...existing,
@@ -195,7 +232,9 @@ router.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
     stock: stock !== undefined ? Number(stock) : existing.stock,
     badge: badge !== undefined ? badge : existing.badge,
     badgeLabel: badgeLabel !== undefined ? badgeLabel : existing.badgeLabel,
-    images: Array.isArray(images) && images.length > 0 ? images : existing.images,
+    emoji: emoji !== undefined ? String(emoji).trim() : existing.emoji,
+    image: (finalImages && finalImages[0]) || existing.image || '/assets/images/store/placeholder.jpg',
+    images: finalImages,
     features: Array.isArray(features) ? features : existing.features,
     specs: typeof specs === 'object' && specs !== null ? specs : existing.specs,
     rating: rating !== undefined ? Number(rating) : existing.rating,

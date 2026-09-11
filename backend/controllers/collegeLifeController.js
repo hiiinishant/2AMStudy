@@ -85,10 +85,71 @@ function setFeaturedVideo(req, res) {
   res.json({ success: true, video });
 }
 
+function getVideoById(req, res) {
+  const videos = collegeLifeStore.getVideos();
+  const video = videos.find(v => v.id === req.params.id);
+  if (!video) return res.status(404).json({ success: false, error: 'Video not found.' });
+  res.json({ success: true, video });
+}
+
+function updateVideo(req, res) {
+  const videos = collegeLifeStore.getVideos();
+  const video = videos.find(v => v.id === req.params.id);
+  if (!video) return res.status(404).json({ success: false, error: 'Video not found.' });
+
+  const { youtubeUrl, title, description, category, duration, thumbnail, isFeatured } = req.body;
+
+  if (title !== undefined) {
+    if (!String(title).trim()) {
+      return res.status(400).json({ success: false, error: 'Video title cannot be empty.' });
+    }
+    video.title = String(title).trim();
+  }
+
+  if (youtubeUrl !== undefined) {
+    const trimmedUrl = String(youtubeUrl).trim();
+    if (trimmedUrl) {
+      const videoId = collegeLifeStore.extractYoutubeVideoId(trimmedUrl);
+      if (!videoId) {
+        return res.status(400).json({ success: false, error: 'Invalid YouTube URL.' });
+      }
+      video.youtubeUrl = trimmedUrl;
+      video.youtubeVideoId = videoId;
+      if (!thumbnail) {
+        video.thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      }
+    }
+  }
+
+  if (thumbnail !== undefined) {
+    video.thumbnail = String(thumbnail).trim() || `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+  }
+  if (description !== undefined) video.description = String(description).trim();
+  if (category !== undefined) video.category = String(category).trim() || 'College Life';
+  if (duration !== undefined) video.duration = String(duration).trim();
+
+  if (isFeatured !== undefined) {
+    const featBool = Boolean(isFeatured);
+    if (featBool) {
+      videos.forEach(v => { v.isFeatured = false; });
+      video.isFeatured = true;
+    } else {
+      video.isFeatured = false;
+    }
+  }
+
+  video.updatedAt = new Date().toISOString();
+  collegeLifeStore.saveCollegeLifeVideos();
+
+  res.json({ success: true, message: 'Video updated successfully.', video });
+}
+
 module.exports = {
   getCollegeLifePage,
   getCollegeLifeVideoPage,
+  getVideoById,
   addVideo,
+  updateVideo,
   deleteVideo,
   setFeaturedVideo
 };

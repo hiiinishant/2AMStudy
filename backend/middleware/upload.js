@@ -23,26 +23,18 @@ const uploadEvidence = multer({
   fileFilter: evidenceFileFilter
 }).array('evidence', 5);
 
-// Multer disk storage for store product images
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '..', '..', 'frontend', 'public', 'assets', 'images', 'store'));
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = uuidv4() + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
+// Multer memory storage for store product and blog image uploads
+const imageMemoryStorage = multer.memoryStorage();
 
 const uploadProductImage = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  storage: imageMemoryStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: function (req, file, cb) {
-    const allowed = /jpg|jpeg|png|webp|gif/;
+    const allowed = /jpg|jpeg|png|webp|gif|svg|avif/;
     const ext = allowed.test(path.extname(file.originalname).toLowerCase());
     const mime = allowed.test(file.mimetype.split('/')[1]);
-    if (ext && mime) cb(null, true);
-    else cb(new Error('Only images (jpg, png, webp, gif) allowed'));
+    if (ext || mime) cb(null, true);
+    else cb(new Error('Only image files (jpg, png, webp, gif, svg, avif) are allowed'));
   }
 });
 

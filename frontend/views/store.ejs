@@ -1084,7 +1084,11 @@ function renderProducts(skipAnimation = false) {
       return discB - discA;
     }); break;
     // Default is Popularity (stable sort by reviews/rating)
-    default: filtered.sort((a, b) => (b.rating * b.reviews) - (a.rating * a.reviews)); break;
+    default: filtered.sort((a, b) => {
+      const aCount = a.ratingCount || (Array.isArray(a.reviews) ? a.reviews.length : 0);
+      const bCount = b.ratingCount || (Array.isArray(b.reviews) ? b.reviews.length : 0);
+      return (b.rating * bCount) - (a.rating * aCount);
+    }); break;
   }
 
   // Update UI

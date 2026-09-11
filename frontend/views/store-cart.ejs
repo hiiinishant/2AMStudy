@@ -470,17 +470,23 @@ async function loadCart() {
 }
 
 async function updateQty(productId, delta) {
-  const res = await fetch(`/store/api/store/cart/add`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId, qty: delta }),
-    credentials: 'include'
-  });
-  const data = await res.json();
-  if (data.success) {
-    cartItems = data.items;
-    renderCart();
-    window.dispatchEvent(new CustomEvent('cartUpdated'));
+  try {
+    const res = await fetch(`/store/api/store/cart/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, qty: delta }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.success) {
+      cartItems = data.items;
+      renderCart();
+      window.dispatchEvent(new CustomEvent('cartUpdated'));
+    } else {
+      alert(data.error || 'Unable to update item quantity.');
+    }
+  } catch (err) {
+    alert('Network error while updating cart.');
   }
 }
 

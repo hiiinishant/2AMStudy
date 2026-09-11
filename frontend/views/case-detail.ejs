@@ -228,31 +228,48 @@
   };
 
   const getUserId = () => {
-    return localStorage.getItem('user_id') || localStorage.getItem('studentEmail') || ('USER-' + Math.random().toString(36).substring(2, 9));
+    let uid = localStorage.getItem('user_id') || localStorage.getItem('studentEmail');
+    if (!uid) {
+      uid = localStorage.getItem('_anon_uid');
+      if (!uid) {
+        uid = 'ANON-' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('_anon_uid', uid);
+      }
+    }
+    return uid;
   };
+
+  const isCaseSupported = (cId) => localStorage.getItem('supported_' + cId) === 'true';
+  const markCaseSupported = (cId) => localStorage.setItem('supported_' + cId, 'true');
 
   document.addEventListener('DOMContentLoaded', () => {
     const supportBtns = [document.getElementById('detailSupportBtn'), document.getElementById('sidebarSupportBtn')];
     const shareBtn = document.getElementById('detailShareBtn');
 
+    // Apply already-supported state on load
+    if (isCaseSupported(caseId)) {
+      supportBtns.forEach(b => {
+        if (b) {
+          b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+          b.innerText = '👍 Supported';
+          b.disabled = true;
+        }
+      });
+    }
+
     supportBtns.forEach(btn => {
       if (btn) {
         btn.addEventListener('click', async () => {
-          if (!checkUserLoggedIn()) {
-            if (typeof window.showWindow === 'function') {
-              window.showWindow({
-                title: 'Login Required',
-                message: 'Please register/login first to support this case.',
-                type: 'warning'
-              });
-            } else {
-              alert('Please login first to support this case.');
-            }
+          if (isCaseSupported(caseId)) {
+            btn.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold';
+            btn.innerText = '👍 Supported';
+            btn.disabled = true;
             return;
           }
 
           const userId = getUserId();
           const userEmail = localStorage.getItem('studentEmail') || '';
+          const origText = btn.innerText;
 
           btn.disabled = true;
           btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
@@ -266,13 +283,25 @@
 
             const data = await res.json();
 
-            if (!res.ok || !data.success) {
-              alert(data.message || 'Support action failed.');
-              btn.disabled = false;
-              btn.innerText = '👍 Support Case';
+            if (res.status === 409 || data.isDuplicate) {
+              markCaseSupported(caseId);
+              if (data.supportCount !== undefined) {
+                document.getElementById('detailSupportCount').innerText = data.supportCount;
+              }
+              supportBtns.forEach(b => {
+                if (b) { b.className = 'btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold'; b.innerText = '👍 Supported'; b.disabled = true; }
+              });
               return;
             }
 
+            if (!res.ok || !data.success) {
+              alert(data.message || 'Support action failed.');
+              btn.disabled = false;
+              btn.innerText = origText;
+              return;
+            }
+
+            markCaseSupported(caseId);
             document.getElementById('detailSupportCount').innerText = data.supportCount;
             supportBtns.forEach(b => {
               if (b) {
@@ -297,7 +326,7 @@
             console.error("Support error:", err);
             alert('An error occurred while supporting this case.');
             btn.disabled = false;
-            btn.innerText = '👍 Support Case';
+            btn.innerText = origText;
           }
         });
       }

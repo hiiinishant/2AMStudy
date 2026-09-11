@@ -14,7 +14,9 @@ router.get('/api/college-life/videos', (req, res) => {
 });
 
 // Admin API
+router.get('/api/college-life/videos/:id', requireAdminForCollegeLife, collegeLifeController.getVideoById);
 router.post('/api/college-life/videos', requireAdminForCollegeLife, collegeLifeController.addVideo);
+router.put('/api/college-life/videos/:id', requireAdminForCollegeLife, collegeLifeController.updateVideo);
 router.delete('/api/college-life/videos/:id', requireAdminForCollegeLife, collegeLifeController.deleteVideo);
 router.patch('/api/college-life/videos/:id/feature', requireAdminForCollegeLife, collegeLifeController.setFeaturedVideo);
 

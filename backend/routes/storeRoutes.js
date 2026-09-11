@@ -122,41 +122,30 @@ router.get(['/store/my-orders', '/my-orders'], (req, res) => {
 
 router.get('/store/invoice/:orderId', (req, res) => {
   const { orderId } = req.params;
-  const sessionOrder = req.session?.lastOrder || null;
-  const isMatch = sessionOrder && sessionOrder.orderId === orderId;
 
+  // Resolve the stored order from map, in-memory orders, or session
+  let storedOrder = null;
+  const mapEntry = productStore.storeInvoicesMap.get(orderId);
+  if (mapEntry && typeof mapEntry === 'object' && mapEntry.orderId) {
+    storedOrder = mapEntry;
+  } else {
+    storedOrder = productStore.getOrders().find(o => o.orderId === orderId) || null;
+  }
+  if (!storedOrder && req.session?.lastOrder?.orderId === orderId) {
+    storedOrder = req.session.lastOrder;
+  }
+
+  // Ensure invoice number is registered
   if (!productStore.storeInvoicesMap.has(orderId)) {
     const seqStr = String(productStore.incrementInvoiceCounter()).padStart(5, '0');
-    productStore.storeInvoicesMap.set(orderId, `INV-2026${seqStr}`);
+    productStore.storeInvoicesMap.set(orderId, storedOrder || `INV-2026${seqStr}`);
   }
-  const invoiceNo = productStore.storeInvoicesMap.get(orderId);
+  const mapVal = productStore.storeInvoicesMap.get(orderId);
+  const invoiceNo = storedOrder?.invoiceNo ||
+    (typeof mapVal === 'string' ? mapVal : mapVal?.invoiceNo) ||
+    `INV-2026-${orderId.slice(-5)}`;
 
-  const mockItems = [
-    { productId: 101, name: '2 AM Notebook (Ruled A5)', price: 199, origPrice: 249, qty: 2, variant: 'A5 Ruled / 200 Pages', image: '/assets/images/products/notebook-1.jpg' },
-    { productId: 201, name: 'Insulated Water Bottle 750ml', price: 449, origPrice: 599, qty: 1, variant: 'Stainless Steel / Matte Black', image: '/assets/images/products/bottle-1.jpg' }
-  ];
-
-  const rawItems = isMatch && sessionOrder.items ? sessionOrder.items : mockItems;
-  const items = rawItems.map(item => {
-    const unitPrice = Number(item.price);
-    const origPrice = Number(item.origPrice || item.orig || Math.round(unitPrice * 1.25));
-    const qty = Number(item.qty || 1);
-    const discountPerUnit = Math.max(0, origPrice - unitPrice);
-    const lineTotal = unitPrice * qty;
-    return {
-      ...item,
-      qty,
-      unitPrice,
-      origPrice,
-      discountPerUnit,
-      lineTotal
-    };
-  });
-
-  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
-  const totalDiscount = items.reduce((sum, item) => sum + (item.discountPerUnit * item.qty), 0);
-  const grandTotal = subtotal;
-  const customer = isMatch && sessionOrder.customer ? sessionOrder.customer : {
+  const customer = storedOrder?.customer || {
     name: 'Student Customer',
     email: 'student@example.com',
     phone: '+91 98765 43210',
@@ -165,19 +154,47 @@ router.get('/store/invoice/:orderId', (req, res) => {
     pincode: '110001'
   };
 
+  const rawItems = (storedOrder?.items && storedOrder.items.length) ? storedOrder.items : [];
+  const items = rawItems.map(item => {
+    const unitPrice = Number(item.price);
+    const origPrice = Number(item.origPrice || item.orig || Math.round(unitPrice * 1.25));
+    const qty = Number(item.qty || 1);
+    const discountPerUnit = Math.max(0, origPrice - unitPrice);
+    const lineTotal = unitPrice * qty;
+    return { ...item, qty, unitPrice, origPrice, discountPerUnit, lineTotal };
+  });
+
+  const subtotal = storedOrder?.subtotal ?? items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const totalDiscount = storedOrder?.totalSaved ?? items.reduce((sum, item) => sum + (item.discountPerUnit * item.qty), 0);
+  const delivery = storedOrder?.delivery ?? 0;
+  const platformFee = storedOrder?.platformFee ?? (items.length ? 1 : 0);
+  const couponDiscount = storedOrder?.couponDiscount ?? 0;
+  const grandTotal = storedOrder?.finalTotal ?? storedOrder?.grandTotal ?? (subtotal - couponDiscount + delivery + platformFee);
+  const amountPaid = storedOrder?.amountPaid ?? grandTotal;
+
   const orderObj = {
     orderId,
-    invoiceNo: typeof invoiceNo === 'string' ? invoiceNo : (invoiceNo.invoiceNo || `INV-2026-${orderId.slice(-5)}`),
-    invoiceDate: new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
+    invoiceNo,
+    invoiceDate: storedOrder?.createdAt
+      ? new Date(storedOrder.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
+      : new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
     customerName: customer.name || 'Student Customer',
     customerEmail: customer.email || 'student@example.com',
     customerPhone: customer.phone || '+91 98765 43210',
     shippingAddress: `${customer.address || ''}, ${customer.city || ''} - ${customer.pincode || ''}`,
+    city: customer.city || '',
+    pincode: customer.pincode || '',
     items,
     subtotal,
     totalDiscount,
+    couponDiscount,
+    delivery,
+    platformFee,
     grandTotal,
-    totalSaved: totalDiscount
+    amountPaid,
+    totalSaved: totalDiscount,
+    paymentId: storedOrder?.paymentId || '',
+    paymentMethod: storedOrder?.paymentMethod || 'Razorpay (Card/UPI/NetBanking)'
   };
 
   res.render('store-invoice', {
@@ -561,13 +578,27 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
 
     const invoiceNo = `INV-2026${String(productStore.incrementInvoiceCounter()).padStart(5, '0')}`;
     const now = new Date();
+    const coupon = req.session.checkoutCoupon || null;
+    const summary = req.session.pendingOrderSummary || computeCheckoutSummary(cart, coupon);
     const completedOrder = {
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
+      paymentMethod: 'Razorpay (Card/UPI/NetBanking)',
       invoiceNo,
       customerName: req.session.checkoutCustomer?.name || 'Student Customer',
       customer: req.session.checkoutCustomer,
       items: cart.length ? [...cart] : [],
+      // Financial details (fixes ₹0 in admin dashboard and my-orders)
+      amount: summary.finalTotal,
+      finalTotal: summary.finalTotal,
+      subtotal: summary.spSubtotal,
+      mrpSubtotal: summary.mrpSubtotal,
+      couponDiscount: summary.couponDiscount,
+      totalSaved: summary.totalSaved,
+      delivery: summary.delivery,
+      platformFee: summary.platformFee,
+      amountPaid: summary.finalTotal,
+      coupon: coupon?.code || 'none',
       createdAt: now.toISOString()
     };
 
@@ -590,6 +621,177 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
     console.error('Razorpay verify error:', error);
     return res.status(500).json({ verified: false, error: 'Verification service unavailable.' });
   }
+});
+
+// ─── Order APIs ──────────────────────────────────────────────────────────────
+
+// GET /api/store/orders/:orderId — fetch a single order by ID
+router.get('/api/store/orders/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+
+  // 1. Check storeInvoicesMap (in-memory, populated on verify-payment)
+  const mapEntry = productStore.storeInvoicesMap.get(orderId);
+  if (mapEntry && typeof mapEntry === 'object' && mapEntry.orderId) {
+    return res.json({ success: true, order: mapEntry });
+  }
+
+  // 2. Check persisted in-memory orders array
+  const memOrder = productStore.getOrders().find(o => o.orderId === orderId);
+  if (memOrder) return res.json({ success: true, order: memOrder });
+
+  // 3. Check session last order
+  if (req.session?.lastOrder?.orderId === orderId) {
+    return res.json({ success: true, order: req.session.lastOrder });
+  }
+
+  // 4. Try Firestore
+  if (firestoreDb) {
+    try {
+      const doc = await firestoreDb.collection('storeOrders').doc(orderId).get();
+      if (doc.exists) return res.json({ success: true, order: doc.data() });
+    } catch (e) {
+      console.error('[Firestore] order lookup error:', e.message);
+    }
+  }
+
+  return res.status(404).json({ success: false, error: 'Order not found' });
+});
+
+// GET /api/store/my-orders — fetch all orders for current user by email/uid
+router.get('/api/store/my-orders', async (req, res) => {
+  const email = (req.session?.user?.email || req.session?.checkoutCustomer?.email || '').toLowerCase();
+  const uid = req.session?.user?.uid || null;
+
+  let ordersList = [];
+
+  // Collect from persisted in-memory orders
+  const allOrders = productStore.getOrders();
+  for (const o of allOrders) {
+    const oEmail = (o?.customer?.email || o?.customerEmail || '').toLowerCase();
+    if ((email && oEmail === email) || (uid && o.uid === uid)) {
+      ordersList.push(o);
+    }
+  }
+
+  // Also check Firestore for any orders not yet in memory
+  if (firestoreDb && email) {
+    try {
+      const snapshot = await firestoreDb.collection('storeOrders')
+        .where('customer.email', '==', email)
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .get();
+      const fsOrderIds = new Set(ordersList.map(o => o.orderId));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!fsOrderIds.has(data.orderId)) ordersList.push(data);
+      });
+    } catch (e) {
+      console.error('[Firestore] my-orders lookup error:', e.message);
+    }
+  }
+
+  // Include session last order if it belongs to this user and is not already listed
+  const lastOrder = req.session?.lastOrder;
+  if (lastOrder) {
+    const loEmail = (lastOrder?.customer?.email || '').toLowerCase();
+    const alreadyIn = ordersList.some(o => o.orderId === lastOrder.orderId);
+    if (!alreadyIn && (!email || loEmail === email)) {
+      ordersList.unshift(lastOrder);
+    }
+  }
+
+  // Sort newest first
+  ordersList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  return res.json({ success: true, orders: ordersList });
+});
+
+// ─── Product Reviews ──────────────────────────────────────────────────────────
+
+// GET /store/api/store/products/:id/reviews
+router.get('/store/api/store/products/:id/reviews', (req, res) => {
+  const product = productStore.getProducts().find(p => p.id === Number(req.params.id));
+  if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+
+  const reviews = product.reviews || [];
+  const avgRating = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length)
+    : (product.rating || 0);
+
+  // Build breakdown counts 1-5
+  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach(r => { const s = Math.round(r.rating); if (s >= 1 && s <= 5) breakdown[s]++; });
+
+  res.json({
+    success: true,
+    productId: product.id,
+    averageRating: Math.round(avgRating * 10) / 10,
+    totalReviews: reviews.length,
+    ratingCount: product.ratingCount || reviews.length,
+    breakdown,
+    reviews
+  });
+});
+
+// POST /store/api/store/products/:id/reviews
+router.post('/store/api/store/products/:id/reviews', (req, res) => {
+  const products = productStore.getProducts();
+  const product = products.find(p => p.id === Number(req.params.id));
+  if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+
+  const { user, rating, comment } = req.body;
+  if (!user || !rating || !comment) {
+    return res.status(400).json({ success: false, error: 'user, rating, and comment are required.' });
+  }
+  const ratingNum = Math.min(5, Math.max(1, Number(rating)));
+  if (isNaN(ratingNum)) return res.status(400).json({ success: false, error: 'rating must be a number between 1 and 5.' });
+
+  const sanitize = str => String(str).trim().replace(/</g, '&lt;').replace(/>/g, '&gt;').slice(0, 500);
+
+  if (!product.reviews) product.reviews = [];
+
+  // Upsert: one review per user
+  const existingIdx = product.reviews.findIndex(r => r.user && r.user.toLowerCase() === String(user).trim().toLowerCase());
+  const newReview = {
+    user: sanitize(user),
+    rating: ratingNum,
+    comment: sanitize(comment),
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  if (existingIdx >= 0) {
+    product.reviews[existingIdx] = newReview;
+  } else {
+    product.reviews.unshift(newReview);
+  }
+
+  // Recalculate average rating
+  const allRatings = product.reviews.map(r => r.rating);
+  product.rating = Math.round((allRatings.reduce((s, r) => s + r, 0) / allRatings.length) * 10) / 10;
+  product.ratingCount = (product.ratingCount || 0) + (existingIdx >= 0 ? 0 : 1);
+
+  // Sync to global shopperFeedbacks
+  try {
+    const feedbacks = feedbackStore.getFeedbacks();
+    feedbacks.unshift({
+      id: 'fb-' + Date.now(),
+      name: newReview.user,
+      avatar: '',
+      rating: ratingNum,
+      comment: newReview.comment,
+      product: product.name,
+      verified: true,
+      date: newReview.date
+    });
+    feedbackStore.saveShopperFeedbacks();
+  } catch (e) {
+    console.warn('[Store] Could not sync review to feedbackStore:', e.message);
+  }
+
+  productStore.savePersistedProducts();
+
+  res.json({ success: true, message: 'Review submitted successfully!', review: newReview, product });
 });
 
 // Reviews and feedback

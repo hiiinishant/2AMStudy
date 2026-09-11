@@ -78,7 +78,7 @@ function requireStoreAdmin(req, res, next) {
 }
 
 function requireAdminForCollegeLife(req, res, next) {
-  if (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) {
+  if (isMasterAdminAuthenticated(req)) {
     return next();
   }
   return res.status(401).json({ success: false, error: 'Admin authentication required.' });

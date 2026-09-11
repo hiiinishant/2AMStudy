@@ -11,6 +11,7 @@ const { firebaseAdmin, firestoreDb } = require('../config/firebase');
 const { createFirebaseAuthMiddleware } = require('../middleware/firebaseAuth');
 const { isMasterAdminAuthenticated } = require('../middleware/adminAuth');
 const { uploadEvidence } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 const { verifyFirebaseToken } = createFirebaseAuthMiddleware(firebaseAdmin, firestoreDb);
 
@@ -76,55 +77,37 @@ async function sendSafetyEmail(to, subject, html) {
   }
 }
 
-async function uploadToCloudinary(fileBuffer, mimetype, filename) {
+async function uploadSafetyEvidence(fileBuffer, mimetype, filename) {
   if (!fileBuffer || fileBuffer.length === 0) return null;
 
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const isPdf = (mimetype && mimetype.includes('pdf')) || filename?.toLowerCase().endsWith('.pdf');
+  const isPdf = (mimetype && mimetype.includes('pdf')) || (filename && filename.toLowerCase().endsWith('.pdf'));
   const ext = isPdf ? 'pdf' : (path.extname(filename || '').replace('.', '') || 'png');
   const safeBaseName = `case_${Date.now()}_${uuidv4().substring(0, 8)}.${ext}`;
   const effectiveMime = mimetype || (isPdf ? 'application/pdf' : 'image/png');
-  const dataUri = `data:${effectiveMime};base64,${fileBuffer.toString('base64')}`;
 
-  // ── Tier 1: Cloudinary Upload ──
-  if (cloudName && apiKey && apiSecret) {
-    try {
-      const publicId = `student-safety/case_${Date.now()}_${uuidv4().substring(0, 6)}`;
-      const timestamp = Math.floor(Date.now() / 1000);
-      const signatureStr = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
-      const signature = crypto.createHash('sha1').update(signatureStr).digest('hex');
+  // ── Tier 1: Cloudinary Upload (Images & PDFs) ──
+  try {
+    const cloudRes = await uploadToCloudinary(fileBuffer, {
+      folder: 'student-safety',
+      prefix: 'case',
+      mimetype: effectiveMime,
+      filename: filename || safeBaseName
+    });
 
-      const formData = new URLSearchParams();
-      formData.append('file', dataUri);
-      formData.append('api_key', apiKey);
-      formData.append('timestamp', timestamp.toString());
-      formData.append('public_id', publicId);
-      formData.append('signature', signature);
-
-      const fetchRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (fetchRes.ok) {
-        const data = await fetchRes.json();
-        if (data.secure_url) {
-          return {
-            url: data.secure_url,
-            publicId: data.public_id || publicId,
-            type: isPdf ? 'pdf' : 'image',
-            uploadedAt: new Date().toISOString()
-          };
-        }
-      }
-    } catch (err) {
-      console.warn("[Cloudinary] Upload failed, trying local disk fallback:", err.message || err);
+    if (cloudRes && cloudRes.url) {
+      return {
+        url: cloudRes.url,
+        publicId: cloudRes.publicId,
+        type: isPdf ? 'pdf' : 'image',
+        originalName: filename || safeBaseName,
+        uploadedAt: new Date().toISOString()
+      };
     }
+  } catch (err) {
+    console.warn('[Cloudinary Safety Upload Error]:', err.message);
   }
 
-  // ── Tier 2: Local Disk Storage ──
+  // ── Tier 2: Local Disk Storage Fallback ──
   try {
     const uploadDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'assets', 'uploads', 'safety');
     if (!fs.existsSync(uploadDir)) {
@@ -137,17 +120,20 @@ async function uploadToCloudinary(fileBuffer, mimetype, filename) {
       url: `/assets/uploads/safety/${safeBaseName}`,
       publicId: `local_${safeBaseName}`,
       type: isPdf ? 'pdf' : 'image',
+      originalName: filename || safeBaseName,
       uploadedAt: new Date().toISOString()
     };
   } catch (fsErr) {
-    console.warn("[Local Evidence Upload] Local write failed:", fsErr.message);
+    console.warn('[Local Evidence Upload] Local write failed:', fsErr.message);
   }
 
   // ── Tier 3: Zero-Failure In-Memory Data URI Fallback ──
+  const dataUri = `data:${effectiveMime};base64,${fileBuffer.toString('base64')}`;
   return {
     url: dataUri,
     publicId: `inline_${safeBaseName}`,
     type: isPdf ? 'pdf' : 'image',
+    originalName: filename || safeBaseName,
     uploadedAt: new Date().toISOString()
   };
 }
@@ -380,7 +366,7 @@ router.post('/student-safety/report', (req, res, next) => {
     if (Array.isArray(req.files) && req.files.length > 0) {
       try {
         const uploaded = await Promise.all(
-          req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype, f.originalname))
+          req.files.map(f => uploadSafetyEvidence(f.buffer, f.mimetype, f.originalname))
         );
         structuredEvidence = uploaded.filter(Boolean);
       } catch (uploadErr) {
@@ -701,9 +687,18 @@ router.get('/api/student-safety/public-cases', (req, res) => {
 
 // View active cases & detail
 router.get('/student-safety/cases', (req, res) => {
+  const publicCases = safetyStore.getCases()
+    .filter(c => c.status === 'Verified' || c.status === 'Resolved')
+    .map(c => sanitizeCaseForPublic(c))
+    .sort((a, b) => (b.supportCount || 0) - (a.supportCount || 0));
+
+  const colleges = Array.from(new Set(publicCases.map(c => c.college).filter(Boolean)));
+
   res.render('active-cases', {
     pageTitle: '🛡️ Active Community Cases | Student Identity Shield',
-    metaDescription: 'Browse admin-verified student impersonation cases.'
+    metaDescription: 'Browse admin-verified student impersonation cases.',
+    initialCases: publicCases,
+    colleges
   });
 });
 
@@ -726,8 +721,11 @@ router.get('/student-safety/cases/:caseId', (req, res) => {
 // Support a case
 router.post('/student-safety/cases/:caseId/support', async (req, res) => {
   const { caseId } = req.params;
-  const { userId, userEmail } = req.body;
-  if (!userId) return res.status(401).json({ success: false, message: 'You must be logged in to support a case.' });
+  let { userId, userEmail } = req.body || {};
+  if (!userId || typeof userId !== 'string' || !userId.trim()) {
+    userId = req.ip || ('ANON-' + uuidv4().substring(0, 8));
+  }
+  userId = userId.trim();
 
   const cases = safetyStore.getCases();
   const caseIndex = cases.findIndex(c => c.caseId === caseId && (c.status === 'Verified' || c.status === 'Resolved'));

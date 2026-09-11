@@ -5,6 +5,7 @@ const fs = require('fs');
 const blogStore = require('../models/blogStore');
 const { requireStoreAdmin } = require('../middleware/adminAuth');
 const { uploadProductImage } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // ─── Blog Admin & Public APIs ──────────────────────────────────────────────────
 
@@ -18,13 +19,35 @@ router.get('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
   });
 });
 
-// 13b. Upload Blog Image (Cover image or in-body Image Box)
-router.post('/api/store/admin/blogs/upload-image', requireStoreAdmin, uploadProductImage.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, error: 'No image file provided.' });
-  }
-  const imageUrl = '/assets/images/store/' + req.file.filename;
-  res.json({ success: true, url: imageUrl });
+// 13b. Upload Blog Image (Cover image or in-body Image Box -> Cloudinary)
+router.post('/api/store/admin/blogs/upload-image', requireStoreAdmin, (req, res) => {
+  uploadProductImage.single('image')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, error: err.message || 'Image upload failed.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided.' });
+    }
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, {
+        mimetype: req.file.mimetype,
+        filename: req.file.originalname,
+        folder: 'blog-images',
+        prefix: 'blog'
+      });
+      return res.json({
+        success: true,
+        url: result.url,
+        publicId: result.publicId
+      });
+    } catch (uploadErr) {
+      console.error('[Cloudinary Blog Upload Error]:', uploadErr.message);
+      return res.status(500).json({
+        success: false,
+        error: uploadErr.message || 'Cloudinary upload failed.'
+      });
+    }
+  });
 });
 
 // 13c. Get Single Blog Post by ID (Admin)
@@ -212,7 +235,7 @@ router.get('/blog/:slug', (req, res) => {
   }
 
   // 2. Fallback to existing static EJS views if file exists
-  const staticFilePath = path.join(__dirname, '..', 'views', 'blog', `${slug}.ejs`);
+  const staticFilePath = path.join(__dirname, '..', '..', 'frontend', 'views', 'blog', `${slug}.ejs`);
   if (fs.existsSync(staticFilePath)) {
     const formattedTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     return res.render(`blog/${slug}`, {

@@ -12,7 +12,7 @@ let STORE_PRODUCTS = [
   },
   {
     id: 102, cat: 'notebooks', emoji: '📔', badge: 'hot', badgeLabel: 'Hot', name: 'Diary', desc: 'Premium diary by 2 AM Study for journaling goals, daily reflection, and planning your productivity streak.', price: 249, orig: 399,
-    images: ['/assets/images/products/diary-1.webp', '/assets/images/products/diary-1.webp', '/assets/images/products/diary-3.webp', '/assets/images/products/diary-1.webp'],
+    images: ['/assets/images/products/diary-1.webp', '/assets/images/products/diary-2.webp', '/assets/images/products/diary-3.webp', '/assets/images/products/diary-4.webp'],
     stock: 12, rating: 4.5, ratingCount: 892,
     features: ['Hardbound premium diary', 'Daily reflection prompts included', 'Goal-setting templates', 'Bookmark ribbon included', 'Elastic band closure'],
     specs: { brand: '2 AM Study', type: 'Diary', pages: '180', size: 'A5', cover: 'Hardbound', paper: '90 GSM', closure: 'Elastic Band' },
@@ -238,10 +238,19 @@ function loadPersistedStoreOrders() {
       const data = JSON.parse(fs.readFileSync(storeOrdersFilePath, 'utf8'));
       if (Array.isArray(data)) {
         PERSISTED_STORE_ORDERS = data;
+        let maxSeq = 1;
         PERSISTED_STORE_ORDERS.forEach(o => {
           if (o && o.orderId) storeInvoicesMap.set(o.orderId, o);
+          if (o && o.invoiceNo && typeof o.invoiceNo === 'string') {
+            const match = o.invoiceNo.match(/INV-\d{4}(\d+)/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (num > maxSeq) maxSeq = num;
+            }
+          }
         });
-        console.log(`[Store Orders] Loaded ${PERSISTED_STORE_ORDERS.length} past orders from disk.`);
+        invoiceCounter = maxSeq;
+        console.log(`[Store Orders] Loaded ${PERSISTED_STORE_ORDERS.length} past orders from disk (invoiceCounter: ${invoiceCounter}).`);
         return;
       }
     }
