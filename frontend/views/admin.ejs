@@ -334,6 +334,9 @@
         position: fixed;
         inset: 0 auto 0 0;
         box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      }
+    }
+
     /* Advanced Blog Editor Styles */
     .blog-editor-toolbar {
       background: #0f1629;
@@ -1908,8 +1911,13 @@
                   <button type="submit" id="saveEditProductBtn" class="btn btn-gradient-primary btn-sm rounded-pill px-4">
                     <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
                   </button>
-                </div>
-              </d      <!-- ============================================================ -->
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
       <!-- MODAL: ADD BLOG (ADVANCED COMPOSER) -->
       <!-- ============================================================ -->
       <div class="modal fade" id="addBlogModal" tabindex="-1" aria-hidden="true">
@@ -3311,6 +3319,7 @@
             try {
               const res = await fetch('/api/store/admin/blogs/upload-image', {
                 method: 'POST',
+                credentials: 'include',
                 body: formData
               });
               const data = await res.json();
@@ -3349,6 +3358,7 @@
                   try {
                     const res = await fetch('/api/store/admin/blogs/upload-image', {
                       method: 'POST',
+                      credentials: 'include',
                       body: formData
                     });
                     const data = await res.json();
@@ -3367,6 +3377,15 @@
               }
             });
           }
+
+          document.addEventListener('DOMContentLoaded', () => {
+            setupClipboardImagePaste('blogContent');
+            setupClipboardImagePaste('editBlogContent');
+            const addModal = document.getElementById('addBlogModal');
+            if (addModal) {
+              addModal.addEventListener('shown.bs.modal', () => setupClipboardImagePaste('blogContent'));
+            }
+          });
 
           function insertImageUrlPrompt(textareaId) {
             const url = prompt('Enter the image URL (https://...):', '');
@@ -3448,6 +3467,7 @@
             try {
               const res = await fetch('/api/store/admin/blogs/upload-image', {
                 method: 'POST',
+                credentials: 'include',
                 body: formData
               });
               const data = await res.json();
@@ -3486,6 +3506,7 @@
             try {
               const res = await fetch('/api/store/admin/blogs', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   title,
@@ -3518,7 +3539,7 @@
           async function openEditBlogModal(id) {
             showToast('Loading article details...');
             try {
-              const res = await fetch('/api/store/admin/blogs/' + id);
+              const res = await fetch('/api/store/admin/blogs/' + id, { credentials: 'include' });
               const data = await res.json();
               if (data.success && data.post) {
                 const p = data.post;
@@ -3539,6 +3560,7 @@
                 // Reset view to write mode and update stats
                 setBlogEditorView('write', 'edit');
                 onBlogContentChange('editBlogContent', 'editBlogStats', 'editBlogLivePreview', 'editBlogReadTime');
+                setupClipboardImagePaste('editBlogContent');
 
                 const modal = new bootstrap.Modal(document.getElementById('editBlogModal'));
                 modal.show();
@@ -3572,6 +3594,7 @@
             try {
               const res = await fetch('/api/store/admin/blogs/' + id, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   title,
@@ -3603,7 +3626,7 @@
           async function deleteBlog(id) {
             if (!confirm('Delete this blog article? This action cannot be undone.')) return;
             try {
-              const res = await fetch('/api/store/admin/blogs/' + id, { method: 'DELETE' });
+              const res = await fetch('/api/store/admin/blogs/' + id, { method: 'DELETE', credentials: 'include' });
               const data = await res.json();
               if (data.success) {
                 const row = document.getElementById('blog-row-' + id);
