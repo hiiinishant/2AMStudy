@@ -1,180 +1,72 @@
 <%- include('partials/header') %>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap');
 
     .pomo-page {
-      background: #f4f6fb;
+      background: #f8fafc;
       min-height: 100vh;
-      padding-top: 90px;
-      padding-bottom: 80px;
-      font-family: 'Inter', sans-serif;
+      padding-top: 96px;
+      padding-bottom: 70px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #0f172a;
     }
 
-    /* ── Hero Card ── */
+    /* ── Hero Timer Card ── */
     .timer-hero-card {
       background: #ffffff;
-      border-radius: 2rem;
-      border: 1px solid #e8ecf4;
-      box-shadow: 0 8px 40px rgba(15, 23, 42, 0.07);
-      overflow: hidden;
+      border-radius: 1.75rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+      padding: 2rem;
+      transition: all 0.3s ease;
     }
 
-    /* ── Mode Tabs ── */
+    /* ── Mode Selection Tabs ── */
     .mode-tab-wrap {
       background: #f1f5f9;
       border-radius: 999px;
       padding: 4px;
       display: inline-flex;
-      gap: 2px;
+      gap: 3px;
     }
     .mode-tab {
       border: none;
       background: transparent;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      padding: 7px 20px;
+      padding: 8px 18px;
       border-radius: 999px;
       cursor: pointer;
-      transition: all 0.22s ease;
+      transition: all 0.2s ease;
       color: #64748b;
-      letter-spacing: 0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
     .mode-tab.active-study {
       background: #4f46e5;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(79,70,229,0.35);
-    }
-    .mode-tab.active-break {
-      background: #f59e0b;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(245,158,11,0.35);
-    }
-    .mode-tab:hover:not(.active-study):not(.active-break) {
-      background: rgba(0,0,0,0.05);
-      color: #0f172a;
-    }
-
-    /* ── Timer Ring ── */
-    .pomo-ring {
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: conic-gradient(#4f46e5 0deg, #e8ecf4 0deg);
-      display: grid;
-      place-items: center;
-      box-shadow: 0 12px 50px rgba(79, 70, 229, 0.2);
-      transition: background 0.5s ease;
-      margin: 0 auto;
-    }
-    .pomo-ring-inner {
-      width: 232px;
-      height: 232px;
-      border-radius: 50%;
-      background: #0f172a;
-      display: grid;
-      place-items: center;
-      border: 5px solid #fff;
-      box-shadow: inset 0 2px 14px rgba(0,0,0,0.35);
-    }
-    .pomo-time {
-      font-size: 3.8rem;
-      font-weight: 800;
-      letter-spacing: 0.03em;
       color: #ffffff;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      line-height: 1;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
     }
-    .pomo-mode-badge {
-      font-size: 0.7rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-top: 6px;
-      color: #818cf8;
+    .mode-tab.active-shortBreak {
+      background: #0d9488;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
     }
-
-    /* ── Preset Pills ── */
-    .preset-pill {
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
-      color: #475569;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 6px 15px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      user-select: none;
+    .mode-tab.active-longBreak {
+      background: #d97706;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
     }
-    .preset-pill:hover {
-      background: rgba(79,70,229,0.08);
-      border-color: #a5b4fc;
-      color: #4f46e5;
-      transform: translateY(-1px);
-    }
-    .preset-pill.active-preset {
-      background: #4f46e5;
-      border-color: #4f46e5;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(79,70,229,0.3);
+    .mode-tab:hover:not([class*="active-"]) {
+      background: rgba(0, 0, 0, 0.04);
+      color: #1e293b;
     }
 
-    /* ── Action Buttons ── */
-    .pomo-btn-start {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #fff;
-      border: none;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 13px 36px;
-      border-radius: 999px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 18px rgba(16,185,129,0.35);
-    }
-    .pomo-btn-start:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(16,185,129,0.4);
-    }
-    .pomo-btn-pause {
-      background: #fff8ed;
-      color: #d97706;
-      border: 2px solid #fcd34d;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 11px 30px;
-      border-radius: 999px;
-      transition: all 0.2s ease;
-    }
-    .pomo-btn-pause:hover:not(:disabled) {
-      background: #fef3c7;
-      transform: translateY(-1px);
-    }
-    .pomo-btn-reset {
-      background: #fff;
-      color: #ef4444;
-      border: 2px solid #fecaca;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 11px 30px;
-      border-radius: 999px;
-      transition: all 0.2s ease;
-    }
-    .pomo-btn-reset:hover {
-      background: #fef2f2;
-      transform: translateY(-1px);
-    }
-    .pomo-btn-start:disabled, .pomo-btn-pause:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    /* ── Layout Switcher ── */
+    /* ── Layout Segmented Control ── */
     .layout-seg {
       background: #f1f5f9;
-      border: 1px solid #e2e8f0;
       border-radius: 999px;
       padding: 3px;
       display: inline-flex;
@@ -184,78 +76,217 @@
       border: none;
       background: transparent;
       color: #64748b;
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       font-weight: 600;
-      padding: 4px 12px;
+      padding: 5px 12px;
       border-radius: 999px;
       cursor: pointer;
       transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .layout-seg-btn.active {
       background: #0f172a;
       color: #fff;
-      box-shadow: 0 2px 6px rgba(15,23,42,0.2);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
     }
 
-    /* ── Stat Cards ── */
-    .stat-card {
-      background: #fff;
-      border: 1px solid #e8ecf4;
-      border-radius: 1.25rem;
-      padding: 1.25rem 1rem;
-      text-align: center;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
+    /* ── Preset Pills ── */
+    .preset-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
     }
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-      border-radius: 0 0 1.25rem 1.25rem;
-      opacity: 0;
-      transition: opacity 0.2s;
+    .preset-pill:hover {
+      background: rgba(79, 70, 229, 0.06);
+      border-color: #c7d2fe;
+      color: #4f46e5;
     }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,23,42,0.08); }
-    .stat-card:hover::after { opacity: 1; }
-    .stat-card.study-card::after { background: linear-gradient(90deg, #4f46e5, #818cf8); }
-    .stat-card.break-card::after { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
-    .stat-card.session-card::after { background: linear-gradient(90deg, #10b981, #34d399); }
-    .stat-card.ratio-card::after { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .preset-pill.active-preset {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+    }
 
-    .stat-icon-wrap {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
+    /* ── Timer Centerpiece ── */
+    .pomo-ring {
+      width: 270px;
+      height: 270px;
+      border-radius: 50%;
+      background: conic-gradient(#4f46e5 0deg, #e2e8f0 0deg);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 40px rgba(79, 70, 229, 0.15);
+      transition: background 0.4s ease, box-shadow 0.3s ease;
+      margin: 0 auto;
+    }
+    .pomo-ring-inner {
+      width: 228px;
+      height: 228px;
+      border-radius: 50%;
+      background: #0f172a;
+      display: grid;
+      place-items: center;
+      border: 4px solid #ffffff;
+      box-shadow: inset 0 3px 15px rgba(0, 0, 0, 0.45);
+    }
+    .pomo-time {
+      font-size: 3.8rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+    .pomo-mode-badge {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 8px;
+      color: #818cf8;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 10px;
-      font-size: 1.2rem;
-    }
-    .stat-val {
-      font-size: 1.7rem;
-      font-weight: 800;
-      line-height: 1.1;
-      font-family: 'Inter', sans-serif;
-    }
-    .stat-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #94a3b8;
-      margin-top: 4px;
-      font-weight: 600;
+      gap: 5px;
     }
 
-    /* ── Progress Section ── */
-    .progress-card {
-      background: #fff;
-      border: 1px solid #e8ecf4;
+    /* ── Layout Variants ── */
+    .layout-rectangular .pomo-ring {
+      width: 100%;
+      height: auto;
+      border-radius: 1.25rem;
+      background: #0f172a !important;
+      padding: 2.25rem 1.5rem;
+      display: block;
+      border: 1px solid #1e293b;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .layout-rectangular .pomo-ring-inner {
+      width: 100%;
+      height: auto;
+      background: transparent;
+      display: block;
+      border: none;
+      box-shadow: none;
+    }
+    .layout-rectangular .pomo-time {
+      font-size: 5rem;
+      line-height: 1;
+      font-weight: 800;
+      color: #fff;
+    }
+    .layout-rectangular .progress-bar-container {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      margin-top: 1.25rem;
+      overflow: hidden;
+    }
+    .layout-rectangular .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #38bdf8);
+      transition: width 0.3s ease;
+    }
+    .layout-minimal .pomo-ring,
+    .layout-minimal .pomo-ring-inner {
+      background: transparent !important;
+      box-shadow: none !important;
+      height: auto;
+      width: auto;
+      border: none;
+    }
+    .layout-minimal .pomo-time {
+      font-size: 6rem;
+      font-weight: 300;
+      color: #0f172a;
+      letter-spacing: -0.04em;
+    }
+    .layout-minimal .minimal-progress-line {
+      height: 4px;
+      width: 240px;
+      background: #e2e8f0;
+      margin: 1.25rem auto 0;
+      position: relative;
+      overflow: hidden;
+      border-radius: 99px;
+    }
+    .layout-minimal .minimal-progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #818cf8);
+      transition: width 0.3s ease;
+    }
+
+    /* ── Action Buttons ── */
+    .pomo-btn-start {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 13px 34px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    }
+    .pomo-btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.38);
+    }
+    .pomo-btn-pause {
+      background: #fff8ed;
+      color: #d97706;
+      border: 2px solid #fcd34d;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 11px 28px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+    .pomo-btn-pause:hover:not(:disabled) {
+      background: #fef3c7;
+      transform: translateY(-1px);
+    }
+    .pomo-btn-reset {
+      background: #ffffff;
+      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 11px 24px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+    .pomo-btn-reset:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .pomo-btn-start:disabled, .pomo-btn-pause:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Right Column Cards ── */
+    .progress-card, .log-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 1.5rem;
       padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(15,23,42,0.04);
+      box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.04);
     }
     .progress-track {
       height: 9px;
@@ -269,93 +300,39 @@
       transition: width 0.6s ease;
     }
     .goal-badge {
-      background: linear-gradient(135deg, rgba(79,70,229,0.1), rgba(129,140,248,0.08));
-      border: 1px solid rgba(79,70,229,0.18);
-      border-radius: 1rem;
-      padding: 0.85rem 1rem;
-      text-align: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: all 0.18s;
     }
-
-    /* ── Session Log ── */
-    .log-card {
-      background: #fff;
-      border: 1px solid #e8ecf4;
-      border-radius: 1.5rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(15,23,42,0.04);
+    .goal-badge:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
     }
     .session-log-box {
-      max-height: 200px;
+      max-height: 255px;
       overflow-y: auto;
+      padding-right: 4px;
     }
     .session-log-box::-webkit-scrollbar { width: 4px; }
-    .session-log-box::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-    .log-entry {
+    .session-log-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .log-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 9px 12px;
-      border-radius: 10px;
-      margin-bottom: 6px;
+      padding: 9px 13px;
+      border-radius: 12px;
+      margin-bottom: 7px;
       border: 1px solid transparent;
       font-size: 0.83rem;
-    }
-    .log-entry.study-entry {
-      background: rgba(79,70,229,0.05);
-      border-color: rgba(79,70,229,0.14);
-    }
-    .log-entry.break-entry {
-      background: rgba(245,158,11,0.05);
-      border-color: rgba(245,158,11,0.14);
-    }
-
-    /* ── Settings Card ── */
-    .settings-card {
-      background: #fff;
-      border: 1px solid #e8ecf4;
-      border-radius: 1.5rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(15,23,42,0.04);
-    }
-    .settings-card .form-control {
-      border-radius: 10px;
-      border-color: #e2e8f0;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-    .settings-card .form-control:focus {
-      border-color: #a5b4fc;
-      box-shadow: 0 0 0 3px rgba(165,180,252,0.2);
-    }
-    .settings-card label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    .settings-card .input-icon-wrap {
-      position: relative;
-    }
-    .settings-card .input-icon-wrap .icon-badge {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.85rem;
-      pointer-events: none;
-    }
-
-    /* ── Notification Banner ── */
-    #pomoBanner {
-      border-radius: 1rem;
-      font-size: 0.9rem;
-      border: none;
     }
 
     /* ── Fullscreen Overrides ── */
     #pomoTimerCard:fullscreen {
-      background-color: #090d16 !important;
+      background: #090d16 !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
@@ -365,151 +342,98 @@
       padding: 2rem !important;
       border: none !important;
     }
-    #pomoTimerCard:fullscreen .pomo-time { color: #ffffff !important; }
+    #pomoTimerCard:fullscreen .pomo-time { color: #ffffff !important; font-size: min(16vw, 16vh) !important; }
     #pomoTimerCard:fullscreen.layout-circular .pomo-ring {
-      width: min(72vw, 72vh) !important;
-      height: min(72vw, 72vh) !important;
-      box-shadow: 0 0 120px rgba(99, 102, 241, 0.5) !important;
+      width: min(70vw, 70vh) !important;
+      height: min(70vw, 70vh) !important;
+      box-shadow: 0 0 100px rgba(99, 102, 241, 0.4) !important;
     }
     #pomoTimerCard:fullscreen.layout-circular .pomo-ring-inner {
-      width: calc(100% - 28px) !important;
-      height: calc(100% - 28px) !important;
-    }
-    #pomoTimerCard:fullscreen.layout-circular .pomo-time { font-size: min(15vw, 15vh) !important; }
-    #pomoTimerCard:fullscreen.layout-rectangular .pomo-ring {
-      width: min(85vw, 850px) !important;
-      height: auto !important;
-      display: block !important;
-      background: #0f172a !important;
-      padding: 3rem 2rem !important;
-    }
-    #pomoTimerCard:fullscreen.layout-rectangular .pomo-ring-inner {
-      width: 100% !important; height: auto !important;
-      background: transparent !important; border: none !important; display: block !important;
-    }
-    #pomoTimerCard:fullscreen.layout-rectangular .pomo-time { font-size: min(14vw, 14vh) !important; }
-    #pomoTimerCard:fullscreen.layout-minimal .pomo-ring,
-    #pomoTimerCard:fullscreen.layout-minimal .pomo-ring-inner {
-      width: auto !important; height: auto !important;
-      background: transparent !important; box-shadow: none !important; display: block !important; border: none !important;
-    }
-    #pomoTimerCard:fullscreen.layout-minimal .pomo-time {
-      font-size: min(22vw, 22vh) !important;
-      color: #ffffff !important; font-weight: 200 !important; letter-spacing: -0.04em !important;
-    }
-    #pomoTimerCard:fullscreen.layout-minimal .minimal-progress-line {
-      width: min(60vw, 450px) !important; background: rgba(255,255,255,0.15) !important; margin-top: 2rem !important;
-    }
-    #pomoTimerCard:fullscreen.layout-minimal .minimal-progress-fill {
-      background: #818cf8 !important; box-shadow: 0 0 16px rgba(129,140,248,0.8) !important;
-    }
-
-    /* ── Layout Variants ── */
-    .layout-rectangular .pomo-ring {
-      width: 100%; height: auto; border-radius: 1.5rem;
-      background: #0f172a !important; padding: 2.5rem 2rem; display: block;
-      border: 1px solid #1e293b; box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-    }
-    .layout-rectangular .pomo-ring-inner {
-      width: 100%; height: auto; background: transparent;
-      display: block; border: none; box-shadow: none;
-    }
-    .layout-rectangular .pomo-time { font-size: 5.5rem; line-height: 1; font-weight: 800; color: #fff; }
-    .layout-rectangular .progress-bar-container {
-      height: 10px; background: rgba(255,255,255,0.1); border-radius: 999px; margin-top: 1.5rem; overflow: hidden;
-    }
-    .layout-rectangular .progress-bar-fill {
-      height: 100%; background: linear-gradient(90deg, #4f46e5, #38bdf8);
-      transition: width 0.3s ease; box-shadow: 0 0 12px rgba(99,102,241,0.6);
-    }
-    .layout-minimal .pomo-ring, .layout-minimal .pomo-ring-inner {
-      background: transparent !important; box-shadow: none !important; height: auto; width: auto; border: none;
-    }
-    .layout-minimal .pomo-time { font-size: 7rem; font-weight: 300; color: #0f172a; letter-spacing: -0.04em; }
-    .layout-minimal .minimal-progress-line {
-      height: 3px; width: 260px; background: #e2e8f0;
-      margin: 1.25rem auto 0; position: relative; overflow: hidden; border-radius: 99px;
-    }
-    .layout-minimal .minimal-progress-fill {
-      position: absolute; left: 0; top: 0; height: 100%;
-      background: linear-gradient(90deg, #4f46e5, #818cf8); transition: width 0.3s ease;
-    }
-
-    /* ── Section Label ── */
-    .section-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #94a3b8;
-      margin-bottom: 0.75rem;
-      padding-left: 2px;
+      width: calc(100% - 24px) !important;
+      height: calc(100% - 24px) !important;
     }
   </style>
 
   <main class="pomo-page" id="pomoPage">
-    <div class="container" style="max-width: 1080px;">
+    <div class="container" style="max-width: 1060px;">
 
       <!-- ── PAGE HEADER ── -->
       <div class="text-center mb-4">
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2"
              style="background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.2);">
-          <i class="fa-solid fa-bolt" style="color:#4f46e5;font-size:0.75rem;"></i>
-          <span class="small fw-semibold" style="color:#4338ca;">Smart Pomodoro Study Engine</span>
+          <i class="fa-solid fa-graduation-cap" style="color:#4f46e5;font-size:0.8rem;"></i>
+          <span class="small fw-semibold" style="color:#4338ca;">Study Room Focus Timer</span>
         </div>
-        <h1 class="fw-bold mb-1" style="color:#0f172a;font-size:clamp(1.7rem,3.5vw,2.3rem);letter-spacing:-0.02em;">
-          <i class="fa-solid fa-stopwatch me-2" style="color:#ef4444;"></i>Focus Timer
+        <h1 class="fw-bold mb-1" style="color:#0f172a;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-0.02em;">
+          Pomodoro Focus Timer
         </h1>
-        <p class="mb-0" style="color:#64748b;font-size:0.92rem;max-width:500px;margin:0 auto;">
-          Study smarter with rhythmic focus intervals. Track every session and reach your daily goal.
+        <p class="mb-0 text-muted" style="font-size:0.92rem;max-width:480px;margin:0 auto;">
+          Scientifically-backed focus intervals to build deep retention, prevent burnout, and hit your daily study goal.
         </p>
       </div>
 
-      <!-- ── BANNER ── -->
+      <!-- ── NOTIFICATION BANNER ── -->
       <div id="pomoBanner" class="alert text-center fw-semibold mb-4 d-none" role="alert"></div>
 
-      <!-- ── MAIN TWO-COLUMN LAYOUT ── -->
-      <div class="row g-4 mb-4">
+      <!-- ── MAIN TWO-COLUMN DASHBOARD ── -->
+      <div class="row g-4 mb-5 align-items-start">
 
-        <!-- LEFT: Timer Block -->
+        <!-- LEFT: TIMER HERO ── -->
         <div class="col-lg-7">
-          <div class="timer-hero-card p-4 p-md-4">
+          <div class="timer-hero-card">
 
-            <!-- Top Bar: Mode + Controls -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-
-              <!-- Mode Switcher -->
+            <!-- Top Header Controls -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+              <!-- Mode Tabs -->
               <div class="mode-tab-wrap">
                 <button class="mode-tab active-study" id="btnModeStudy" onclick="setPomoMode('study')">
-                  📚 Study
+                  <span>🎯</span> Focus
                 </button>
-                <button class="mode-tab" id="btnModeBreak" onclick="setPomoMode('break')">
-                  ☕ Break
+                <button class="mode-tab" id="btnModeShortBreak" onclick="setPomoMode('shortBreak')">
+                  <span>☕</span> Short Break
+                </button>
+                <button class="mode-tab" id="btnModeLongBreak" onclick="setPomoMode('longBreak')">
+                  <span>🌴</span> Long Break
                 </button>
               </div>
 
-              <!-- Layout & Fullscreen -->
+              <!-- View & Fullscreen -->
               <div class="d-flex align-items-center gap-2">
-                <div class="layout-seg">
-                  <button class="layout-seg-btn" id="layoutBtnCircular" onclick="setTimerLayout('circular')">⭕</button>
-                  <button class="layout-seg-btn" id="layoutBtnRectangular" onclick="setTimerLayout('rectangular')">▭</button>
-                  <button class="layout-seg-btn" id="layoutBtnMinimal" onclick="setTimerLayout('minimal')">✦</button>
+                <div class="layout-seg" title="Switch Timer View">
+                  <button class="layout-seg-btn active" id="layoutBtnCircular" onclick="setTimerLayout('circular')">⭕ Ring</button>
+                  <button class="layout-seg-btn" id="layoutBtnRectangular" onclick="setTimerLayout('rectangular')">▭ Bar</button>
+                  <button class="layout-seg-btn" id="layoutBtnMinimal" onclick="setTimerLayout('minimal')">✦ Zen</button>
                 </div>
                 <button id="btnFullscreen" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold"
-                        onclick="toggleFullscreen()" style="font-size:0.78rem;">
+                        onclick="toggleFullscreen()" style="font-size:0.78rem;" title="Fullscreen Focus Mode">
                   <i class="fa-solid fa-expand me-1"></i>Fullscreen
                 </button>
               </div>
             </div>
 
-            <!-- Timer Centerpiece -->
+            <!-- Quick Duration Presets -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-uppercase fw-bold text-muted" style="font-size:0.7rem;letter-spacing:0.08em;">Quick Presets</span>
+                <span class="text-muted" style="font-size:0.75rem;"><i class="fa-regular fa-clock me-1"></i>One-click interval switch</span>
+              </div>
+              <div class="d-flex flex-wrap gap-2" id="presetContainer">
+                <span class="preset-pill" id="preset-15" onclick="applyPreset(15, 3, this)">⚡ 15m Sprint</span>
+                <span class="preset-pill active-preset" id="preset-25" onclick="applyPreset(25, 5, this)">🎯 25m Classic</span>
+                <span class="preset-pill" id="preset-45" onclick="applyPreset(45, 10, this)">🧠 45m Deep Work</span>
+                <span class="preset-pill" id="preset-60" onclick="applyPreset(60, 15, this)">🔥 60m Marathon</span>
+              </div>
+            </div>
+
+            <!-- Timer Countdown Display -->
             <div id="pomoTimerCard" class="text-center mb-4 layout-circular">
               <div class="pomo-ring" id="pomoRing">
                 <div class="pomo-ring-inner">
                   <div>
                     <div class="pomo-time"><span id="pomoMin">25</span>:<span id="pomoSec">00</span></div>
-                    <div id="pomoModeBadge" class="pomo-mode-badge">STUDY</div>
-                    <div id="pomoSessionBadge" class="pomo-mode-badge d-none" style="color:#38bdf8;"></div>
+                    <div id="pomoModeBadge" class="pomo-mode-badge">
+                      <span id="pomoStatusDot">●</span> <span id="pomoModeText">FOCUS SESSION</span>
+                    </div>
                     <!-- Bar layout progress -->
                     <div class="progress-bar-container d-none" id="rectProgress">
                       <div class="progress-bar-fill" id="rectFill" style="width:0%"></div>
@@ -523,24 +447,10 @@
               </div>
             </div>
 
-            <!-- Quick Presets -->
-            <div class="mb-3">
-              <div class="section-label">Quick Presets</div>
-              <div class="d-flex flex-wrap gap-2">
-                <span class="preset-pill" id="preset-15" onclick="applyPreset(15, 3, this)">⚡ 15m Sprint</span>
-                <span class="preset-pill active-preset" id="preset-25" onclick="applyPreset(25, 5, this)">🎯 25m Classic</span>
-                <span class="preset-pill" id="preset-45" onclick="applyPreset(45, 10, this)">🧠 45m Deep Work</span>
-                <span class="preset-pill" id="preset-60" onclick="applyPreset(60, 15, this)">🔥 60m Marathon</span>
-              </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="border-top my-3" style="border-color:#f1f5f9 !important;"></div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+            <!-- Primary Action Buttons -->
+            <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-3">
               <button id="btnStart" class="pomo-btn-start d-flex align-items-center gap-2" onclick="startPomo()">
-                <i class="fa-solid fa-play"></i> Start Session
+                <i class="fa-solid fa-play"></i> Start Focus
               </button>
               <button id="btnPause" class="pomo-btn-pause d-flex align-items-center gap-2" onclick="pausePomo()" disabled>
                 <i class="fa-solid fa-pause"></i> Pause
@@ -550,71 +460,90 @@
               </button>
             </div>
 
+            <!-- Shortcut Hint -->
+            <div class="text-center">
+              <span class="text-muted" style="font-size:0.76rem;">
+                <i class="fa-regular fa-keyboard me-1"></i>Tip: Press <kbd style="background:#e2e8f0;color:#334155;border-radius:4px;padding:2px 6px;font-size:0.75rem;">Spacebar</kbd> to Start or Pause
+              </span>
+            </div>
+
           </div>
         </div>
 
-        <!-- RIGHT: Today's Progress + Session History -->
+        <!-- RIGHT: TODAY'S PROGRESS + SESSION HISTORY ── -->
         <div class="col-lg-5 d-flex flex-column gap-4">
 
-          <!-- Today's Progress -->
+          <!-- 1. Today's Progress Card -->
           <div class="progress-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <div class="section-label mb-0">Today's Progress</div>
-                <span id="statTodayDate" class="fw-semibold" style="color:#0f172a;font-size:0.9rem;"></span>
+                <span class="text-uppercase fw-bold text-muted" style="font-size:0.7rem;letter-spacing:0.08em;display:block;margin-bottom:2px;">Daily Tracker</span>
+                <h6 class="fw-bold mb-0" style="color:#0f172a;">Today's Progress</h6>
               </div>
-              <div class="goal-badge px-3 py-1">
+              <div class="goal-badge d-flex align-items-center gap-1" onclick="changeGoalPrompt()" title="Click to change daily goal">
+                <i class="fa-solid fa-bullseye" style="color:#4f46e5;font-size:0.75rem;"></i>
                 <span class="small fw-bold" style="color:#4f46e5;">Goal: <span id="goalDisplayVal">4h</span></span>
+                <i class="fa-solid fa-pen ms-1" style="font-size:0.65rem;color:#94a3b8;"></i>
               </div>
             </div>
 
-            <!-- Study Progress -->
+            <!-- Study Time Progress -->
             <div class="mb-3">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-semibold" style="font-size:0.82rem;color:#4f46e5;">📚 Study Time</span>
-                <span class="fw-bold" id="todayStudyLabel" style="font-size:0.82rem;color:#4f46e5;">0h 00m</span>
+                <span class="fw-semibold" style="font-size:0.83rem;color:#4f46e5;">
+                  <i class="fa-solid fa-book-open me-1"></i>Study Time
+                </span>
+                <span class="fw-bold" id="todayStudyLabel" style="font-size:0.85rem;color:#4f46e5;">0h 00m</span>
               </div>
               <div class="progress-track">
                 <div id="todayStudyBar" class="progress-fill" style="width:0%;background:linear-gradient(90deg,#4f46e5,#818cf8);"></div>
               </div>
             </div>
 
-            <!-- Break Progress -->
+            <!-- Break Time Progress -->
             <div class="mb-3">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-semibold" style="font-size:0.82rem;color:#f59e0b;">☕ Break Time</span>
-                <span class="fw-bold" id="todayBreakLabel" style="font-size:0.82rem;color:#f59e0b;">0h 00m</span>
+                <span class="fw-semibold" style="font-size:0.83rem;color:#d97706;">
+                  <i class="fa-solid fa-mug-hot me-1"></i>Break Time
+                </span>
+                <span class="fw-bold" id="todayBreakLabel" style="font-size:0.85rem;color:#d97706;">0h 00m</span>
               </div>
               <div class="progress-track">
                 <div id="todayBreakBar" class="progress-fill" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fcd34d);"></div>
               </div>
             </div>
 
-            <!-- Motivation -->
-            <div class="goal-badge mt-1">
-              <p id="motivationMsg" class="mb-0 fw-semibold" style="font-size:0.83rem;color:#4338ca;">Start your first session! 🚀</p>
+            <!-- Today's Motivation Status -->
+            <div class="p-2 rounded-3 mt-2" style="background:#f8fafc;border:1px solid #edf2f7;">
+              <p id="motivationMsg" class="mb-0 fw-semibold text-center" style="font-size:0.82rem;color:#4338ca;">
+                Start your first session to begin tracking! 🚀
+              </p>
             </div>
           </div>
 
-          <!-- Session History -->
+          <!-- 2. Session History Card -->
           <div class="log-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle d-flex align-items-center justify-content-center"
-                     style="width:32px;height:32px;background:#f1f5f9;">
+                     style="width:30px;height:30px;background:#f1f5f9;">
                   <i class="fa-solid fa-clock-rotate-left" style="color:#475569;font-size:0.8rem;"></i>
                 </div>
-                <h6 class="fw-bold mb-0" style="color:#0f172a;">Session History</h6>
+                <div>
+                  <h6 class="fw-bold mb-0" style="color:#0f172a;">Session History</h6>
+                </div>
               </div>
               <button class="btn btn-sm rounded-pill px-3 fw-semibold" onclick="clearHistory()"
-                      style="font-size:0.75rem;border:1.5px solid #fecaca;color:#ef4444;background:#fff8f8;">
-                <i class="fa-solid fa-trash-can me-1"></i>Clear All
+                      style="font-size:0.75rem;border:1px solid #fecaca;color:#ef4444;background:#fff8f8;">
+                <i class="fa-solid fa-trash-can me-1"></i>Clear
               </button>
             </div>
-            <div class="session-log-box" id="sessionLog" style="max-height: 250px;">
-              <div class="text-center py-4">
-                <div style="font-size:2rem;margin-bottom:8px;">⏳</div>
-                <p class="text-muted mb-0" style="font-size:0.83rem;">No sessions yet — start the timer to begin!</p>
+
+            <!-- Scrollable Log Box -->
+            <div class="session-log-box" id="sessionLog">
+              <div class="text-center py-4 text-muted">
+                <div style="font-size:1.8rem;margin-bottom:6px;">⏳</div>
+                <p class="mb-0" style="font-size:0.82rem;">No sessions yet today.<br>Completed intervals will appear here!</p>
               </div>
             </div>
           </div>
@@ -626,19 +555,47 @@
     </div>
   </main>
 
-  <!-- Script -->
+  <!-- ─────────────── Script ─────────────── -->
   <script>
     (function () {
       // ── State ──
-      let mode = 'study';   // 'study' | 'break'
+      let mode = 'study'; // 'study' | 'shortBreak' | 'longBreak'
       let studySec = 25 * 60;
-      let breakSec = 5 * 60;
+      let shortBreakSec = 5 * 60;
+      let longBreakSec = 15 * 60;
       let remaining = studySec;
       let interval = null;
       let isRunning = false;
       let alertCtx = null;
       let currentLayout = localStorage.getItem('pomoTimerLayout') || 'circular';
       let wakeLock = null;
+      let sessionStartTs = null;
+
+      // Persistence
+      const todayKey = 'PomDate_' + new Date().toISOString().slice(0, 10);
+      let todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+      let totalStudySec = parseInt(localStorage.getItem('PomTotalStudy') || '0', 10);
+      let totalBreakSec = parseInt(localStorage.getItem('PomTotalBreak') || '0', 10);
+      let totalSessions = parseInt(localStorage.getItem('PomSessions') || '0', 10);
+
+      // Check daily reset
+      const lastRecordedDate = localStorage.getItem('PomCurrentDate');
+      const todayDateISO = new Date().toISOString().slice(0, 10);
+      if (lastRecordedDate !== todayDateISO) {
+        localStorage.setItem('PomCurrentDate', todayDateISO);
+        localStorage.setItem('PomTodayStudy', '0');
+        localStorage.setItem('PomTodayBreak', '0');
+      }
+
+      let todayStudySec = parseInt(localStorage.getItem('PomTodayStudy') || '0', 10);
+      let todayBreakSec = parseInt(localStorage.getItem('PomTodayBreak') || '0', 10);
+      let dailyGoalHours = parseFloat(localStorage.getItem('PomGoalHours') || '4');
+      let sessionHistory = [];
+      try {
+        sessionHistory = JSON.parse(localStorage.getItem('PomSessionHistory') || '[]');
+      } catch (e) {
+        sessionHistory = [];
+      }
 
       // ── Screen Wake Lock ──
       async function requestWakeLock() {
@@ -646,7 +603,7 @@
           try {
             wakeLock = await navigator.wakeLock.request('screen');
           } catch (err) {
-            console.error(`${err.name}, ${err.message}`);
+            console.error('WakeLock error:', err);
           }
         }
       }
@@ -673,128 +630,77 @@
         card.classList.remove('layout-circular', 'layout-rectangular', 'layout-minimal');
         card.classList.add(`layout-${layout}`);
 
-        // Update active class on segmented buttons
         document.getElementById('layoutBtnCircular')?.classList.toggle('active', layout === 'circular');
         document.getElementById('layoutBtnRectangular')?.classList.toggle('active', layout === 'rectangular');
         document.getElementById('layoutBtnMinimal')?.classList.toggle('active', layout === 'minimal');
 
-        // Toggle visibility of specific progress elements
         document.getElementById('rectProgress')?.classList.toggle('d-none', layout !== 'rectangular');
         document.getElementById('minProgress')?.classList.toggle('d-none', layout !== 'minimal');
 
         updateDisplay();
       };
 
-
-
-
-      // Tracked totals (seconds)
-      let totalStudySec = parseInt(localStorage.getItem('PomTotalStudy') || '0', 10);
-      let totalBreakSec = parseInt(localStorage.getItem('PomTotalBreak') || '0', 10);
-      let totalSessions = parseInt(localStorage.getItem('PomSessions') || '0', 10);
-      let sessionStartTs = null;
-
-      // ── Session History (stored in localStorage) ──
-      let sessionHistory = JSON.parse(localStorage.getItem('PomSessionHistory') || '[]');
-
-      // ── Today's accumulated seconds (reset each day) ──
-      const TODAY_KEY = 'PomTodayDate';
-      const storedDate = localStorage.getItem(TODAY_KEY);
-      const todayStr = new Date().toLocaleDateString('en-IN', { weekday:'short', month:'short', day:'numeric' });
-      const todayISO = new Date().toISOString().slice(0, 10);
-      if (storedDate !== todayISO) {
-        localStorage.setItem(TODAY_KEY, todayISO);
-        localStorage.setItem('PomTodayStudy', '0');
-        localStorage.setItem('PomTodayBreak', '0');
+      // ── Audio Alerts (Web Audio API) ──
+      function getCtx() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        return new AudioContext();
       }
-      let todayStudySec = parseInt(localStorage.getItem('PomTodayStudy') || '0', 10);
-      let todayBreakSec = parseInt(localStorage.getItem('PomTodayBreak') || '0', 10);
-      let dailyGoalHours = parseFloat(localStorage.getItem('PomGoalHours') || '4');
 
-      // ── Init inputs ──
-      const studyInputEl = document.getElementById('studyInput');
-      const breakInputEl = document.getElementById('breakInput');
-      const goalInputEl = document.getElementById('goalInput');
-      if (studyInputEl) studyInputEl.value = Math.round(studySec / 60);
-      if (breakInputEl) breakInputEl.value = Math.round(breakSec / 60);
-      if (goalInputEl) goalInputEl.value = dailyGoalHours;
-
-      // ── Audio Context ──
-      const getCtx = () => {
-        if (!window._pomoAudioCtx) window._pomoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        return window._pomoAudioCtx;
-      };
-
-      // Sound alerts: Study Complete (Crisp Bell/Chime) & Break Complete (Deep Resonant Gong)
-      function playStudyAlertSound(ctx) {
-        // Crisp high-energy 4-note bell chime (880Hz -> 1046Hz -> 1318Hz -> 1760Hz)
-        [[880, 0], [1046, 0.18], [1318, 0.36], [1760, 0.54]].forEach(([f, d]) => {
+      function playChime(ctx) {
+        // Harmonious 3-note chime
+        [523.25, 659.25, 783.99].forEach((f, i) => {
           const osc = ctx.createOscillator(), g = ctx.createGain();
           osc.connect(g); g.connect(ctx.destination);
           osc.type = 'sine'; osc.frequency.value = f;
-          const t = ctx.currentTime + d;
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(0.4, t + 0.03);
+          const t = ctx.currentTime + i * 0.18;
+          g.gain.setValueAtTime(0.3, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
           osc.start(t); osc.stop(t + 1.3);
-        });
-      }
-
-      function playBreakDeepSound(ctx) {
-        // Deep rich low-frequency resonant soundwave (110Hz + 82Hz sub-bass harmonic)
-        [110, 82, 164].forEach((f, i) => {
-          const osc = ctx.createOscillator(), g = ctx.createGain();
-          osc.connect(g); g.connect(ctx.destination);
-          osc.type = 'sine'; osc.frequency.value = f;
-          const t = ctx.currentTime;
-          g.gain.setValueAtTime(0.5 / (i + 1), t);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 3.5);
-          osc.start(t); osc.stop(t + 3.6);
         });
       }
 
       function playAlert() {
         const ctx = getCtx();
         if (ctx.state === 'suspended') ctx.resume();
-
-        if (mode === 'study') {
-          playStudyAlertSound(ctx);
-        } else {
-          playBreakDeepSound(ctx);
-        }
-
-        // Play repeat after 2.5s for clear notice
-        alertCtx = ctx;
-        setTimeout(() => {
-          if (!alertCtx) return;
-          if (mode === 'study') playStudyAlertSound(ctx);
-          else playBreakDeepSound(ctx);
-        }, 2500);
+        playChime(ctx);
+        setTimeout(() => { playChime(ctx); }, 1800);
       }
 
-      function stopAlert() {
-        alertCtx = null;
-      }
-
-      // ── Display ──
+      // ── Display Updates ──
       function fmt2(n) { return String(n).padStart(2, '0'); }
 
       function updateDisplay() {
-        const m = Math.floor(remaining / 60), s = remaining % 60;
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        const timeStr = `${fmt2(m)}:${fmt2(s)}`;
+
         document.getElementById('pomoMin').textContent = fmt2(m);
         document.getElementById('pomoSec').textContent = fmt2(s);
+
+        // Update browser tab title
+        const modeLabel = mode === 'study' ? '🎯 Focus' : (mode === 'shortBreak' ? '☕ Break' : '🌴 Rest');
+        document.title = `${timeStr} - ${modeLabel} | 2AM Study`;
+
         updateRing();
       }
 
       function updateRing() {
-        const total = mode === 'study' ? studySec : breakSec;
+        let total = studySec;
+        if (mode === 'shortBreak') total = shortBreakSec;
+        else if (mode === 'longBreak') total = longBreakSec;
+
         const elapsed = Math.max(0, total - remaining);
         const deg = total > 0 ? Math.min(360, (elapsed / total) * 360) : 0;
-        const color = mode === 'study' ? '#4f46e5' : '#f59e0b';
-        document.getElementById('pomoRing').style.background =
-          `conic-gradient(${color} ${deg}deg, #e2e8f0 ${deg}deg)`;
 
-        // Update alternative progress bars
+        let color = '#4f46e5';
+        if (mode === 'shortBreak') color = '#0d9488';
+        else if (mode === 'longBreak') color = '#d97706';
+
+        const ring = document.getElementById('pomoRing');
+        if (ring) {
+          ring.style.background = `conic-gradient(${color} ${deg}deg, #e2e8f0 ${deg}deg)`;
+        }
+
         const pct = total > 0 ? (elapsed / total) * 100 : 0;
         const rectFill = document.getElementById('rectFill');
         const minFill = document.getElementById('minFill');
@@ -815,27 +721,32 @@
       window.setPomoMode = function (m) {
         if (isRunning) return;
         mode = m;
-        remaining = m === 'study' ? studySec : breakSec;
+
+        if (m === 'study') remaining = studySec;
+        else if (m === 'shortBreak') remaining = shortBreakSec;
+        else if (m === 'longBreak') remaining = longBreakSec;
+
+        // Update mode badges and styles
         const badge = document.getElementById('pomoModeBadge');
-        if (badge) {
-          badge.textContent = m.toUpperCase();
-          badge.style.color = m === 'study' ? '#818cf8' : '#fbbf24';
+        const textEl = document.getElementById('pomoModeText');
+        if (badge && textEl) {
+          if (m === 'study') {
+            textEl.textContent = 'FOCUS SESSION';
+            badge.style.color = '#818cf8';
+          } else if (m === 'shortBreak') {
+            textEl.textContent = 'SHORT BREAK';
+            badge.style.color = '#2dd4bf';
+          } else {
+            textEl.textContent = 'LONG BREAK';
+            badge.style.color = '#f59e0b';
+          }
         }
-        const studyBtn = document.getElementById('btnModeStudy');
-        const breakBtn = document.getElementById('btnModeBreak');
-        if (studyBtn) {
-          studyBtn.className = 'mode-tab' + (m === 'study' ? ' active-study' : '');
-        }
-        if (breakBtn) {
-          breakBtn.className = 'mode-tab' + (m === 'break' ? ' active-break' : '');
-        }
-        // Update ring color
-        const ring = document.getElementById('pomoRing');
-        if (ring) {
-          ring.style.boxShadow = m === 'study'
-            ? '0 12px 50px rgba(79, 70, 229, 0.2)'
-            : '0 12px 50px rgba(245, 158, 11, 0.25)';
-        }
+
+        // Update tab buttons
+        document.getElementById('btnModeStudy')?.classList.toggle('active-study', m === 'study');
+        document.getElementById('btnModeShortBreak')?.classList.toggle('active-shortBreak', m === 'shortBreak');
+        document.getElementById('btnModeLongBreak')?.classList.toggle('active-longBreak', m === 'longBreak');
+
         updateDisplay();
         hideBanner();
       };
@@ -844,16 +755,16 @@
       window.applyPreset = function (studyM, breakM, el) {
         if (isRunning) return;
         studySec = studyM * 60;
-        breakSec = breakM * 60;
-        remaining = mode === 'study' ? studySec : breakSec;
-        // Update input fields to reflect preset
-        const si = document.getElementById('studyInput');
-        const bi = document.getElementById('breakInput');
-        if (si) si.value = studyM;
-        if (bi) bi.value = breakM;
-        // Highlight active preset pill
+        shortBreakSec = breakM * 60;
+        longBreakSec = Math.max(15, breakM * 2) * 60;
+
+        if (mode === 'study') remaining = studySec;
+        else if (mode === 'shortBreak') remaining = shortBreakSec;
+        else remaining = longBreakSec;
+
         document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active-preset'));
         if (el) el.classList.add('active-preset');
+
         updateDisplay();
       };
 
@@ -866,9 +777,12 @@
         isRunning = true;
         sessionStartTs = Date.now();
         requestWakeLock();
+
         document.getElementById('btnStart').disabled = true;
         document.getElementById('btnPause').disabled = false;
-        setBanner(`${mode === 'study' ? '📚 Study' : '☕ Break'} session started — stay focused!`, mode === 'study' ? 'primary' : 'warning');
+
+        const label = mode === 'study' ? '🎯 Focus' : '☕ Break';
+        setBanner(`${label} timer started — stay engaged!`, mode === 'study' ? 'primary' : 'warning');
 
         interval = setInterval(() => {
           if (remaining > 0) {
@@ -886,28 +800,32 @@
         clearInterval(interval); interval = null;
         isRunning = false;
         releaseWakeLock();
+
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnPause').disabled = true;
         saveElapsed();
-        setBanner('⏸ Paused — resume when you\'re ready.', 'secondary');
+        setBanner('⏸ Paused — press Start or Spacebar to continue.', 'secondary');
       };
 
       window.stopPomo = function () {
-        stopAlert();
         if (interval) { clearInterval(interval); interval = null; }
         if (isRunning) {
           saveElapsed();
           releaseWakeLock();
         }
         isRunning = false;
-        remaining = mode === 'study' ? studySec : breakSec;
+
+        if (mode === 'study') remaining = studySec;
+        else if (mode === 'shortBreak') remaining = shortBreakSec;
+        else remaining = longBreakSec;
+
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnPause').disabled = true;
         updateDisplay();
         hideBanner();
       };
 
-      // ── Session complete ──
+      // ── Session Completion ──
       function onSessionComplete() {
         clearInterval(interval); interval = null;
         isRunning = false;
@@ -915,8 +833,12 @@
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnPause').disabled = true;
 
-        const elapsed = mode === 'study' ? studySec : breakSec;
-        const completedAt = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        let elapsed = studySec;
+        if (mode === 'shortBreak') elapsed = shortBreakSec;
+        else if (mode === 'longBreak') elapsed = longBreakSec;
+
+        const completedAt = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
         if (mode === 'study') {
           totalStudySec += elapsed;
           todayStudySec += elapsed;
@@ -930,20 +852,20 @@
           todayBreakSec += elapsed;
           localStorage.setItem('PomTotalBreak', totalBreakSec);
           localStorage.setItem('PomTodayBreak', todayBreakSec);
-          addSessionLog('break', elapsed, completedAt);
+          addSessionLog(mode, elapsed, completedAt);
         }
+
         sessionStartTs = null;
         updateStats();
-
         playAlert();
 
         const currentMode = mode;
         const msg = currentMode === 'study'
-          ? `🎉 Study session complete! Time for a break!`
-          : `✅ Break done! Ready for the next focus sprint?`;
+          ? `🎉 Great focus! Time for a refreshing break.`
+          : `✅ Break finished! Ready for your next focus session?`;
         setBanner(msg, currentMode === 'study' ? 'success' : 'info');
 
-        const next = currentMode === 'study' ? 'break' : 'study';
+        const next = currentMode === 'study' ? 'shortBreak' : 'study';
         setTimeout(() => setPomoMode(next), 1200);
       }
 
@@ -977,9 +899,9 @@
       window.toggleFullscreen = function () {
         const card = document.getElementById('pomoTimerCard');
         if (!document.fullscreenElement) {
-          card.requestFullscreen?.().catch(() => { });
+          card.requestFullscreen?.().catch(() => {});
         } else {
-          document.exitFullscreen?.().catch(() => { });
+          document.exitFullscreen?.().catch(() => {});
         }
       };
       document.addEventListener('fullscreenchange', () => {
@@ -990,67 +912,54 @@
         }
       });
 
-      // ── Custom Duration Input ──
-      window.applyCustomDuration = function () {
-        if (isRunning) return;
-        const sVal = parseInt(document.getElementById('studyInput')?.value || '25', 10);
-        const bVal = parseInt(document.getElementById('breakInput')?.value || '5', 10);
-        if (sVal > 0) studySec = sVal * 60;
-        if (bVal > 0) breakSec = bVal * 60;
-        remaining = mode === 'study' ? studySec : breakSec;
-        updateDisplay();
-      };
-
-      window.saveGoal = function () {
-        const val = parseFloat(document.getElementById('goalInput')?.value || '4');
-        if (val > 0) {
-          dailyGoalHours = val;
-          localStorage.setItem('PomGoalHours', val);
-          const badge = document.getElementById('goalDisplayVal');
-          if (badge) badge.textContent = val + 'h';
-          updateStats();
+      // ── Daily Goal Edit ──
+      window.changeGoalPrompt = function () {
+        const current = dailyGoalHours;
+        const res = prompt('Enter your daily study target in hours (e.g., 2, 4, 6):', current);
+        if (res !== null) {
+          const val = parseFloat(res);
+          if (!isNaN(val) && val > 0 && val <= 24) {
+            dailyGoalHours = val;
+            localStorage.setItem('PomGoalHours', val);
+            const badge = document.getElementById('goalDisplayVal');
+            if (badge) badge.textContent = val + 'h';
+            updateStats();
+          }
         }
       };
+
+      // ── Keyboard Shortcut (Spacebar Start/Pause) ──
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          if (isRunning) pausePomo();
+          else startPomo();
+        }
+      });
 
       // ── Helpers ──
       function fmtSec(secs) {
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
-        return `${h}h ${String(m).padStart(2, '0')}m`;
+        if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+        return `${m}m`;
       }
 
       // ── Stats Updater ──
       function updateStats() {
-        // Stat cards
-        const studyEl = document.getElementById('statStudyHours');
-        const breakEl = document.getElementById('statBreakHours');
-        const sessEl = document.getElementById('statSessions');
-        const ratioEl = document.getElementById('statFocusRatio');
-        if (studyEl) studyEl.textContent = fmtSec(totalStudySec);
-        if (breakEl) breakEl.textContent = fmtSec(totalBreakSec);
-        if (sessEl) sessEl.textContent = totalSessions;
-        if (ratioEl) {
-          const total = totalStudySec + totalBreakSec;
-          ratioEl.textContent = total > 0 ? Math.round((totalStudySec / total) * 100) + '%' : '—';
-        }
-
-        // Today's date badge
-        const dateEl = document.getElementById('statTodayDate');
-        if (dateEl) dateEl.textContent = todayStr;
         const goalBadge = document.getElementById('goalDisplayVal');
         if (goalBadge) goalBadge.textContent = dailyGoalHours + 'h';
 
-        // Today's progress bars
         const goalSec = dailyGoalHours * 3600;
         const studyPct = Math.min(100, (todayStudySec / goalSec) * 100);
-        const breakPct = Math.min(100, (todayBreakSec / (goalSec * 0.25)) * 100);
+        const breakPct = Math.min(100, (todayBreakSec / (goalSec * 0.3)) * 100);
 
         const todayStudyLbl = document.getElementById('todayStudyLabel');
         const todayBreakLbl = document.getElementById('todayBreakLabel');
         const studyBar = document.getElementById('todayStudyBar');
         const breakBar = document.getElementById('todayBreakBar');
 
-        if (todayStudyLbl) todayStudyLbl.textContent = fmtSec(todayStudySec);
+        if (todayStudyLbl) todayStudyLbl.textContent = `${fmtSec(todayStudySec)} (${Math.round(studyPct)}%)`;
         if (todayBreakLbl) todayBreakLbl.textContent = fmtSec(todayBreakSec);
         if (studyBar) studyBar.style.width = studyPct + '%';
         if (breakBar) breakBar.style.width = breakPct + '%';
@@ -1058,16 +967,16 @@
         // Motivation message
         const motivEl = document.getElementById('motivationMsg');
         if (motivEl) {
-          if (totalSessions === 0) {
-            motivEl.textContent = 'Start your first session! \uD83D\uDE80';
+          if (todayStudySec === 0) {
+            motivEl.textContent = 'Start your first focus session! 🚀';
           } else if (todayStudySec >= goalSec) {
-            motivEl.textContent = '\uD83C\uDF89 Daily goal reached! Amazing work!';
-          } else if (totalSessions >= 4) {
-            motivEl.textContent = '\uD83D\uDD25 You are on fire! Keep the momentum!';
-          } else if (totalSessions >= 2) {
-            motivEl.textContent = '\uD83D\uDCAA Great progress! Stay consistent!';
+            motivEl.textContent = '🎉 Daily goal reached! Outstanding focus!';
+          } else if (todayStudySec >= goalSec * 0.75) {
+            motivEl.textContent = '🔥 75% of your daily goal done! Finish strong!';
+          } else if (todayStudySec >= goalSec * 0.5) {
+            motivEl.textContent = '⚡ Halfway to your goal! Keep the momentum!';
           } else {
-            motivEl.textContent = '\uD83C\uDF1F Good start! Every session counts.';
+            motivEl.textContent = '💪 Great focus! Every session builds mastery.';
           }
         }
       }
@@ -1076,7 +985,7 @@
       function addSessionLog(type, secs, time) {
         const entry = { type, secs, time, date: new Date().toISOString() };
         sessionHistory.unshift(entry);
-        if (sessionHistory.length > 20) sessionHistory.pop();
+        if (sessionHistory.length > 25) sessionHistory.pop();
         localStorage.setItem('PomSessionHistory', JSON.stringify(sessionHistory));
         renderSessionLog();
       }
@@ -1085,23 +994,28 @@
         const box = document.getElementById('sessionLog');
         if (!box) return;
         if (sessionHistory.length === 0) {
-          box.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-hourglass-start fa-2x mb-2" style="color:#cbd5e1;"></i><p class="text-muted small mb-0">No sessions yet. Start the timer!</p></div>`;
+          box.innerHTML = `<div class="text-center py-4 text-muted">
+            <div style="font-size:1.8rem;margin-bottom:6px;">⏳</div>
+            <p class="mb-0" style="font-size:0.82rem;">No sessions yet today.<br>Completed intervals will appear here!</p>
+          </div>`;
           return;
         }
+
         box.innerHTML = sessionHistory.map(entry => {
           const isStudy = entry.type === 'study';
-          const icon = isStudy ? '📚' : '☕';
-          const label = isStudy ? 'Study' : 'Break';
-          const color = isStudy ? '#4f46e5' : '#f59e0b';
-          const bg = isStudy ? 'rgba(79,70,229,0.06)' : 'rgba(245,158,11,0.06)';
-          const border = isStudy ? 'rgba(79,70,229,0.2)' : 'rgba(245,158,11,0.2)';
+          const icon = isStudy ? '🎯' : '☕';
+          const label = isStudy ? 'Focus Session' : (entry.type === 'longBreak' ? 'Long Break' : 'Short Break');
+          const color = isStudy ? '#4f46e5' : '#d97706';
+          const bg = isStudy ? 'rgba(79,70,229,0.05)' : 'rgba(217,119,6,0.05)';
+          const border = isStudy ? 'rgba(79,70,229,0.15)' : 'rgba(217,119,6,0.15)';
+
           return `<div class="log-item" style="background:${bg};border-color:${border};">
             <div class="d-flex align-items-center gap-2">
               <span>${icon}</span>
-              <span class="fw-semibold" style="color:${color};">${label} Session</span>
+              <span class="fw-semibold" style="color:${color};font-size:0.82rem;">${label}</span>
             </div>
             <div class="d-flex align-items-center gap-3">
-              <span class="fw-bold" style="color:${color};">${fmtSec(entry.secs)}</span>
+              <span class="fw-bold" style="color:${color};font-size:0.82rem;">${fmtSec(entry.secs)}</span>
               <span class="text-muted" style="font-size:0.75rem;">${entry.time}</span>
             </div>
           </div>`;
@@ -1109,19 +1023,9 @@
       }
 
       window.clearHistory = function () {
-        if (!confirm('Clear all session history?')) return;
+        if (!confirm('Clear session history?')) return;
         sessionHistory = [];
         localStorage.removeItem('PomSessionHistory');
-        renderSessionLog();
-      };
-
-      window.resetAllStats = function () {
-        if (!confirm('Reset ALL stats including total study time, sessions, and history?')) return;
-        totalStudySec = 0; totalBreakSec = 0; totalSessions = 0;
-        todayStudySec = 0; todayBreakSec = 0;
-        sessionHistory = [];
-        ['PomTotalStudy','PomTotalBreak','PomSessions','PomTodayStudy','PomTodayBreak','PomSessionHistory'].forEach(k => localStorage.removeItem(k));
-        updateStats();
         renderSessionLog();
       };
 
