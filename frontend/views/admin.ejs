@@ -857,152 +857,66 @@
               </div>
             </div>
 
-            <!-- ========================================            <!-- SECTION 2: STORE PRODUCTS -->
+            <!-- ========================================== -->
+            <!-- SECTION 2: STORE PRODUCTS -->
             <!-- ========================================== -->
             <div class="admin-section d-none" id="sec-products">
 
-              <!-- Quick Stats Row -->
-              <div class="row g-2 mb-3" id="prodStatsRow">
-                <div class="col-6 col-md-3">
-                  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <i class="fa-solid fa-boxes-stacked text-primary" style="font-size:14px;"></i>
-                    </div>
-                    <div>
-                      <div class="fw-bold text-white fs-5 lh-1" id="statTotalProd"><%= products.length %></div>
-                      <div style="font-size:11px;color:#64748b;margin-top:2px;">Total</div>
-                    </div>
+              <!-- Product Table Card -->
+              <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                  <div>
+                    <h4 class="fw-bold text-white fs-6 mb-0">
+                      <i class="fa-solid fa-store text-primary me-2"></i>Store Catalog
+                      <span class="badge bg-primary bg-opacity-25 text-primary ms-1" style="font-size: 11px;"><%= products.length %></span>
+                    </h4>
+                    <span class="text-muted small">Manage store products &amp; details.</span>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-dark" id="productSearchInput"
+                      placeholder="🔍 Search products..." style="max-width: 200px; font-size: 0.82rem;"
+                      oninput="filterProductRows(this.value)">
+                    <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
+                      data-bs-target="#addProductModal">
+                      <i class="fa-solid fa-plus me-1"></i> Add Product
+                    </button>
                   </div>
                 </div>
-                <div class="col-6 col-md-3">
-                  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <i class="fa-solid fa-circle-check text-success" style="font-size:14px;"></i>
-                    </div>
-                    <div>
-                      <div class="fw-bold text-white fs-5 lh-1" id="statInStock"><%= products.filter(p => p.stock > 5).length %></div>
-                      <div style="font-size:11px;color:#64748b;margin-top:2px;">In Stock</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <i class="fa-solid fa-triangle-exclamation text-warning" style="font-size:14px;"></i>
-                    </div>
-                    <div>
-                      <div class="fw-bold text-white fs-5 lh-1" id="statLowStock"><%= products.filter(p => p.stock > 0 && p.stock <= 5).length %></div>
-                      <div style="font-size:11px;color:#64748b;margin-top:2px;">Low Stock</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <i class="fa-solid fa-ban text-danger" style="font-size:14px;"></i>
-                    </div>
-                    <div>
-                      <div class="fw-bold text-white fs-5 lh-1" id="statOutStock"><%= products.filter(p => p.stock === 0).length %></div>
-                      <div style="font-size:11px;color:#64748b;margin-top:2px;">Out of Stock</div>
-                    </div>
-                  </div>
+
+                <div class="table-responsive">
+                  <table class="table table-custom mb-0" id="productTable">
+                    <thead>
+                      <tr>
+                        <th style="width: 70px;">Image</th>
+                        <th>Product Name</th>
+                        <th class="text-end" style="width: 120px;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% products.forEach(function(p) { %>
+                        <tr id="prod-row-<%= p.id %>" data-name="<%= (p.name || '').toLowerCase() %>" data-cat="<%= (p.cat || '').toLowerCase() %>">
+                          <td style="vertical-align: middle;">
+                            <div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#1a233a;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+                              <img src="<%= p.images && p.images[0] ? p.images[0] : (p.image || '/assets/images/logo.jpg') %>"
+                                alt="<%= p.name %>" style="width:100%;height:100%;object-fit:cover;"
+                                onerror="this.src='/assets/images/logo.jpg'">
+                            </div>
+                          </td>
+                          <td style="vertical-align: middle;">
+                            <div class="fw-bold text-white"><%= p.name %></div>
+                          </td>
+                          <td class="text-end" style="vertical-align: middle;">
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1" style="font-size:12px;"
+                              title="Edit" onclick="openEditProductModal('<%= p.id %>')">
+                              <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                            </button>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-              <!-- Toolbar -->
-              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="fa-solid fa-bag-shopping text-primary"></i>
-                  <span class="fw-bold text-white" style="font-size:0.95rem;">Products</span>
-                  <span class="badge bg-secondary bg-opacity-25 text-white-50" style="font-size:10px;"><%= products.length %></span>
-                </div>
-                <div class="d-flex gap-2">
-                  <input type="text" class="form-control form-control-dark" id="productSearchInput"
-                    placeholder="Search..." style="width:160px;font-size:0.82rem;"
-                    oninput="filterProductRows(this.value)">
-                  <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="fa-solid fa-plus me-1"></i> Add Product
-                  </button>
-                </div>
-              </div>
-
-              <!-- Product Cards Grid -->
-              <div id="productTable">
-                <% if (!products.length) { %>
-                  <div class="text-center py-5" style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;">
-                    <i class="fa-solid fa-bag-shopping text-muted" style="font-size:2rem;"></i>
-                    <div class="text-muted mt-2">No products yet. Click <strong>Add Product</strong> to get started.</div>
-                  </div>
-                <% } else { %>
-                  <div class="row g-3">
-                    <% products.forEach(function(p) { %>
-                      <div class="col-12 col-sm-6 col-xl-4" id="prod-row-<%= p.id %>" data-name="<%= (p.name || '').toLowerCase() %>" data-cat="<%= (p.cat || '').toLowerCase() %>">
-                        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(99,102,241,0.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-
-                          <!-- Product Image + Status Badge -->
-                          <div style="position:relative;height:160px;background:#0d121f;overflow:hidden;">
-                            <img src="<%= p.images && p.images[0] ? p.images[0] : (p.image || '/assets/images/logo.jpg') %>"
-                              alt="<%= p.name %>" style="width:100%;height:100%;object-fit:cover;"
-                              onerror="this.src='/assets/images/logo.jpg'">
-                            <!-- Status pill -->
-                            <div style="position:absolute;top:10px;right:10px;">
-                              <% if (p.stock === 0) { %>
-                                <span style="background:rgba(239,68,68,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;">Out of Stock</span>
-                              <% } else if (p.stock <= 5) { %>
-                                <span style="background:rgba(245,158,11,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;">Low Stock</span>
-                              <% } else { %>
-                                <span style="background:rgba(16,185,129,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;">In Stock</span>
-                              <% } %>
-                            </div>
-                            <!-- Category pill -->
-                            <div style="position:absolute;top:10px;left:10px;">
-                              <span style="background:rgba(0,0,0,0.6);color:#94a3b8;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;"><%= p.cat || 'store' %></span>
-                            </div>
-                          </div>
-
-                          <!-- Product Info -->
-                          <div style="padding:14px 16px;">
-                            <div class="fw-bold text-white mb-1" style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<%= p.name %>"><%= p.name %></div>
-
-                            <!-- Price Row -->
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                              <span class="fw-bold text-success" style="font-size:1rem;">₹<%= p.price %></span>
-                              <% if (p.orig && p.orig > p.price) { %>
-                                <span class="text-muted" style="font-size:11px;text-decoration:line-through;">₹<%= p.orig %></span>
-                                <span style="font-size:10px;color:#10b981;font-weight:700;"><%= Math.round((p.orig - p.price) / p.orig * 100) %>% off</span>
-                              <% } %>
-                            </div>
-
-                            <!-- Stock Control -->
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                              <span style="font-size:11px;color:#64748b;font-weight:600;">STOCK</span>
-                              <div class="d-flex align-items-center gap-1">
-                                <button onclick="adjustStock('<%= p.id %>', -1)" style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">−</button>
-                                <span class="fw-bold text-white font-monospace" id="stock-val-<%= p.id %>" style="min-width:36px;text-align:center;font-size:0.95rem;"><%= p.stock %></span>
-                                <button onclick="adjustStock('<%= p.id %>', 1)" style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">+</button>
-                              </div>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="d-flex gap-2">
-                              <button onclick="openEditProductModal('<%= p.id %>')" class="btn btn-sm btn-gradient-primary flex-grow-1" style="font-size:12px;font-weight:700;">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
-                              </button>
-                              <a href="/store/product/<%= p.id %>" target="_blank" class="btn btn-sm btn-outline-info" style="font-size:12px;padding:5px 10px;" title="View on site">
-                                <i class="fa-solid fa-eye"></i>
-                              </a>
-                              <button onclick="deleteProduct('<%= p.id %>')" class="btn btn-sm btn-outline-danger" style="font-size:12px;padding:5px 10px;" title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    <% }); %>
-                  </div>
-                <% } %>
-              </div>
-
             </div>
 
             <!-- ========================================== -->
@@ -1902,16 +1816,22 @@
                 </div>
 
               </div>
-              <div class="modal-footer modal-footer-dark d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                  onclick="deleteProduct(document.getElementById('editProdId').value); bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();">
-                  <i class="fa-solid fa-trash me-1"></i> Delete Product
-                </button>
+              <div class="modal-footer modal-footer-dark d-flex justify-content-between flex-wrap gap-2">
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                    onclick="deleteProduct(document.getElementById('editProdId').value); bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();">
+                    <i class="fa-solid fa-trash me-1"></i> Delete Product
+                  </button>
+                  <a id="editProdViewLink" href="#" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3" title="View in live store">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View in Store
+                  </a>
+                </div>
                 <div class="d-flex gap-2">
                   <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                   <button type="submit" id="saveEditProductBtn" class="btn btn-gradient-primary btn-sm rounded-pill px-4">
                     <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
                   </button>
+                </div>
               </div>
             </form>
           </div>
@@ -2946,7 +2866,8 @@
             try {
               const res = await fetch('/api/store/admin/products', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                credentials: 'include',
                 body: JSON.stringify({ name, cat, desc, price, orig, stock, badge, badgeLabel, emoji, images })
               });
               const data = await res.json();
@@ -3004,6 +2925,10 @@
             document.getElementById('editProdBadge').value = product.badge || '';
             document.getElementById('editProdBadgeLabel').value = product.badgeLabel || '';
             document.getElementById('editProdEmoji').value = product.emoji || '✨';
+            const viewLink = document.getElementById('editProdViewLink');
+            if (viewLink) {
+              viewLink.href = '/store/product/' + encodeURIComponent(product.id);
+            }
             renderEditProdPreviews();
             new bootstrap.Modal(document.getElementById('editProductModal')).show();
           }
@@ -3078,9 +3003,10 @@
 
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...'; }
             try {
-              const res = await fetch('/api/store/admin/products/' + id, {
+              const res = await fetch('/api/store/admin/products/' + encodeURIComponent(id), {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                credentials: 'include',
                 body: JSON.stringify({ name, cat, desc, price, orig, stock, badge, badgeLabel, emoji, images })
               });
               const data = await res.json();
@@ -3124,11 +3050,18 @@
           async function deleteProduct(id) {
             if (!confirm('Delete this product? This cannot be undone.')) return;
             try {
-              const res = await fetch('/api/store/admin/products/' + id, { method: 'DELETE' });
+              const res = await fetch('/api/store/admin/products/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: getAdminHeaders(),
+                credentials: 'include'
+              });
               const data = await res.json();
               if (data.success) {
                 const row = document.getElementById('prod-row-' + id);
                 if (row) row.remove();
+                if (typeof STORE_PRODUCTS_CACHE !== 'undefined' && STORE_PRODUCTS_CACHE[id]) {
+                  delete STORE_PRODUCTS_CACHE[id];
+                }
                 showToast('Product deleted.');
               } else {
                 showToast(data.error || 'Failed to delete.', true);
@@ -3140,11 +3073,10 @@
 
           function filterProductRows(query) {
             const q = (query || '').toLowerCase();
-            // Works for both card grid (col divs) and table rows
-            document.querySelectorAll('#productTable [data-name]').forEach(card => {
-              const name = card.dataset.name || '';
-              const cat = card.dataset.cat || '';
-              card.style.display = (!q || name.includes(q) || cat.includes(q)) ? '' : 'none';
+            document.querySelectorAll('#productTable tbody tr').forEach(row => {
+              const name = row.dataset.name || '';
+              const cat = row.dataset.cat || '';
+              row.style.display = (!q || name.includes(q) || cat.includes(q)) ? '' : 'none';
             });
           }
 
