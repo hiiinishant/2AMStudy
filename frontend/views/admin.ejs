@@ -2162,10 +2162,10 @@
                   <button type="button" class="blog-toolbar-btn" onclick="wrapText('blogContent', '\n<ol>\n  <li>', '</li>\n  <li>Step 2</li>\n</ol>\n')" title="Numbered List">
                     <i class="fa-solid fa-list-ol"></i>
                   </button>
-                  <button type="button" class="blog-toolbar-btn" onclick="wrapText('blogContent', '\n<ul class=\"blog-checklist\">\n  <li>', '</li>\n  <li>Item 2</li>\n</ul>\n')" title="Checklist (✓)">
+                  <button type="button" class="blog-toolbar-btn" onclick="insertChecklist('blogContent')" title="Checklist (✓)">
                     <i class="fa-solid fa-list-check"></i>
                   </button>
-                  <button type="button" class="blog-toolbar-btn" onclick="insertAtCursor('blogContent', '\n\n<hr class=\"my-4\">\n\n')" title="Horizontal Divider">
+                  <button type="button" class="blog-toolbar-btn" onclick="insertDivider('blogContent')" title="Horizontal Divider">
                     <i class="fa-solid fa-minus"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertLinkPrompt('blogContent')" title="Insert Link">
@@ -2459,10 +2459,10 @@
                   <button type="button" class="blog-toolbar-btn" onclick="wrapText('editBlogContent', '\n<ol>\n  <li>', '</li>\n  <li>Step 2</li>\n</ol>\n')" title="Numbered List">
                     <i class="fa-solid fa-list-ol"></i>
                   </button>
-                  <button type="button" class="blog-toolbar-btn" onclick="wrapText('editBlogContent', '\n<ul class=\"blog-checklist\">\n  <li>', '</li>\n  <li>Item 2</li>\n</ul>\n')" title="Checklist (✓)">
+                  <button type="button" class="blog-toolbar-btn" onclick="insertChecklist('editBlogContent')" title="Checklist (✓)">
                     <i class="fa-solid fa-list-check"></i>
                   </button>
-                  <button type="button" class="blog-toolbar-btn" onclick="insertAtCursor('editBlogContent', '\n\n<hr class=\"my-4\">\n\n')" title="Horizontal Divider">
+                  <button type="button" class="blog-toolbar-btn" onclick="insertDivider('editBlogContent')" title="Horizontal Divider">
                     <i class="fa-solid fa-minus"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertLinkPrompt('editBlogContent')" title="Insert Link">
@@ -2592,6 +2592,7 @@
           </div>
         </div>
 
+        <script id="adminStoreProductsData" type="application/json"><%- JSON.stringify((typeof products !== 'undefined' && products ? products : []).reduce(function(acc, p) { acc[p.id] = p; return acc; }, {})) %></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
           function showToast(msg, isError = false) {
@@ -2970,7 +2971,13 @@
           });
 
           // ─── Edit Product ─────────────────────────────────────────────────────────
-          const STORE_PRODUCTS_CACHE = <%- JSON.stringify(products.reduce(function(acc, p) { acc[p.id] = p; return acc; }, {})) %>;
+          let STORE_PRODUCTS_CACHE = {};
+          try {
+            const dataEl = document.getElementById('adminStoreProductsData');
+            if (dataEl && dataEl.textContent) {
+              STORE_PRODUCTS_CACHE = JSON.parse(dataEl.textContent);
+            }
+          } catch (_) {}
           let editProdImages = [];
 
           function openEditProductModal(productOrId) {
@@ -3466,6 +3473,14 @@
             if (!url || url === 'https://') return;
             const text = prompt('Enter link display text:', 'Click here') || url;
             insertAtCursor(textareaId, `<a href="${url.trim()}" target="_blank" class="text-primary fw-semibold">${text}</a>`);
+          }
+
+          function insertChecklist(textareaId) {
+            wrapText(textareaId, '\n<ul class="blog-checklist">\n  <li>', '</li>\n  <li>Item 2</li>\n</ul>\n');
+          }
+
+          function insertDivider(textareaId) {
+            insertAtCursor(textareaId, '\n\n<hr class="my-4">\n\n');
           }
 
           // ─── Cover Image Upload ──────────────────────────────────────────────────────
