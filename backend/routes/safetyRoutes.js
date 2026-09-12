@@ -22,9 +22,10 @@ function normalizeProfileUrl(urlStr) {
 }
 
 function getClientIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
+  if (!req) return '127.0.0.1';
+  const forwarded = req.headers?.['x-forwarded-for'];
   if (forwarded) return String(forwarded).split(',')[0].trim();
-  return req.socket.remoteAddress || 'unknown';
+  return req.socket?.remoteAddress || req.ip || '127.0.0.1';
 }
 
 function sanitizeCaseForOwner(caseObj) {
@@ -513,15 +514,16 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
 
   const targetCase = studentSafetyCases[caseIndex];
   const previousStatus = targetCase.status;
-  const modUser = moderatorUid;
-  const modName = moderatorName || 'Admin';
+  const modUser = moderatorUid || 'MASTER-ADMIN';
+  const modName = moderatorName || 'Master Admin';
   let newStatus = targetCase.status;
   let notificationMsg = '';
 
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || 'unknown';
+  const effectiveNote = (note && String(note).trim()) || (action === 'approve' || action === 'verify' ? 'Verified by Admin' : (action === 'resolve' ? 'Resolved by Admin' : (action === 'delete' ? 'Deleted by Admin' : (action === 'reopen' ? 'Reopened by Admin' : ''))));
 
-  if (action === 'approve') {
+  if (action === 'approve' || action === 'verify') {
     newStatus = 'Verified';
     targetCase.status = newStatus;
     targetCase.verifiedBy = modUser;
@@ -530,23 +532,21 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Your impersonation report (Case ${caseId}) has been approved & verified by our moderation team.`;
   } else if (action === 'reject') {
-    if (!note || note.trim() === '') {
-      return res.status(400).json({ success: false, message: 'Rejection reason is required.' });
-    }
+    const rejectionReason = effectiveNote || 'Report reviewed and rejected by moderation team.';
     newStatus = 'Rejected';
     targetCase.status = newStatus;
-    targetCase.rejectionReason = note.trim();
+    targetCase.rejectionReason = rejectionReason;
     targetCase.rejectedBy = modUser;
     targetCase.rejectedAt = new Date().toISOString();
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Your impersonation report (Case ${caseId}) was reviewed and rejected. Reason: ${targetCase.rejectionReason}`;
   } else if (action === 'request_evidence') {
-    if (!note || note.trim() === '') {
+    if (!effectiveNote) {
       return res.status(400).json({ success: false, message: 'A moderator note describing required evidence is required.' });
     }
     newStatus = 'Needs Evidence';
     targetCase.status = newStatus;
-    targetCase.moderatorNote = note.trim();
+    targetCase.moderatorNote = effectiveNote;
     targetCase.updatedAt = new Date().toISOString();
     notificationMsg = `Action required on Case ${caseId}: Our moderation team requested additional evidence. Note: ${targetCase.moderatorNote}`;
   } else if (action === 'resolve') {
@@ -574,7 +574,7 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
       action: 'delete',
       previousStatus,
       newStatus: 'Deleted',
-      reason: note || 'Case deleted by admin',
+      reason: effectiveNote || 'Case deleted by admin',
       ip,
       userAgent,
       createdAt: new Date().toISOString()
@@ -596,7 +596,7 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
     action,
     previousStatus,
     newStatus,
-    reason: note || (action + ' action executed'),
+    reason: effectiveNote || (action + ' action executed'),
     ip,
     userAgent,
     createdAt: new Date().toISOString()
@@ -604,7 +604,7 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
   safetyStore.saveModerationLogs();
 
   // Trigger notifications
-  if (action === 'approve') {
+  if (action === 'approve' || action === 'verify') {
     dispatchSmartNotification({
       userId: targetCase.userId,
       userEmail: targetCase.reporterEmail,
@@ -612,6 +612,8 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
       title: `[2AM Study] Case ${caseId} Verified ✅`,
       message: `Your report for ${targetCase.fakeUsername || 'fake profile'} has been verified by our moderation team.`,
       targetUrl: `/student-safety/cases/${caseId}`
+    }).catch(notifErr => {
+      console.warn('[Moderation Notification Notice]:', notifErr.message);
     });
   }
 

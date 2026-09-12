@@ -68,11 +68,26 @@ function addVideo(req, res) {
 
 function deleteVideo(req, res) {
   const videos = collegeLifeStore.getVideos();
-  const idx = videos.findIndex(v => v.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ success: false, error: 'Video not found.' });
-  videos.splice(idx, 1);
+  const rawId = String(req.params.id || '').trim();
+  let targetId = rawId;
+  try {
+    targetId = decodeURIComponent(rawId).trim();
+  } catch (_) {}
+
+  const idx = videos.findIndex(v => {
+    if (!v) return false;
+    const vId = String(v.id || '').trim();
+    const vYtId = String(v.youtubeVideoId || '').trim();
+    return vId === targetId || vId === rawId || vYtId === targetId || vYtId === rawId;
+  });
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, error: 'Video not found.' });
+  }
+
+  const deleted = videos.splice(idx, 1)[0];
   collegeLifeStore.saveCollegeLifeVideos();
-  res.json({ success: true });
+  res.json({ success: true, message: 'Video deleted successfully.', video: deleted });
 }
 
 function setFeaturedVideo(req, res) {

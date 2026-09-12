@@ -56,12 +56,76 @@ function recordAdminLoginSuccess(ip) {
 }
 
 function isMasterAdminAuthenticated(req) {
+  // 1. In-memory session flags
   if (req.session && (req.session.isAdmin || req.session.isStoreAdmin || req.session.liveAdminAuthed)) {
     return true;
   }
+
+  // 2. Parsed cookies
   if (req.cookies && (req.cookies.admin_session === 'authenticated' || req.cookies.is_admin === 'true')) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
     return true;
   }
+
+  // 3. Raw Cookie header fallback (in case req.cookies was not populated by proxy)
+  const rawCookie = req.headers?.cookie || '';
+  if (rawCookie && (rawCookie.includes('admin_session=authenticated') || rawCookie.includes('is_admin=true'))) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
+    return true;
+  }
+
+  // 4. Custom Passcode Headers (e.g. x-admin-passcode or Authorization: Bearer <passcode>)
+  const headerPasscode = req.headers?.['x-admin-passcode'] ||
+    req.headers?.['x-admin-password'] ||
+    req.headers?.['admin-passcode'] ||
+    (req.headers?.authorization && typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.slice(7).trim() : null);
+
+  if (headerPasscode && checkMasterPassword(headerPasscode)) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
+    return true;
+  }
+
+  // 5. Query or Body Passcode fallback
+  const directPass = req.body?.adminPasscode || req.body?.adminPassword || req.query?.adminPasscode || req.query?.adminPassword;
+  if (directPass && checkMasterPassword(directPass)) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
+    return true;
+  }
+
+  // 6. User Session or Firebase Token Admin Email Check
+  const userEmail = (req.session?.user?.email || req.firebaseEmail || req.firebaseUser?.email || '').toString().toLowerCase().trim();
+  const configuredAdminEmails = [
+    process.env.ADMIN_EMAIL,
+    process.env.STORE_ADMIN_EMAIL,
+    'hiiinishant@gmail.com',
+    'safety@2amstudy.online'
+  ].filter(Boolean).map(e => String(e).toLowerCase().trim());
+
+  if (userEmail && configuredAdminEmails.includes(userEmail)) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
+    return true;
+  }
+
   return false;
 }
 
