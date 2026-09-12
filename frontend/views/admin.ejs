@@ -987,13 +987,18 @@
             <!-- ========================================== -->
             <div class="admin-section d-none" id="sec-blogs">
               <div class="admin-card">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                   <div>
-                    <h4 class="fw-bold text-white fs-6 mb-1"><i
-                        class="fa-solid fa-newspaper text-info me-2"></i>Published Articles (<%= blogs.length %>)</h4>
-                    <span class="text-muted small" style="font-size: 11px;">Manage SEO blogs, format rich tables, insert images & study guides</span>
+                    <h4 class="fw-bold text-white fs-6 mb-0">
+                      <i class="fa-solid fa-newspaper text-info me-2"></i>Published Articles
+                      <span class="badge bg-info bg-opacity-25 text-info ms-1" style="font-size: 11px;"><%= blogs.length %></span>
+                    </h4>
+                    <span class="text-muted small">Manage articles &amp; study guides.</span>
                   </div>
-                  <div class="d-flex gap-2 align-items-center">
+                  <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-dark" id="blogSearchInput"
+                      placeholder="🔍 Search articles..." style="max-width: 220px; font-size: 0.82rem;"
+                      oninput="filterBlogRows(this.value)">
                     <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
                       data-bs-target="#addBlogModal">
                       <i class="fa-solid fa-plus me-1"></i> New Article
@@ -1001,86 +1006,36 @@
                   </div>
                 </div>
 
-                <!-- Search & Filters -->
-                <div class="row g-2 mb-3">
-                  <div class="col-md-6 col-lg-5">
-                    <div class="input-group input-group-sm">
-                      <span class="input-group-text bg-dark border-secondary border-opacity-25 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                      <input type="text" class="form-control form-control-dark" id="blogSearchInput"
-                        placeholder="Search articles by title, slug or author..." oninput="filterBlogRows(this.value)">
-                    </div>
-                  </div>
-                  <div class="col-md-4 col-lg-3">
-                    <select class="form-select form-select-dark form-select-sm" id="blogCatFilter" onchange="filterBlogRows()">
-                      <option value="">All Categories</option>
-                      <option value="Study Tips">Study Tips</option>
-                      <option value="Exam Prep">Exam Prep</option>
-                      <option value="Late Night Routine">Late Night Routine</option>
-                      <option value="Focus & Productivity">Focus & Productivity</option>
-                      <option value="College Life">College Life</option>
-                      <option value="Time Management">Time Management</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div class="table-responsive">
                   <table class="table table-custom mb-0" id="blogTable">
                     <thead>
                       <tr>
-                        <th>Article</th>
-                        <th>Category</th>
-                        <th>Author & Time</th>
-                        <th>Date</th>
-                        <th class="text-end">Actions</th>
+                        <th style="width: 70px;">Image</th>
+                        <th>Article Name</th>
+                        <th class="text-end" style="width: 120px;">Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       <% blogs.forEach(function(b) { %>
                         <tr id="blog-row-<%= b.id %>" data-title="<%= (b.title || '').toLowerCase() %>" data-slug="<%= (b.slug || '').toLowerCase() %>" data-cat="<%= (b.category || '').toLowerCase() %>" data-author="<%= (b.author || '').toLowerCase() %>">
-                          <td>
-                            <div class="d-flex align-items-center gap-2.5">
-                              <img src="<%= b.coverImage || b.image || '/assets/images/logo.jpg' %>" alt=""
-                                class="rounded-2 border border-secondary border-opacity-25"
-                                style="width: 54px; height: 38px; object-fit: cover; flex-shrink: 0;"
+                          <td style="vertical-align: middle;">
+                            <div style="width:52px;height:38px;border-radius:6px;overflow:hidden;background:#1a233a;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+                              <img src="<%= b.coverImage || b.image || '/assets/images/logo.jpg' %>" alt="<%= b.title %>"
+                                style="width: 100%; height: 100%; object-fit: cover;"
                                 onerror="this.src='/assets/images/logo.jpg'">
-                              <div>
-                                <div class="fw-bold text-white lh-sm">
-                                  <%= b.title %>
-                                </div>
-                                <div class="text-muted small mt-0.5" style="font-size: 11px;">
-                                  <span class="text-info">/blog/<%= b.slug %></span>
-                                </div>
-                              </div>
                             </div>
                           </td>
-                          <td>
-                            <span class="badge bg-info bg-opacity-20 text-info rounded-pill px-2.5 py-1" style="font-size: 10px;">
-                              <%= b.category || 'Study Tips' %>
-                            </span>
+                          <td style="vertical-align: middle;">
+                            <div class="fw-bold text-white"><%= b.title %></div>
                           </td>
-                          <td>
-                            <div class="text-white-50 small" style="font-size: 12px;"><i class="fa-solid fa-user-pen me-1 text-muted"></i><%= b.author || '2 AM Study' %></div>
-                            <div class="text-muted" style="font-size: 10px;"><i class="fa-regular fa-clock me-1"></i><%= b.readTime || '5 min read' %></div>
-                          </td>
-                          <td class="text-muted small">
-                            <%= new Date(b.createdAt || b.date || Date.now()).toLocaleDateString('en-IN',
-                              {day:'numeric',month:'short',year:'numeric'}) %>
-                          </td>
-                          <td class="text-end">
-                            <div class="d-flex gap-1 justify-content-end">
-                              <a href="/blog/<%= b.slug %>" target="_blank"
-                                class="btn btn-sm btn-outline-info rounded-pill py-0.5 px-2.5" style="font-size: 11px;"
-                                title="View Live Blog"><i class="fa-solid fa-eye me-1"></i> View</a>
-                              <button class="btn btn-sm btn-outline-warning rounded-pill py-0.5 px-2.5"
-                                onclick="openEditBlogModal('<%= b.id %>')" style="font-size: 11px;" title="Edit Article"><i
-                                  class="fa-solid fa-pen-to-square me-1"></i> Edit</button>
-                              <button class="btn btn-sm btn-outline-danger rounded-pill py-0.5 px-2"
-                                onclick="deleteBlog('<%= b.id %>')" style="font-size: 11px;" title="Delete Article"><i
-                                  class="fa-solid fa-trash"></i></button>
-                            </div>
+                          <td class="text-end" style="vertical-align: middle;">
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1" style="font-size:12px;"
+                              title="Edit Article" onclick="openEditBlogModal('<%= b.id %>')">
+                              <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                            </button>
                           </td>
                         </tr>
-                        <% }); %>
+                      <% }); %>
                     </tbody>
                   </table>
                 </div>
@@ -2419,11 +2374,22 @@
                 </div>
 
               </div>
-              <div class="modal-footer modal-footer-dark py-2 px-3 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" id="saveEditBlogBtn" class="btn btn-warning btn-sm rounded-pill px-4 text-dark fw-bold">
-                  <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
-                </button>
+              <div class="modal-footer modal-footer-dark py-2 px-3 d-flex justify-content-between flex-wrap gap-2">
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                    onclick="deleteBlog(document.getElementById('editBlogId').value); bootstrap.Modal.getInstance(document.getElementById('editBlogModal')).hide();">
+                    <i class="fa-solid fa-trash me-1"></i> Delete Article
+                  </button>
+                  <a id="editBlogViewLink" href="#" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3" title="View live blog">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Article
+                  </a>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" id="saveEditBlogBtn" class="btn btn-warning btn-sm rounded-pill px-4 text-dark fw-bold">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -3524,7 +3490,10 @@
                 // Reset view to write mode and update stats
                 setBlogEditorView('write', 'edit');
                 onBlogContentChange('editBlogContent', 'editBlogStats', 'editBlogLivePreview', 'editBlogReadTime');
-                setupClipboardImagePaste('editBlogContent');
+                const viewLink = document.getElementById('editBlogViewLink');
+                if (viewLink) {
+                  viewLink.href = '/blog/' + encodeURIComponent(p.slug || p.id);
+                }
 
                 const modal = new bootstrap.Modal(document.getElementById('editBlogModal'));
                 modal.show();
@@ -3556,10 +3525,10 @@
             const content = document.getElementById('editBlogContent').value.trim();
 
             try {
-              const res = await fetch('/api/store/admin/blogs/' + id, {
+              const res = await fetch('/api/store/admin/blogs/' + encodeURIComponent(id), {
                 method: 'PUT',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
                 body: JSON.stringify({
                   title,
                   slug,
@@ -3590,7 +3559,11 @@
           async function deleteBlog(id) {
             if (!confirm('Delete this blog article? This action cannot be undone.')) return;
             try {
-              const res = await fetch('/api/store/admin/blogs/' + id, { method: 'DELETE', credentials: 'include' });
+              const res = await fetch('/api/store/admin/blogs/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: getAdminHeaders(),
+                credentials: 'include'
+              });
               const data = await res.json();
               if (data.success) {
                 const row = document.getElementById('blog-row-' + id);
