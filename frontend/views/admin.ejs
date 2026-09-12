@@ -1305,6 +1305,11 @@
                                               onclick="moderateCase('<%= c.caseId %>', 'reject')"
                                               style="font-size: 11px;">Reject</button>
                                             <% } %>
+                                              <button
+                                                class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2 fw-semibold"
+                                                title="Delete Case"
+                                                onclick="moderateCase('<%= c.caseId %>', 'delete')"
+                                                style="font-size: 11px;"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                               </td>
                             </tr>
@@ -2666,6 +2671,17 @@
             }
           });
 
+          // Helper to pass admin authorization headers with fetch calls
+          function getAdminHeaders() {
+            const pass = sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
+            return pass ? { 'x-admin-passcode': pass } : {};
+          }
+
+          // Helper to get admin passcode for body/query fallback
+          function getAdminPasscode() {
+            return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
+          }
+
           // Login Form
           const loginForm = document.getElementById('adminLoginForm');
           if (loginForm) {
@@ -2687,6 +2703,11 @@
                 });
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data.success) {
+                  try {
+                    sessionStorage.setItem('admin_passcode', pass);
+                    localStorage.setItem('admin_passcode', pass);
+                  } catch (_) {}
+
                   const urlParams = new URLSearchParams(window.location.search);
                   const redirectParam = urlParams.get('redirect');
                   if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -2713,7 +2734,9 @@
           async function logoutAdmin() {
             if (!confirm('Sign out of Admin?')) return;
             try {
-              await fetch('/api/admin/logout', { method: 'POST' });
+              sessionStorage.removeItem('admin_passcode');
+              localStorage.removeItem('admin_passcode');
+              await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
               window.location.href = '/admin';
             } catch (e) {
               window.location.reload();
@@ -3642,24 +3665,65 @@
 
           // Safety Case Moderate
           async function moderateCase(caseId, action) {
-            const reason = action === 'reject' ? prompt('Rejection reason:') : 'Approved by Admin';
-            if (action === 'reject' && !reason) return;
+            const actionLabels = {
+              approve: 'verify and approve',
+              verify: 'verify and approve',
+              resolve: 'mark as resolved',
+              reject: 'reject',
+              delete: 'permanently delete',
+              reopen: 'reopen for review'
+            };
+            const label = actionLabels[action] || action;
+            if (!confirm(`Are you sure you want to ${label} case #${caseId}?`)) return;
+
+            let note = '';
+            if (action === 'reject') {
+              const input = prompt('Please provide a reason for rejecting this report:', 'Violates guidelines / false report');
+              if (input === null) return; // user cancelled prompt
+              note = input.trim() || 'Report reviewed and rejected by admin.';
+            } else if (action === 'delete') {
+              note = 'Case permanently deleted by admin';
+            } else if (action === 'approve' || action === 'verify') {
+              note = 'Verified and approved by Master Admin';
+            } else if (action === 'resolve') {
+              note = 'Marked as resolved by Master Admin';
+            }
 
             try {
               const res = await fetch('/api/student-safety/admin/moderate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ caseId, action, note: reason, moderatorUid: 'MASTER-ADMIN', moderatorName: 'Master Admin' })
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  caseId,
+                  action,
+                  note,
+                  moderatorUid: 'MASTER-ADMIN',
+                  moderatorName: 'Master Admin',
+                  adminPasscode: getAdminPasscode()
+                })
               });
-              const data = await res.json();
-              if (data.success) {
-                showToast('Case #' + caseId + ' ' + (action === 'approve' ? 'verified' : 'rejected'));
-                setTimeout(() => window.location.reload(), 1000);
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
+                const actionPast = (action === 'approve' || action === 'verify') ? 'verified' : (action === 'delete' ? 'deleted' : (action === 'resolve' ? 'resolved' : 'rejected'));
+                showToast(`Case #${caseId} ${actionPast} successfully!`);
+                if (action === 'delete') {
+                  const row = document.getElementById('safety-row-' + caseId);
+                  if (row) row.remove();
+                }
+                setTimeout(() => {
+                  window.location.hash = 'safety';
+                  window.location.reload();
+                }, 800);
               } else {
-                showToast(data.message || 'Action failed.', true);
+                showToast(data.message || data.error || 'Failed to moderate case.', true);
               }
             } catch (err) {
-              showToast('Error connecting to server.', true);
+              showToast('Error connecting to server. Please try again.', true);
             }
           }
 
@@ -3667,14 +3731,21 @@
           async function deleteFeedback(id) {
             if (!confirm('Remove review?')) return;
             try {
-              const res = await fetch('/api/admin/feedbacks/' + id, { method: 'DELETE' });
-              const data = await res.json();
-              if (data.success) {
+              const res = await fetch('/api/admin/feedbacks/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: {
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
+                credentials: 'include'
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
                 const card = document.getElementById('fb-card-' + id);
                 if (card) card.remove();
                 showToast('Review removed.');
               } else {
-                showToast('Failed to remove review.', true);
+                showToast(data.error || 'Failed to remove review.', true);
               }
             } catch (err) {
               showToast('Error deleting review.', true);
@@ -3701,7 +3772,12 @@
             try {
               const res = await fetch('/api/college-life/videos', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
+                credentials: 'include',
                 body: JSON.stringify({ youtubeUrl, title, category, duration, description, isFeatured })
               });
               const data = await res.json();
@@ -3845,20 +3921,29 @@
           }
 
           async function deleteCollegeVideo(id) {
-            if (!confirm('Delete this college life video?')) return;
+            if (!confirm('Are you sure you want to delete this college life video?')) return;
             try {
-              const res = await fetch('/api/college-life/videos/' + id, {
+              const adminPass = getAdminPasscode();
+              const deleteUrl = '/api/college-life/videos/' + encodeURIComponent(id) + (adminPass ? '?adminPasscode=' + encodeURIComponent(adminPass) : '');
+              const res = await fetch(deleteUrl, {
                 method: 'DELETE',
-                headers: { 'Accept': 'application/json' },
+                headers: {
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
                 credentials: 'include'
               });
-              const data = await res.json();
-              if (data.success) {
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
                 const row = document.getElementById('cv-row-' + id);
                 if (row) row.remove();
-                showToast('Video deleted.');
+                showToast('Video deleted successfully.');
+                setTimeout(() => {
+                  window.location.hash = 'college';
+                  window.location.reload();
+                }, 600);
               } else {
-                showToast(data.error || 'Failed to delete video.', true);
+                showToast(data.error || data.message || 'Failed to delete video.', true);
               }
             } catch (err) {
               showToast('Error deleting video.', true);
@@ -3867,20 +3952,25 @@
 
           async function setCollegeFeatured(id) {
             try {
-              const res = await fetch('/api/college-life/videos/' + id + '/feature', {
+              const adminPass = getAdminPasscode();
+              const featureUrl = '/api/college-life/videos/' + encodeURIComponent(id) + '/feature' + (adminPass ? '?adminPasscode=' + encodeURIComponent(adminPass) : '');
+              const res = await fetch(featureUrl, {
                 method: 'PATCH',
-                headers: { 'Accept': 'application/json' },
+                headers: {
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
                 credentials: 'include'
               });
-              const data = await res.json();
-              if (data.success) {
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
                 showToast('Featured video updated!');
                 setTimeout(() => {
                   window.location.hash = 'college';
                   window.location.reload();
                 }, 800);
               } else {
-                showToast(data.error || 'Failed to update.', true);
+                showToast(data.error || data.message || 'Failed to update.', true);
               }
             } catch (err) {
               showToast('Error connecting to server.', true);
@@ -3900,18 +3990,23 @@
             try {
               const res = await fetch('/api/resources', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
+                credentials: 'include',
                 body: JSON.stringify({ title, exam, category, latestYear, officialUrl, description })
               });
-              const data = await res.json();
-              if (data.success) {
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
                 showToast('Resource Card added!');
                 setTimeout(() => {
                   window.location.hash = 'resources';
                   window.location.reload();
                 }, 1000);
               } else {
-                showToast(data.error || 'Failed to add card.', true);
+                showToast(data.error || data.message || 'Failed to add card.', true);
               }
             } catch (err) {
               showToast('Error connecting to server.', true);
@@ -3921,48 +4016,24 @@
           async function deleteResourceCard(id) {
             if (!confirm('Delete this resource card?')) return;
             try {
-              const res = await fetch('/api/resources/' + id, { method: 'DELETE' });
-              const data = await res.json();
-              if (data.success) {
+              const res = await fetch('/api/resources/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: {
+                  'Accept': 'application/json',
+                  ...(getAdminHeaders())
+                },
+                credentials: 'include'
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
                 const row = document.getElementById('res-row-' + id);
                 if (row) row.remove();
                 showToast('Resource card deleted.');
               } else {
-                showToast(data.error || 'Failed to delete card.', true);
+                showToast(data.error || data.message || 'Failed to delete card.', true);
               }
             } catch (err) {
               showToast('Error deleting card.', true);
-            }
-          }
-
-          // Student Safety Moderation Actions
-          async function moderateCase(caseId, action) {
-            const actionLabels = {
-              approve: 'verify and approve',
-              reject: 'reject',
-              resolve: 'mark as resolved'
-            };
-            const label = actionLabels[action] || action;
-            if (!confirm(`Are you sure you want to ${label} case #${caseId}?`)) return;
-
-            try {
-              const res = await fetch('/api/student-safety/admin/moderate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ caseId, action, moderatorName: 'Master Admin' })
-              });
-              const data = await res.json().catch(() => ({}));
-              if (res.ok && data.success) {
-                showToast(`Case #${caseId} ${action === 'approve' ? 'verified' : action} successfully!`);
-                setTimeout(() => {
-                  window.location.hash = 'safety';
-                  window.location.reload();
-                }, 800);
-              } else {
-                showToast(data.message || data.error || 'Failed to moderate case.', true);
-              }
-            } catch (err) {
-              showToast('Error connecting to server.', true);
             }
           }
         </script>

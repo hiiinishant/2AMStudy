@@ -417,7 +417,7 @@ body {
 
         <!-- Submit -->
         <button type="submit" id="signupSubmitBtn" class="su-btn-primary">
-          âœ¨ Create Account
+          Create Account
         </button>
       </form>
 
@@ -616,7 +616,7 @@ body {
         cooldownActive = false;
         failedAttempts = 0;
         submitBtn.disabled = false;
-        submitBtn.textContent = 'âœ¨ Create Account';
+        submitBtn.textContent = 'Create Account';
       } else {
         submitBtn.textContent = `Too many attempts. Wait ${seconds}s...`;
       }
@@ -748,7 +748,7 @@ body {
       // Only restore button if cooldown didn't take over
       if (!cooldownActive) {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'âœ¨ Create Account';
+        submitBtn.innerText = 'Create Account';
       }
     }
   });
