@@ -1,5 +1,17 @@
 [
   {
+    "id": "cl-cd0c39b0",
+    "title": "First time in Zoo | Chandigarh | ChhattBir Zoo |  Hiii  Nishant",
+    "description": "Join me on an exciting adventure as we visit the ChhattBir Zoo near Chandigarh for the first time! 🦁🐒🌳",
+    "category": "Friends & Fun",
+    "duration": "9 minutes",
+    "youtubeUrl": "https://www.youtube.com/watch?v=Mm0UU95qF7Y",
+    "youtubeVideoId": "Mm0UU95qF7Y",
+    "thumbnail": "https://img.youtube.com/vi/Mm0UU95qF7Y/hqdefault.jpg",
+    "isFeatured": true,
+    "createdAt": "2026-09-12T12:30:09.739Z"
+  },
+  {
     "id": "cl-5a747f8c",
     "title": "A Normal Day at  My University 🎓 | College Life Vlog  | Hiii Nishant",
     "description": "🔔 Subscribe to Hiii Nishant for more vlogs | Nishant vlogs | New video",
@@ -34,17 +46,5 @@
     "thumbnail": "https://img.youtube.com/vi/SZW-XVulDQI/hqdefault.jpg",
     "isFeatured": false,
     "createdAt": "2026-08-28T20:50:20.481Z"
-  },
-  {
-    "id": "cl-1bb6dc4d",
-    "title": "2 AM Study With Me",
-    "description": "Study With Me CU",
-    "category": "Campus Vibe",
-    "duration": "",
-    "youtubeUrl": "https://www.youtube.com/live/94hXyaOHxwU?si=b6BnUtcqw5Vf_tRO",
-    "youtubeVideoId": "94hXyaOHxwU",
-    "thumbnail": "https://img.youtube.com/vi/94hXyaOHxwU/hqdefault.jpg",
-    "isFeatured": false,
-    "createdAt": "2026-08-27T08:57:51.031Z"
   }
 ]

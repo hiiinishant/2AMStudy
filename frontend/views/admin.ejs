@@ -514,7 +514,7 @@
     }
 
     .article-preview-body .blog-checklist li::before {
-      content: "✓";
+      content: "âœ“";
       position: absolute;
       left: 0;
       top: 2px;
@@ -587,7 +587,7 @@
         </form>
 
         <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 text-center">
-          <a href="/" class="text-decoration-none text-white-50 small hover-white">← Return to Website</a>
+          <a href="/" class="text-decoration-none text-white-50 small hover-white">â† Return to Website</a>
         </div>
       </div>
     </div>
@@ -615,10 +615,7 @@
           <!-- Navigation Items -->
           <nav class="sidebar-nav">
             <button class="sidebar-btn active" data-section="live">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-video text-danger"></i>
-                <span>Live Study</span>
-              </div>
+              <span>Live Study</span>
               <% if (liveSession) { %>
                 <span class="badge rounded-pill bg-danger" style="font-size: 9px;">LIVE</span>
                 <% } else { %>
@@ -629,40 +626,31 @@
             </button>
 
             <button class="sidebar-btn" data-section="products">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-bag-shopping text-primary"></i>
-                <span>Store Products</span>
-              </div>
+              <span>Store Products</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= products.length %>
               </span>
             </button>
 
             <button class="sidebar-btn" data-section="orders">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-receipt text-success"></i>
-                <span>Customer Orders</span>
-              </div>
+              <span>Customer Orders</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= orders.length %>
               </span>
             </button>
 
-            <button class="sidebar-btn" data-section="blogs">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-newspaper text-info"></i>
-                <span>Blog Articles</span>
-              </div>
+            <button class="sidebar-btn" data-section="blogs-write" onclick="switchSection('blogs-write')">
+              <span>Write Articles</span>
+            </button>
+            <button class="sidebar-btn" data-section="blogs-manage" onclick="switchSection('blogs-manage')">
+              <span>Manage Articles</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= blogs.length %>
               </span>
             </button>
 
             <button class="sidebar-btn" data-section="safety">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-shield-halved text-warning"></i>
-                <span>Student Safety</span>
-              </div>
+              <span>Student Safety</span>
               <% const pendingCount=safetyCases.filter(c=> c.status === 'Pending').length; %>
                 <% if (pendingCount> 0) { %>
                   <span class="badge rounded-pill bg-warning text-dark" style="font-size: 10px;">
@@ -676,30 +664,21 @@
             </button>
 
             <button class="sidebar-btn" data-section="reviews">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-star text-warning"></i>
-                <span>Shopper Reviews</span>
-              </div>
+              <span>Shopper Reviews</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= feedbacks.length %>
               </span>
             </button>
 
             <button class="sidebar-btn" data-section="college">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-graduation-cap" style="color: #fb923c;"></i>
-                <span>College Life</span>
-              </div>
+              <span>College Life</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= typeof collegeVideos !=='undefined' ? collegeVideos.length : 0 %>
               </span>
             </button>
 
             <button class="sidebar-btn" data-section="resources">
-              <div class="d-flex align-items-center gap-2.5">
-                <i class="fa-solid fa-book-open text-info"></i>
-                <span>Exam Resources</span>
-              </div>
+              <span>Exam Resources</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= typeof resources !=='undefined' ? resources.length : 0 %>
               </span>
@@ -726,7 +705,7 @@
             <div class="d-flex align-items-center gap-3">
               <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="toggleMobileSidebar()"><i
                   class="fa-solid fa-bars"></i></button>
-              <div class="fw-bold text-white fs-6" id="currentSectionTitle">🔴 Live Study Manager</div>
+              <div class="fw-bold text-white fs-6" id="currentSectionTitle">Live Study</div>
             </div>
             <div class="d-flex align-items-center gap-2.5">
               <% if (liveSession) { %>
@@ -902,7 +881,7 @@
                   </div>
                   <div class="d-flex gap-2">
                     <input type="text" class="form-control form-control-dark" id="productSearchInput"
-                      placeholder="🔍 Search products..." style="max-width: 200px; font-size: 0.82rem;"
+                      placeholder="Search products..." style="max-width: 200px; font-size: 0.82rem;"
                       oninput="filterProductRows(this.value)">
                     <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
                       data-bs-target="#addProductModal">
@@ -915,9 +894,13 @@
                   <table class="table table-custom mb-0" id="productTable">
                     <thead>
                       <tr>
-                        <th style="width: 70px;">Image</th>
-                        <th>Product Name</th>
-                        <th class="text-end" style="width: 120px;">Action</th>
+                        <th style="width: 60px;">Image</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Badge</th>
+                        <th class="text-end" style="width: 140px;">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -926,7 +909,7 @@
                           data-cat="<%= (p.cat || '').toLowerCase() %>">
                           <td style="vertical-align: middle;">
                             <div
-                              style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#1a233a;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+                              style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#1a233a;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
                               <img
                                 src="<%= p.images && p.images[0] ? p.images[0] : (p.image || '/assets/images/logo.jpg') %>"
                                 alt="<%= p.name %>" style="width:100%;height:100%;object-fit:cover;"
@@ -934,15 +917,48 @@
                             </div>
                           </td>
                           <td style="vertical-align: middle;">
-                            <div class="fw-bold text-white">
-                              <%= p.name %>
+                            <div class="fw-bold text-white"><%= p.name %></div>
+                            <small class="text-muted" style="font-size: 11px;">ID #<%= p.id %></small>
+                          </td>
+                          <td style="vertical-align: middle;">
+                            <span class="badge bg-secondary bg-opacity-25 text-light text-capitalize" style="font-size: 11px;">
+                              <%= p.cat || 'General' %>
+                            </span>
+                          </td>
+                          <td style="vertical-align: middle;">
+                            <div class="fw-bold text-success">â‚¹<%= p.price %></div>
+                            <% if (p.orig && p.orig > p.price) { %>
+                              <small class="text-muted text-decoration-line-through" style="font-size: 11px;">â‚¹<%= p.orig %></small>
+                            <% } %>
+                          </td>
+                          <td style="vertical-align: middle;">
+                            <div class="d-inline-flex align-items-center gap-1">
+                              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1.5" style="font-size: 10px; line-height: 1.4;" onclick="adjustStock('<%= p.id %>', -1)" title="Decrease stock">-</button>
+                              <span id="stock-val-<%= p.id %>" class="badge <%= (p.stock || 0) > 5 ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger' %>" style="font-size: 11px; min-width: 28px;">
+                                <%= p.stock !== undefined ? p.stock : 0 %>
+                              </span>
+                              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1.5" style="font-size: 10px; line-height: 1.4;" onclick="adjustStock('<%= p.id %>', 1)" title="Increase stock">+</button>
                             </div>
                           </td>
+                          <td style="vertical-align: middle;">
+                            <% if (p.badge) { %>
+                              <span class="badge bg-warning bg-opacity-25 text-warning text-uppercase" style="font-size: 10px;">
+                                <%= p.badgeLabel || p.badge %>
+                              </span>
+                            <% } else { %>
+                              <span class="text-muted small" style="font-size: 11px;">â€”</span>
+                            <% } %>
+                          </td>
                           <td class="text-end" style="vertical-align: middle;">
-                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1"
-                              style="font-size:12px;" title="Edit" onclick="openEditProductModal('<%= p.id %>')">
-                              <i class="fa-solid fa-pen-to-square me-1"></i> Edit
-                            </button>
+                            <div class="d-flex justify-content-end gap-1">
+                              <a href="/store/product/<%= encodeURIComponent(p.id) %>" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" style="font-size:11px;" title="View in live store">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                              </a>
+                              <button class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1"
+                                style="font-size:11px;" title="Edit Product" onclick="openEditProductModal('<%= p.id %>')">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                              </button>
+                            </div>
                           </td>
                         </tr>
                         <% }); %>
@@ -964,7 +980,7 @@
 
                 <% if (orders.length===0) { %>
                   <div class="text-center py-5 text-muted">
-                    <div class="fs-2 mb-2">📦</div>
+                    <div class="fs-2 mb-2 text-muted"><i class="fa-solid fa-box-open"></i></div>
                     <p class="small mb-0">No customer orders yet.</p>
                   </div>
                   <% } else { %>
@@ -996,7 +1012,7 @@
                               <td><span class="text-white-50">
                                   <%= ord.items ? ord.items.length : 1 %> item(s)
                                 </span></td>
-                              <td class="fw-bold text-success">₹<%= ord.amount || ord.total || 0 %>
+                              <td class="fw-bold text-success">â‚¹<%= ord.amount || ord.total || 0 %>
                               </td>
                               <td class="text-muted small">
                                 <%= new Date(ord.createdAt || Date.now()).toLocaleDateString('en-IN',
@@ -1022,69 +1038,390 @@
             <!-- SECTION 4: BLOG POSTS -->
             <!-- ========================================== -->
             <div class="admin-section d-none" id="sec-blogs">
-              <div class="admin-card">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-                  <div>
-                    <h4 class="fw-bold text-white fs-6 mb-0">
-                      <i class="fa-solid fa-newspaper text-info me-2"></i>Published Articles
-                      <span class="badge bg-info bg-opacity-25 text-info ms-1" style="font-size: 11px;">
-                        <%= blogs.length %>
-                      </span>
-                    </h4>
-                    <span class="text-muted small">Manage articles &amp; study guides.</span>
+
+              <!-- â”€â”€ Blog List Panel â”€â”€ -->
+              <div id="blogListPanel">
+                <div class="admin-card mb-3">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                    <div>
+                      <h4 class="fw-bold text-white fs-6 mb-0">
+                        <i class="fa-solid fa-newspaper text-info me-2"></i>Manage Articles
+                        <span class="badge bg-info bg-opacity-25 text-info ms-1" style="font-size: 11px;"><%= blogs.length %></span>
+                      </h4>
+                      <span class="text-muted small">Edit or delete published articles.</span>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <input type="text" class="form-control form-control-dark" id="blogSearchInput"
+                        placeholder="Search articles..." style="max-width: 220px; font-size: 0.82rem;"
+                        oninput="filterBlogRows(this.value)">
+                    </div>
                   </div>
-                  <div class="d-flex gap-2">
-                    <input type="text" class="form-control form-control-dark" id="blogSearchInput"
-                      placeholder="🔍 Search articles..." style="max-width: 220px; font-size: 0.82rem;"
-                      oninput="filterBlogRows(this.value)">
-                    <button class="btn btn-gradient-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
-                      data-bs-target="#addBlogModal">
-                      <i class="fa-solid fa-plus me-1"></i> New Article
-                    </button>
+
+                  <!-- Compact article rows -->
+                  <div id="blogTable" class="d-flex flex-column gap-2">
+                    <% if (blogs.length === 0) { %>
+                      <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-newspaper mb-3 d-block" style="font-size:1.8rem;opacity:0.3;"></i>
+                        <p class="small mb-0">No articles yet. Click "Write New" to get started.</p>
+                      </div>
+                    <% } else { %>
+                      <% blogs.forEach(function(b) { %>
+                        <div id="blog-row-<%= b.id %>"
+                          data-title="<%= (b.title || '').toLowerCase() %>"
+                          data-slug="<%= (b.slug || '').toLowerCase() %>"
+                          data-cat="<%= (b.category || '').toLowerCase() %>"
+                          data-author="<%= (b.author || '').toLowerCase() %>"
+                          style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+
+                          <!-- Thumb -->
+                          <div style="width:40px;height:34px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#1a233a;">
+                            <img src="<%= b.coverImage || b.image || '/assets/images/logo.jpg' %>" alt=""
+                              style="width:100%;height:100%;object-fit:cover;"
+                              onerror="this.src='/assets/images/logo.jpg'">
+                          </div>
+
+                          <!-- Title + slug -->
+                          <div style="flex:1;min-width:0;">
+                            <div class="fw-semibold text-white text-truncate" style="font-size:13px;"><%= b.title %></div>
+                            <div class="text-muted text-truncate" style="font-size:11px;">/blog/<%= b.slug %></div>
+                          </div>
+
+                          <!-- Category (hidden on small screens) -->
+                          <span class="badge bg-info bg-opacity-10 text-info d-none d-md-inline-flex" style="font-size:10px;flex-shrink:0;"><%= b.category || 'Study Tips' %></span>
+
+                          <!-- Status -->
+                          <% if (b.status === 'draft') { %>
+                            <span class="badge bg-warning bg-opacity-20 text-warning" style="font-size:10px;flex-shrink:0;">Draft</span>
+                          <% } else { %>
+                            <span class="badge bg-success bg-opacity-20 text-success" style="font-size:10px;flex-shrink:0;">Live</span>
+                          <% } %>
+
+                          <!-- Date (hidden on small screens) -->
+                          <span class="text-muted d-none d-lg-inline" style="font-size:11px;flex-shrink:0;white-space:nowrap;"><%= b.date || '' %></span>
+
+                          <!-- Icon actions -->
+                          <div class="d-flex gap-1 flex-shrink-0">
+                            <a href="/blog/<%= b.slug %>" target="_blank"
+                              class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size:11px;" title="View">
+                              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1"
+                              style="font-size:11px;" onclick="openInlineBlogEditor('<%= b.id %>')" title="Edit">
+                              <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1"
+                              style="font-size:11px;" onclick="deleteBlog('<%= b.id %>')" title="Delete">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                      <% }); %>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- â”€â”€ Inline Blog Editor Panel â”€â”€ -->
+              <div id="inlineBlogEditorPanel" class="d-none">
+
+                <!-- Editor Top Bar -->
+                <div class="admin-card mb-3 py-2 px-3" style="border-radius: 12px;">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeInlineBlogEditor()">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Back
+                      </button>
+                      <h5 class="fw-bold text-white fs-6 mb-0" id="inlineEditorHeading">
+                        <i class="fa-solid fa-pen-nib text-info me-2"></i>Write New Blog
+                      </h5>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary text-white active" id="btnInlineModeWrite" onclick="setInlineEditorView('write')">
+                          <i class="fa-solid fa-pen me-1"></i> Editor
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary text-white" id="btnInlineModePreview" onclick="setInlineEditorView('preview')">
+                          <i class="fa-solid fa-eye me-1"></i> Preview
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary text-white d-none d-lg-inline-block" id="btnInlineModeSplit" onclick="setInlineEditorView('split')">
+                          <i class="fa-solid fa-columns me-1"></i> Split
+                        </button>
+                      </div>
+                      <a href="#" id="inlineEditorViewLink" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3 d-none">
+                        <i class="fa-solid fa-eye me-1"></i> View Live
+                      </a>
+                    </div>
                   </div>
                 </div>
 
-                <div class="table-responsive">
-                  <table class="table table-custom mb-0" id="blogTable">
-                    <thead>
-                      <tr>
-                        <th style="width: 70px;">Image</th>
-                        <th>Article Name</th>
-                        <th class="text-end" style="width: 120px;">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% blogs.forEach(function(b) { %>
-                        <tr id="blog-row-<%= b.id %>" data-title="<%= (b.title || '').toLowerCase() %>"
-                          data-slug="<%= (b.slug || '').toLowerCase() %>"
-                          data-cat="<%= (b.category || '').toLowerCase() %>"
-                          data-author="<%= (b.author || '').toLowerCase() %>">
-                          <td style="vertical-align: middle;">
-                            <div
-                              style="width:52px;height:38px;border-radius:6px;overflow:hidden;background:#1a233a;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
-                              <img src="<%= b.coverImage || b.image || '/assets/images/logo.jpg' %>"
-                                alt="<%= b.title %>" style="width: 100%; height: 100%; object-fit: cover;"
-                                onerror="this.src='/assets/images/logo.jpg'">
+                <form id="inlineBlogForm" onsubmit="submitInlineBlog(event)">
+                  <input type="hidden" id="inlineBlogId">
+
+                  <div class="row g-3">
+                    <!-- LEFT: Main Editor -->
+                    <div class="col-lg-8">
+
+                      <!-- Title & Slug -->
+                      <div class="admin-card mb-3">
+                        <div class="mb-3">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Blog Title *</label>
+                          <input type="text" class="form-control form-control-dark" id="inlineBlogTitle" required
+                            placeholder="e.g. 7 Proven Night Study Habits to Score 95%+ in Exams"
+                            oninput="onBlogTitleInput('inlineBlogTitle', 'inlineBlogSlug')" style="font-size: 1rem; font-weight: 600;">
+                        </div>
+                        <div class="row g-2">
+                          <div class="col-md-6">
+                            <label class="form-label text-white-50 small fw-semibold mb-1">Slug * <span class="text-muted fw-normal">(URL identifier)</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-dark border-secondary border-opacity-25 text-muted" style="font-size: 11px;">/blog/</span>
+                              <input type="text" class="form-control form-control-dark font-monospace" id="inlineBlogSlug"
+                                placeholder="blog-post-slug" required>
                             </div>
-                          </td>
-                          <td style="vertical-align: middle;">
-                            <div class="fw-bold text-white">
-                              <%= b.title %>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label text-white-50 small fw-semibold mb-1">SEO Title <span class="text-muted fw-normal">(for search engines)</span></label>
+                            <input type="text" class="form-control form-control-dark form-control-sm" id="inlineBlogSeoTitle"
+                              placeholder="SEO-optimized title">
+                          </div>
+                        </div>
+                        <!-- Category + Featured inline -->
+                        <div class="row g-2 mt-1">
+                          <div class="col-md-6">
+                            <label class="form-label text-white-50 small fw-semibold mb-1">Category</label>
+                            <select class="form-select form-select-dark form-select-sm" id="inlineBlogCategory">
+                              <option value="Study Tips">Study Tips</option>
+                              <option value="Exam Prep">Exam Prep</option>
+                              <option value="Late Night Routine">Late Night Routine</option>
+                              <option value="Focus & Productivity">Focus & Productivity</option>
+                              <option value="College Life">College Life</option>
+                              <option value="Time Management">Time Management</option>
+                              <option value="Lifestyle">Lifestyle</option>
+                              <option value="Tech & Tools">Tech & Tools</option>
+                            </select>
+                          </div>
+                          <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-1">
+                              <input class="form-check-input" type="checkbox" id="inlineBlogFeatured">
+                              <label class="form-check-label text-muted small" for="inlineBlogFeatured">Featured post</label>
                             </div>
-                          </td>
-                          <td class="text-end" style="vertical-align: middle;">
-                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1"
-                              style="font-size:12px;" title="Edit Article" onclick="openEditBlogModal('<%= b.id %>')">
-                              <i class="fa-solid fa-pen-to-square me-1"></i> Edit
-                            </button>
-                          </td>
-                        </tr>
-                        <% }); %>
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Content Type selector -->
+                      <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-white-50 small fw-semibold" style="font-size:12px;">Content Type</span>
+                          <select class="form-select form-select-dark form-select-sm" id="blogContentType"
+                            style="width:auto;font-size:12px;padding:3px 28px 3px 10px;"
+                            onchange="switchBlogContentType(this.value)">
+                            <option value="tiptap" selected>&#9997; Rich Text (TipTap)</option>
+                            <option value="html">&#60;/&#62; HTML Editor</option>
+                            <option value="markdown">&#35; Markdown</option>
+                          </select>
+                        </div>
+                        <span class="text-muted" style="font-size:11px;"><i class="fa-solid fa-circle-info me-1"></i>Choose your writing style</span>
+                      </div>
+
+                      <!-- Content Toolbar -->
+                      <div class="blog-editor-toolbar" id="inlineBlogToolbar">
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','<strong>','</strong>')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','<em>','</em>')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','<s>','</s>')" title="Strikethrough"><i class="fa-solid fa-strikethrough"></i></button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','<mark style=&quot;background:#fbbf24;color:#000;&quot;>','</mark>')" title="Highlight"><i class="fa-solid fa-highlighter"></i> Highlight</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="insertLinkPrompt('inlineBlogContent')" title="Link"><i class="fa-solid fa-link"></i> Link</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','<code>','</code>')" title="Inline Code"><i class="fa-solid fa-code"></i></button>
+
+                        <div class="blog-toolbar-divider"></div>
+
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<h1>','</h1>\n')" title="H1">H1</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<h2>','</h2>\n')" title="H2">H2</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<h3>','</h3>\n')" title="H3">H3</button>
+
+                        <div class="blog-toolbar-divider"></div>
+
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<ul>\n  <li>','</li>\n</ul>\n')" title="Bullet List"><i class="fa-solid fa-list-ul"></i> List</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<ol>\n  <li>','</li>\n</ol>\n')" title="Numbered List"><i class="fa-solid fa-list-ol"></i> List</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="insertChecklist('inlineBlogContent')" title="Checklist"><i class="fa-solid fa-list-check"></i> Checklist</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<blockquote>','</blockquote>\n')" title="Quote"><i class="fa-solid fa-quote-left"></i> Quote</button>
+                        <button type="button" class="blog-toolbar-btn" onclick="wrapText('inlineBlogContent','\n<pre><code>','</code></pre>\n')" title="Code Block">CodeBlock</button>
+
+                        <div class="blog-toolbar-divider"></div>
+
+                        <!-- Table -->
+                        <div class="dropdown d-inline-block">
+                          <button class="blog-toolbar-btn dropdown-toggle text-warning" type="button" data-bs-toggle="dropdown"><i class="fa-solid fa-table me-1"></i> Table</button>
+                          <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 220px;">
+                            <li><a class="dropdown-item py-1" href="javascript:void(0)" onclick="insertTable('inlineBlogContent','standard')"><i class="fa-solid fa-table-cells me-2 text-info"></i>Standard 3Ã—3</a></li>
+                            <li><a class="dropdown-item py-1" href="javascript:void(0)" onclick="insertTable('inlineBlogContent','comparison')"><i class="fa-solid fa-scale-balanced me-2 text-warning"></i>A vs B Comparison</a></li>
+                            <li><a class="dropdown-item py-1" href="javascript:void(0)" onclick="insertTable('inlineBlogContent','schedule')"><i class="fa-regular fa-clock me-2 text-success"></i>Study Schedule</a></li>
+                            <li><a class="dropdown-item py-1" href="javascript:void(0)" onclick="insertCustomTable('inlineBlogContent')"><i class="fa-solid fa-plus me-2 text-primary"></i>Custom Rows Ã— Cols...</a></li>
+                          </ul>
+                        </div>
+
+                        <!-- Image -->
+                        <div class="dropdown d-inline-block">
+                          <button class="blog-toolbar-btn dropdown-toggle text-info" type="button" data-bs-toggle="dropdown"><i class="fa-solid fa-image me-1"></i> Image</button>
+                          <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 220px;">
+                            <li>
+                              <a class="dropdown-item py-1" href="javascript:void(0)" onclick="document.getElementById('inlineBlogInlineImgFile').click()">
+                                <i class="fa-solid fa-cloud-arrow-up me-2 text-info"></i>Upload to Cloudinary...
+                              </a>
+                              <input type="file" id="inlineBlogInlineImgFile" accept="image/*" class="d-none"
+                                onchange="uploadInlineImageToCloudinary(this, 'inlineBlogContent')">
+                            </li>
+                            <li><a class="dropdown-item py-1" href="javascript:void(0)" onclick="insertImageUrlPrompt('inlineBlogContent')"><i class="fa-solid fa-link me-2 text-warning"></i>Insert from URL...</a></li>
+                          </ul>
+                        </div>
+
+                        <!-- YouTube -->
+                        <button type="button" class="blog-toolbar-btn" onclick="insertYoutubeEmbed('inlineBlogContent')" title="Embed YouTube"><i class="fa-brands fa-youtube me-1"></i> YouTube</button>
+
+                        <div class="blog-toolbar-divider"></div>
+
+                        <button type="button" class="blog-toolbar-btn" title="Undo" onclick="document.execCommand('undo')">â†º</button>
+                        <button type="button" class="blog-toolbar-btn" title="Redo" onclick="document.execCommand('redo')">â†»</button>
+                      </div>
+
+                      <!-- Editor/Preview Area -->
+                      <div class="row g-0" id="inlineEditorRow">
+                        <div class="col-12" id="inlineBlogColWrite">
+
+                          <!-- TipTap WYSIWYG Editor -->
+                          <div id="tiptapEditorWrap" style="border-radius:0 0 10px 10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);min-height:480px;background:#101624;">
+                            <!-- TipTap Toolbar -->
+                            <div id="tiptapToolbar" style="display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;background:#161e30;border-bottom:1px solid rgba(255,255,255,0.08);">
+                              <button type="button" class="blog-toolbar-btn" id="ttBold" onclick="ttCmd('toggleBold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttItalic" onclick="ttCmd('toggleItalic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttStrike" onclick="ttCmd('toggleStrike')" title="Strikethrough"><i class="fa-solid fa-strikethrough"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttCode" onclick="ttCmd('toggleCode')" title="Inline Code"><i class="fa-solid fa-code"></i></button>
+                              <div class="blog-toolbar-divider"></div>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttHeading(1)" title="H1">H1</button>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttHeading(2)" title="H2">H2</button>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttHeading(3)" title="H3">H3</button>
+                              <div class="blog-toolbar-divider"></div>
+                              <button type="button" class="blog-toolbar-btn" id="ttBullet" onclick="ttCmd('toggleBulletList')" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttOrdered" onclick="ttCmd('toggleOrderedList')" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttQuote" onclick="ttCmd('toggleBlockquote')" title="Blockquote"><i class="fa-solid fa-quote-left"></i></button>
+                              <button type="button" class="blog-toolbar-btn" id="ttCodeBlock" onclick="ttCmd('toggleCodeBlock')" title="Code Block">Code Block</button>
+                              <div class="blog-toolbar-divider"></div>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttInsertLink()" title="Link"><i class="fa-solid fa-link"></i> Link</button>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttInsertImage()" title="Insert Image"><i class="fa-solid fa-image"></i> Image</button>
+                              <div class="blog-toolbar-divider"></div>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttUndo()" title="Undo">&#8630; Undo</button>
+                              <button type="button" class="blog-toolbar-btn" onclick="ttRedo()" title="Redo">&#8631; Redo</button>
+                              <div class="blog-toolbar-divider"></div>
+                              <button type="button" class="blog-toolbar-btn text-warning" onclick="ttClear()" title="Clear all"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                            <!-- TipTap content area -->
+                            <div id="tiptapEditor" style="min-height:430px;padding:16px 20px;color:#e2e8f0;font-size:15px;line-height:1.75;outline:none;cursor:text;"></div>
+                          </div>
+
+                          <!-- HTML Textarea (hidden by default) -->
+                          <textarea class="form-control form-control-dark blog-textarea" id="inlineBlogContent" rows="22"
+                            placeholder="Write your article content here in HTML. Use the toolbar to insert headings, images, tables, callouts and more..."
+                            oninput="onBlogContentChange('inlineBlogContent','inlineBlogStats','inlineBlogLivePreview','inlineBlogReadTime')"
+                            style="border-radius: 0 0 10px 10px; min-height: 480px; display:none;"></textarea>
+                        </div>
+                        <div class="col-12 d-none" id="inlineBlogColPreview">
+                          <div class="blog-preview-card" id="inlineBlogPreviewCard" style="min-height: 480px;">
+                            <div class="text-muted small pb-2 mb-3 border-bottom d-flex justify-content-between">
+                              <span class="fw-bold text-dark"><i class="fa-solid fa-eye me-1"></i> Live Preview</span>
+                              <span class="badge bg-secondary text-white" style="font-size: 10px;">Public View Styling</span>
+                            </div>
+                            <div class="article-preview-body" id="inlineBlogLivePreview">
+                              <p class="text-muted fst-italic">Start typing to see live preview...</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Stats Bar -->
+                      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 px-1 text-muted" style="font-size: 11px;">
+                        <div id="inlineBlogStats"><i class="fa-solid fa-chart-simple me-1 text-info"></i> 0 words Â· ~1 min read Â· 0 characters</div>
+                        <div class="text-white-50"><i class="fa-solid fa-circle-info me-1"></i> Images upload to Cloudinary <code class="text-info">blog-images/</code></div>
+                      </div>
+                    </div>
+
+                    <!-- RIGHT: Metadata Sidebar -->
+                    <div class="col-lg-4">
+
+                      <!-- Publish Actions -->
+                      <div class="admin-card mb-3">
+                        <h6 class="fw-bold text-white mb-3" style="font-size: 13px;"><i class="fa-solid fa-paper-plane text-info me-2"></i>Publish</h6>
+                        <div class="mb-3">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Status</label>
+                          <select class="form-select form-select-dark form-select-sm" id="inlineBlogStatus">
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Written By</label>
+                          <input type="text" class="form-control form-control-dark form-control-sm" id="inlineBlogAuthor" value="Nishant Kumar" placeholder="Author Name">
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Read Time</label>
+                          <input type="text" class="form-control form-control-dark form-control-sm" id="inlineBlogReadTime" value="5 min read" placeholder="e.g. 4 min read">
+                        </div>
+                        <div class="d-grid">
+                          <button type="submit" id="inlineSubmitBlogBtn" class="btn btn-gradient-primary btn-sm rounded-pill">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Publish Blog
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Cover Image (compact) -->
+                      <div class="admin-card mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                          <!-- Compact thumbnail -->
+                          <div style="width:60px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#1a233a;border:1px solid rgba(255,255,255,0.08);">
+                            <img id="inlineBlogImagePreview" src="/assets/images/logo.jpg" alt="Cover"
+                              style="width:100%;height:100%;object-fit:cover;">
+                          </div>
+                          <!-- Label + URL + Upload -->
+                          <div class="flex-grow-1">
+                            <label class="form-label text-white-50 small fw-semibold mb-1"><i class="fa-solid fa-image text-info me-1"></i>Cover Image</label>
+                            <div class="input-group input-group-sm">
+                              <input type="text" class="form-control form-control-dark" id="inlineBlogImage"
+                                placeholder="Paste URL or upload..."
+                                oninput="updateCoverPreview('inlineBlogImage','inlineBlogImagePreview')">
+                              <label class="btn btn-outline-info btn-sm px-2 m-0 d-flex align-items-center" style="cursor:pointer;" title="Upload image">
+                                <i class="fa-solid fa-upload"></i>
+                                <input type="file" accept="image/*" class="d-none"
+                                  onchange="uploadBlogCover(this,'inlineBlogImage','inlineBlogImagePreview')">
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Meta / SEO -->
+                      <div class="admin-card mb-3">
+                        <h6 class="fw-bold text-white mb-3" style="font-size: 13px;"><i class="fa-solid fa-magnifying-glass text-info me-2"></i>SEO & Meta</h6>
+                        <div class="mb-2">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Excerpt * <span class="text-muted fw-normal">(brief summary)</span></label>
+                          <textarea class="form-control form-control-dark form-control-sm" id="inlineBlogExcerpt" rows="3"
+                            placeholder="Concise 1-2 sentence summary (140-160 chars)"></textarea>
+                        </div>
+                        <div class="mb-2">
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Tags <span class="text-muted fw-normal">(comma-separated)</span></label>
+                          <input type="text" class="form-control form-control-dark form-control-sm" id="inlineBlogTags"
+                            placeholder="tag1, tag2, tag3">
+                        </div>
+                        <div>
+                          <label class="form-label text-white-50 small fw-semibold mb-1">Date</label>
+                          <input type="date" class="form-control form-control-dark form-control-sm" id="inlineBlogDate">
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </form>
               </div>
+
             </div>
+
 
             <!-- ========================================== -->
             <!-- SECTION 5: STUDENT SAFETY -->
@@ -1105,7 +1442,7 @@
 
                 <% if (safetyCases.length===0) { %>
                   <div class="text-center py-5 text-muted">
-                    <div class="fs-2 mb-2">🛡️</div>
+                    <div class="fs-2 mb-2 text-warning"><i class="fa-solid fa-shield-halved"></i></div>
                     <p class="small mb-0">No impersonation cases reported.</p>
                   </div>
                   <% } else { %>
@@ -1170,7 +1507,7 @@
                                         <a href="<%= evUrl %>" target="_blank"
                                           class="btn btn-sm btn-outline-secondary py-0 px-2 text-white"
                                           style="font-size: 10px;">
-                                          📎 #<%= idx + 1 %>
+                                          <i class="fa-solid fa-paperclip me-1"></i>#<%= idx + 1 %>
                                         </a>
                                         <% }); %>
                                   </div>
@@ -1181,16 +1518,16 @@
                               <td>
                                 <% if (c.status==='Verified' ) { %>
                                   <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-1"
-                                    style="font-size: 11px;">✅ Verified</span>
+                                    style="font-size: 11px;"><i class="fa-solid fa-check me-1"></i>Verified</span>
                                   <% } else if (c.status==='Resolved' ) { %>
                                     <span class="badge bg-primary bg-opacity-25 text-info rounded-pill px-2 py-1"
-                                      style="font-size: 11px;">🎉 Resolved</span>
+                                      style="font-size: 11px;"><i class="fa-solid fa-check-double me-1"></i>Resolved</span>
                                     <% } else if (c.status==='Rejected' ) { %>
                                       <span class="badge bg-danger bg-opacity-25 text-danger rounded-pill px-2 py-1"
-                                        style="font-size: 11px;">❌ Rejected</span>
+                                        style="font-size: 11px;"><i class="fa-solid fa-xmark me-1"></i>Rejected</span>
                                       <% } else { %>
                                         <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-2 py-1"
-                                          style="font-size: 11px;">🟡 Pending Review</span>
+                                          style="font-size: 11px;"><i class="fa-solid fa-clock me-1"></i>Pending Review</span>
                                         <% } %>
                               </td>
                               <td class="text-end">
@@ -1244,7 +1581,7 @@
                               <%= fb.name %>
                             </div>
                             <div class="text-warning small">
-                              <% for(let i=0; i < (fb.rating || 5); i++) { %>★<% } %>
+                              <% for(let i=0; i < (fb.rating || 5); i++) { %>â˜…<% } %>
                             </div>
                           </div>
                           <p class="text-white-50 small mb-2">"<%= fb.comment %>"</p>
@@ -1275,7 +1612,7 @@
                 <div class="mb-3">
                   <h4 class="fw-bold text-white fs-6 mb-0"><i class="fa-solid fa-graduation-cap me-2"
                       style="color: #fb923c;"></i>Add College Life Video</h4>
-                  <span class="text-muted small">Add a YouTube link with title for the 🎉 College Life Enjoy
+                  <span class="text-muted small">Add a YouTube link with title for the College Life Enjoy
                     section.</span>
                 </div>
                 <form id="addCollegeVideoForm" onsubmit="addCollegeVideo(event)">
@@ -1383,12 +1720,12 @@
                               </span>
                             </td>
                             <td class="text-white-50 small">
-                              <%= v.duration || '—' %>
+                              <%= v.duration || 'â€”' %>
                             </td>
                             <td>
                               <% if (v.isFeatured) { %>
                                 <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2"
-                                  style="font-size: 10px;">⭐ Featured</span>
+                                  style="font-size: 10px;"><i class="fa-solid fa-star text-warning me-1"></i>Featured</span>
                                 <% } else { %>
                                   <button class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2"
                                     onclick="setCollegeFeatured('<%= v.id %>')" style="font-size: 10px;">Set
@@ -1420,7 +1757,7 @@
                   </div>
                   <% } else { %>
                     <div class="text-center py-5 text-muted">
-                      <div class="fs-2 mb-2">🎓</div>
+                      <div class="fs-2 mb-2 text-warning"><i class="fa-solid fa-graduation-cap"></i></div>
                       <p class="small mb-0">No college life videos yet. Use the form above to add the first one.</p>
                     </div>
                     <% } %>
@@ -1549,7 +1886,7 @@
                   </div>
                   <% } else { %>
                     <div class="text-center py-5 text-muted">
-                      <div class="fs-2 mb-2">📚</div>
+                      <div class="fs-2 mb-2 text-info"><i class="fa-solid fa-book-open"></i></div>
                       <p class="small mb-0">No resource cards added yet. Use the form above to add the first card.</p>
                     </div>
                     <% } %>
@@ -1676,12 +2013,12 @@
                 <!-- Price + MRP + Stock -->
                 <div class="row g-2 mb-3">
                   <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">Sale Price (₹) *</label>
+                    <label class="form-label text-white-50 small fw-semibold">Sale Price (â‚¹) *</label>
                     <input type="number" class="form-control form-control-dark" id="prodPrice" required
                       placeholder="499" min="1">
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">MRP / Original (₹)</label>
+                    <label class="form-label text-white-50 small fw-semibold">MRP / Original (â‚¹)</label>
                     <input type="number" class="form-control form-control-dark" id="prodOrig" placeholder="699" min="1">
                   </div>
                   <div class="col-md-4">
@@ -1692,8 +2029,8 @@
                 </div>
 
                 <!-- Badge -->
-                <div class="row g-2">
-                  <div class="col-md-4">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label text-white-50 small fw-semibold">Badge Type</label>
                     <select class="form-select form-select-dark" id="prodBadge">
                       <option value="">None</option>
@@ -1703,15 +2040,30 @@
                       <option value="sale">Sale</option>
                     </select>
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-6">
                     <label class="form-label text-white-50 small fw-semibold">Badge Label</label>
                     <input type="text" class="form-control form-control-dark" id="prodBadgeLabel"
                       placeholder="e.g. Best Seller">
                   </div>
-                  <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">Emoji</label>
-                    <input type="text" class="form-control form-control-dark" id="prodEmoji" value="✨" placeholder="✨"
-                      style="font-size: 1.2rem;">
+                </div>
+
+                <!-- Key Features & Specs -->
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between">
+                      <span>Key Features</span>
+                      <span class="text-muted" style="font-size: 10px;">One per line</span>
+                    </label>
+                    <textarea class="form-control form-control-dark" id="prodFeatures" rows="3"
+                      placeholder="Premium 80 GSM ruled pages&#10;Lay-flat binding&#10;200 pages lasts full semester"></textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between">
+                      <span>Specifications</span>
+                      <span class="text-muted" style="font-size: 10px;">Key: Value per line</span>
+                    </label>
+                    <textarea class="form-control form-control-dark" id="prodSpecs" rows="3"
+                      placeholder="Brand: 2 AM Study&#10;Size: A5&#10;Pages: 200&#10;Binding: Hardbound"></textarea>
                   </div>
                 </div>
 
@@ -1747,7 +2099,7 @@
                   <label
                     class="form-label text-white-50 small fw-semibold d-flex justify-content-between align-items-center mb-2">
                     <span><i class="fa-solid fa-images text-warning me-1"></i> Product Images</span>
-                    <span class="text-muted" style="font-size: 11px;">Click × to remove · Upload or paste URL to
+                    <span class="text-muted" style="font-size: 11px;">Click Ã— to remove Â· Upload or paste URL to
                       add</span>
                   </label>
                   <div class="d-flex gap-2 flex-wrap mb-2" id="editProdImgPreviews"></div>
@@ -1795,11 +2147,11 @@
                 <!-- Price + MRP + Stock -->
                 <div class="row g-2 mb-3">
                   <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">Sale Price (₹) *</label>
+                    <label class="form-label text-white-50 small fw-semibold">Sale Price (â‚¹) *</label>
                     <input type="number" class="form-control form-control-dark" id="editProdPrice" required min="1">
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">MRP / Original (₹)</label>
+                    <label class="form-label text-white-50 small fw-semibold">MRP / Original (â‚¹)</label>
                     <input type="number" class="form-control form-control-dark" id="editProdOrig" min="1">
                   </div>
                   <div class="col-md-4">
@@ -1809,8 +2161,8 @@
                 </div>
 
                 <!-- Badge -->
-                <div class="row g-2">
-                  <div class="col-md-4">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label text-white-50 small fw-semibold">Badge Type</label>
                     <select class="form-select form-select-dark" id="editProdBadge">
                       <option value="">None</option>
@@ -1820,15 +2172,42 @@
                       <option value="sale">Sale</option>
                     </select>
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-6">
                     <label class="form-label text-white-50 small fw-semibold">Badge Label</label>
                     <input type="text" class="form-control form-control-dark" id="editProdBadgeLabel"
                       placeholder="e.g. Best Seller">
                   </div>
-                  <div class="col-md-4">
-                    <label class="form-label text-white-50 small fw-semibold">Emoji</label>
-                    <input type="text" class="form-control form-control-dark" id="editProdEmoji" placeholder="✨"
-                      style="font-size: 1.2rem;">
+                </div>
+
+                <!-- Key Features & Specs -->
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between">
+                      <span>Key Features</span>
+                      <span class="text-muted" style="font-size: 10px;">One per line</span>
+                    </label>
+                    <textarea class="form-control form-control-dark" id="editProdFeatures" rows="3"
+                      placeholder="Premium 80 GSM ruled pages&#10;Lay-flat binding&#10;200 pages lasts full semester"></textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold d-flex justify-content-between">
+                      <span>Specifications</span>
+                      <span class="text-muted" style="font-size: 10px;">Key: Value per line</span>
+                    </label>
+                    <textarea class="form-control form-control-dark" id="editProdSpecs" rows="3"
+                      placeholder="Brand: 2 AM Study&#10;Size: A5&#10;Pages: 200&#10;Binding: Hardbound"></textarea>
+                  </div>
+                </div>
+
+                <!-- Rating & Count -->
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold">Customer Rating (1.0 - 5.0)</label>
+                    <input type="number" step="0.1" min="1" max="5" class="form-control form-control-dark" id="editProdRating" placeholder="4.5">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-white-50 small fw-semibold">Review Count</label>
+                    <input type="number" min="0" class="form-control form-control-dark" id="editProdRatingCount" placeholder="100">
                   </div>
                 </div>
 
@@ -2046,7 +2425,7 @@
                     <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 230px;">
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertTable('blogContent', 'standard')">
-                          <i class="fa-solid fa-table-cells me-2 text-info"></i> Standard Data Table (3×3)
+                          <i class="fa-solid fa-table-cells me-2 text-info"></i> Standard Data Table (3Ã—3)
                         </a></li>
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertTable('blogContent', 'comparison')">
@@ -2065,7 +2444,7 @@
                       </li>
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertCustomTable('blogContent')">
-                          <i class="fa-solid fa-plus me-2 text-primary"></i> Custom Table (Rows × Cols)...
+                          <i class="fa-solid fa-plus me-2 text-primary"></i> Custom Table (Rows Ã— Cols)...
                         </a></li>
                     </ul>
                   </div>
@@ -2114,27 +2493,27 @@
                     <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 220px;">
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'tip')">
-                          <span class="text-success me-2">💡</span> Pro-Tip Callout
+                          <i class="fa-solid fa-lightbulb me-2 text-success"></i> Pro-Tip Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'warning')">
-                          <span class="text-warning me-2">⚠️</span> Warning / Important Callout
+                          <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> Warning / Important Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'info')">
-                          <span class="text-info me-2">ℹ️</span> Info Note Callout
+                          <i class="fa-solid fa-circle-info me-2 text-info"></i> Info Note Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'takeaway')">
-                          <span class="text-purple me-2" style="color: #c084fc;">🎯</span> Key Takeaways Box
+                          <i class="fa-solid fa-bullseye me-2 text-purple" style="color: #c084fc;"></i> Key Takeaways Box
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'faq')">
-                          <span class="text-info me-2">❓</span> FAQ / Q&A Box
+                          <i class="fa-solid fa-circle-question me-2 text-info"></i> FAQ / Q&A Box
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('blogContent', 'download')">
-                          <span class="text-success me-2">📥</span> Download Resource Button
+                          <i class="fa-solid fa-download me-2 text-success"></i> Download Resource Button
                         </a></li>
                       <li>
                         <hr class="dropdown-divider border-secondary border-opacity-25">
@@ -2158,7 +2537,7 @@
                     <i class="fa-solid fa-list-ol"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertChecklist('blogContent')"
-                    title="Checklist (✓)">
+                    title="Checklist (âœ“)">
                     <i class="fa-solid fa-list-check"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertDivider('blogContent')"
@@ -2200,7 +2579,7 @@
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 px-2 text-muted"
                   style="font-size: 11px;">
                   <div id="addBlogStats">
-                    <i class="fa-solid fa-chart-simple me-1 text-info"></i> 0 words · ~1 min read · 0 characters
+                    <i class="fa-solid fa-chart-simple me-1 text-info"></i> 0 words Â· ~1 min read Â· 0 characters
                   </div>
                   <div class="text-white-50">
                     <i class="fa-solid fa-circle-info me-1"></i> Images upload directly to Cloudinary folder <code
@@ -2409,7 +2788,7 @@
                     <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 230px;">
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertTable('editBlogContent', 'standard')">
-                          <i class="fa-solid fa-table-cells me-2 text-info"></i> Standard Data Table (3×3)
+                          <i class="fa-solid fa-table-cells me-2 text-info"></i> Standard Data Table (3Ã—3)
                         </a></li>
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertTable('editBlogContent', 'comparison')">
@@ -2428,7 +2807,7 @@
                       </li>
                       <li><a class="dropdown-item py-1.5" href="javascript:void(0)"
                           onclick="insertCustomTable('editBlogContent')">
-                          <i class="fa-solid fa-plus me-2 text-primary"></i> Custom Table (Rows × Cols)...
+                          <i class="fa-solid fa-plus me-2 text-primary"></i> Custom Table (Rows Ã— Cols)...
                         </a></li>
                     </ul>
                   </div>
@@ -2477,27 +2856,27 @@
                     <ul class="dropdown-menu dropdown-menu-dark shadow-sm" style="font-size: 13px; min-width: 220px;">
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'tip')">
-                          <span class="text-success me-2">💡</span> Pro-Tip Callout
+                          <i class="fa-solid fa-lightbulb me-2 text-success"></i> Pro-Tip Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'warning')">
-                          <span class="text-warning me-2">⚠️</span> Warning / Important Callout
+                          <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> Warning / Important Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'info')">
-                          <span class="text-info me-2">ℹ️</span> Info Note Callout
+                          <i class="fa-solid fa-circle-info me-2 text-info"></i> Info Note Callout
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'takeaway')">
-                          <span class="text-purple me-2" style="color: #c084fc;">🎯</span> Key Takeaways Box
+                          <i class="fa-solid fa-bullseye me-2 text-purple" style="color: #c084fc;"></i> Key Takeaways Box
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'faq')">
-                          <span class="text-info me-2">❓</span> FAQ / Q&A Box
+                          <i class="fa-solid fa-circle-question me-2 text-info"></i> FAQ / Q&A Box
                         </a></li>
                       <li><a class="dropdown-item py-1" href="javascript:void(0)"
                           onclick="insertCalloutBox('editBlogContent', 'download')">
-                          <span class="text-success me-2">📥</span> Download Resource Button
+                          <i class="fa-solid fa-download me-2 text-success"></i> Download Resource Button
                         </a></li>
                       <li>
                         <hr class="dropdown-divider border-secondary border-opacity-25">
@@ -2521,7 +2900,7 @@
                     <i class="fa-solid fa-list-ol"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertChecklist('editBlogContent')"
-                    title="Checklist (✓)">
+                    title="Checklist (âœ“)">
                     <i class="fa-solid fa-list-check"></i>
                   </button>
                   <button type="button" class="blog-toolbar-btn" onclick="insertDivider('editBlogContent')"
@@ -2562,7 +2941,7 @@
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 px-2 text-muted"
                   style="font-size: 11px;">
                   <div id="editBlogStats">
-                    <i class="fa-solid fa-chart-simple me-1 text-warning"></i> 0 words · ~1 min read · 0 characters
+                    <i class="fa-solid fa-chart-simple me-1 text-warning"></i> 0 words Â· ~1 min read Â· 0 characters
                   </div>
                   <div class="text-white-50">
                     <i class="fa-solid fa-circle-info me-1"></i> Cloudinary image hosting enabled
@@ -2716,13 +3095,15 @@
 
             // Section Switching
             const sectionTitles = {
-              live: 'Live Study Manager',
-              products: 'Store Products & Inventory',
-              orders: 'Customer Orders & Sales',
-              blogs: 'Blog & Content Guides',
-              safety: 'Student Safety Moderation',
-              reviews: 'Shopper Reviews & Feedback',
-              college: 'College Life Videos',
+              live: 'Live Study',
+              products: 'Store Products',
+              orders: 'Customer Orders',
+              blogs: 'Articles',
+              'blogs-write': 'Write Article',
+              'blogs-manage': 'Manage Articles',
+              safety: 'Student Safety',
+              reviews: 'Shopper Reviews',
+              college: 'College Life',
               resources: 'Exam Resources'
             };
 
@@ -2731,20 +3112,34 @@
               const activeBtn = document.querySelector(`.sidebar-btn[data-section="${secKey}"]`);
               if (activeBtn) activeBtn.classList.add('active');
 
+              // Determine the actual section element key
+              const sectionId = secKey.startsWith('blogs-') ? 'blogs' : secKey;
+
               document.querySelectorAll('.admin-section').forEach(s => s.classList.add('d-none'));
-              const activeSec = document.getElementById(`sec-${secKey}`);
+              const activeSec = document.getElementById(`sec-${sectionId}`);
               if (activeSec) activeSec.classList.remove('d-none');
 
               const titleEl = document.getElementById('currentSectionTitle');
               if (titleEl && sectionTitles[secKey]) titleEl.textContent = sectionTitles[secKey];
+
+              // Blog sub-section routing
+              if (secKey === 'blogs-write') {
+                openInlineBlogEditor();  // opens editor, hides list
+              } else if (secKey === 'blogs-manage') {
+                closeInlineBlogEditor(); // shows list, hides editor
+              }
 
               window.location.hash = secKey;
               const sb = document.getElementById('adminSidebar');
               if (sb) sb.classList.remove('show-mobile');
             }
 
+            // Generic sidebar click listener for all section buttons
             document.querySelectorAll('.sidebar-btn').forEach(btn => {
-              btn.addEventListener('click', () => switchSection(btn.dataset.section));
+              btn.addEventListener('click', () => {
+                const sec = btn.dataset.section;
+                if (sec) switchSection(sec);
+              });
             });
 
             // Handle Hash on Load & Setup Clipboard Paste
@@ -2852,7 +3247,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                  showToast('🔴 Live Stream is ACTIVE!');
+                  showToast('Live Stream is ACTIVE!');
                   setTimeout(() => {
                     window.location.hash = 'live';
                     window.location.reload();
@@ -2952,7 +3347,7 @@
               }
             }
 
-            // ─── Product Management ───────────────────────────────────────────────────
+            // â”€â”€â”€ Product Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             // Add Product: collected images array
             let addProdImages = [];
@@ -2963,9 +3358,15 @@
                 if (addProdImages.length >= 4) { showToast('Max 4 images allowed.', true); break; }
                 const fd = new FormData();
                 fd.append('image', file);
+                fd.append('adminPasscode', getAdminPasscode());
                 showToast('Uploading image...');
                 try {
-                  const res = await fetch('/api/store/admin/products/upload-image', { method: 'POST', body: fd });
+                  const res = await fetch('/api/store/admin/products/upload-image', {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                    credentials: 'include',
+                    body: fd
+                  });
                   const data = await res.json();
                   if (data.success) {
                     addProdImages.push(data.url);
@@ -2996,7 +3397,7 @@
                 const div = document.createElement('div');
                 div.style.cssText = 'width:72px;height:72px;border-radius:8px;overflow:hidden;background:#0d121f;border:1px solid rgba(255,255,255,0.15);position:relative;flex-shrink:0;';
                 div.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/images/logo.jpg'">
-                <button type="button" onclick="removeProdAddImage(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>`;
+                <button type="button" onclick="removeProdAddImage(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">Ã—</button>`;
                 container.appendChild(div);
               });
               // Add slot button if < 4
@@ -3025,10 +3426,26 @@
               const stock = Number(document.getElementById('prodStock').value) || 10;
               const badge = document.getElementById('prodBadge').value;
               const badgeLabel = document.getElementById('prodBadgeLabel').value.trim();
-              const emoji = document.getElementById('prodEmoji').value.trim() || '✨';
-              let images = addProdImages.slice();
+              
+              // Features
+              const featuresText = document.getElementById('prodFeatures') ? document.getElementById('prodFeatures').value : '';
+              const features = featuresText ? featuresText.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
-              // Also include URL field if not yet added
+              // Specs
+              const specsText = document.getElementById('prodSpecs') ? document.getElementById('prodSpecs').value : '';
+              const specs = {};
+              if (specsText) {
+                specsText.split('\n').forEach(line => {
+                  const idx = line.indexOf(':');
+                  if (idx > 0) {
+                    const k = line.slice(0, idx).trim();
+                    const v = line.slice(idx + 1).trim();
+                    if (k && v) specs[k] = v;
+                  }
+                });
+              }
+
+              let images = addProdImages.slice();
               const urlField = document.getElementById('addProdImageUrl').value.trim();
               if (urlField && !images.includes(urlField)) images.push(urlField);
               if (!images.length) images = ['/assets/images/store/placeholder.jpg'];
@@ -3039,7 +3456,20 @@
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
                   credentials: 'include',
-                  body: JSON.stringify({ name, cat, desc, price, orig, stock, badge, badgeLabel, emoji, images })
+                  body: JSON.stringify({
+                    name,
+                    cat,
+                    desc,
+                    price,
+                    orig,
+                    stock,
+                    badge,
+                    badgeLabel,
+                    images,
+                    features,
+                    specs,
+                    adminPasscode: getAdminPasscode()
+                  })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -3060,9 +3490,11 @@
               addProdImages = [];
               renderAddProdPreviews();
               document.getElementById('createProductForm').reset();
+              if (document.getElementById('prodFeatures')) document.getElementById('prodFeatures').value = '';
+              if (document.getElementById('prodSpecs')) document.getElementById('prodSpecs').value = '';
             });
 
-            // ─── Edit Product ─────────────────────────────────────────────────────────
+            // â”€â”€â”€ Edit Product â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let STORE_PRODUCTS_CACHE = {};
             try {
               const dataEl = document.getElementById('adminStoreProductsData');
@@ -3075,7 +3507,7 @@
             function openEditProductModal(productOrId) {
               const product = (typeof productOrId === 'object' && productOrId !== null)
                 ? productOrId
-                : (STORE_PRODUCTS_CACHE[productOrId] || null);
+                : (STORE_PRODUCTS_CACHE[productOrId] || STORE_PRODUCTS_CACHE[String(productOrId)] || STORE_PRODUCTS_CACHE[Number(productOrId)] || null);
 
               if (!product) {
                 showToast('Product data not found.', true);
@@ -3095,7 +3527,29 @@
               document.getElementById('editProdStock').value = product.stock !== undefined ? product.stock : 0;
               document.getElementById('editProdBadge').value = product.badge || '';
               document.getElementById('editProdBadgeLabel').value = product.badgeLabel || '';
-              document.getElementById('editProdEmoji').value = product.emoji || '✨';
+              
+              // Populate Features
+              const featuresEl = document.getElementById('editProdFeatures');
+              if (featuresEl) {
+                featuresEl.value = Array.isArray(product.features) ? product.features.join('\n') : '';
+              }
+
+              // Populate Specs
+              const specsEl = document.getElementById('editProdSpecs');
+              if (specsEl) {
+                if (product.specs && typeof product.specs === 'object') {
+                  specsEl.value = Object.entries(product.specs).map(([k, v]) => `${k}: ${v}`).join('\n');
+                } else {
+                  specsEl.value = '';
+                }
+              }
+
+              // Populate Rating & Rating Count
+              const ratingEl = document.getElementById('editProdRating');
+              if (ratingEl) ratingEl.value = product.rating !== undefined ? product.rating : 4.5;
+              const ratingCountEl = document.getElementById('editProdRatingCount');
+              if (ratingCountEl) ratingCountEl.value = product.ratingCount !== undefined ? product.ratingCount : 0;
+
               const viewLink = document.getElementById('editProdViewLink');
               if (viewLink) {
                 viewLink.href = '/store/product/' + encodeURIComponent(product.id);
@@ -3110,9 +3564,15 @@
                 if (editProdImages.length >= 4) { showToast('Max 4 images allowed.', true); break; }
                 const fd = new FormData();
                 fd.append('image', file);
+                fd.append('adminPasscode', getAdminPasscode());
                 showToast('Uploading image...');
                 try {
-                  const res = await fetch('/api/store/admin/products/upload-image', { method: 'POST', body: fd });
+                  const res = await fetch('/api/store/admin/products/upload-image', {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                    credentials: 'include',
+                    body: fd
+                  });
                   const data = await res.json();
                   if (data.success) {
                     editProdImages.push(data.url);
@@ -3143,7 +3603,7 @@
                 const div = document.createElement('div');
                 div.style.cssText = 'width:72px;height:72px;border-radius:8px;overflow:hidden;background:#0d121f;border:1px solid rgba(255,255,255,0.15);position:relative;flex-shrink:0;';
                 div.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/images/logo.jpg'">
-                <button type="button" onclick="removeEditProdImage(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>`;
+                <button type="button" onclick="removeEditProdImage(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">Ã—</button>`;
                 container.appendChild(div);
               });
             }
@@ -3165,7 +3625,30 @@
               const stock = Number(document.getElementById('editProdStock').value);
               const badge = document.getElementById('editProdBadge').value;
               const badgeLabel = document.getElementById('editProdBadgeLabel').value.trim();
-              const emoji = document.getElementById('editProdEmoji').value.trim() || '✨';
+
+              // Features
+              const featuresText = document.getElementById('editProdFeatures') ? document.getElementById('editProdFeatures').value : '';
+              const features = featuresText ? featuresText.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+              // Specs
+              const specsText = document.getElementById('editProdSpecs') ? document.getElementById('editProdSpecs').value : '';
+              const specs = {};
+              if (specsText) {
+                specsText.split('\n').forEach(line => {
+                  const idx = line.indexOf(':');
+                  if (idx > 0) {
+                    const k = line.slice(0, idx).trim();
+                    const v = line.slice(idx + 1).trim();
+                    if (k && v) specs[k] = v;
+                  }
+                });
+              }
+
+              // Ratings
+              const ratingEl = document.getElementById('editProdRating');
+              const rating = ratingEl && ratingEl.value !== '' ? Number(ratingEl.value) : undefined;
+              const ratingCountEl = document.getElementById('editProdRatingCount');
+              const ratingCount = ratingCountEl && ratingCountEl.value !== '' ? Number(ratingCountEl.value) : undefined;
 
               // Also include any URL still in field
               const urlField = document.getElementById('editProdImageUrl').value.trim();
@@ -3178,12 +3661,32 @@
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
                   credentials: 'include',
-                  body: JSON.stringify({ name, cat, desc, price, orig, stock, badge, badgeLabel, emoji, images })
+                  body: JSON.stringify({
+                    name,
+                    cat,
+                    desc,
+                    price,
+                    orig,
+                    stock,
+                    badge,
+                    badgeLabel,
+                    images,
+                    features,
+                    specs,
+                    rating,
+                    ratingCount,
+                    adminPasscode: getAdminPasscode()
+                  })
                 });
                 const data = await res.json();
                 if (data.success) {
                   showToast('Product updated successfully!');
-                  bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                  if (typeof STORE_PRODUCTS_CACHE !== 'undefined' && data.product) {
+                    STORE_PRODUCTS_CACHE[data.product.id] = data.product;
+                  }
+                  const modalEl = document.getElementById('editProductModal');
+                  const modalInst = bootstrap.Modal.getInstance(modalEl);
+                  if (modalInst) modalInst.hide();
                   setTimeout(() => window.location.reload(), 800);
                 } else {
                   showToast(data.error || 'Failed to update product.', true);
@@ -3197,19 +3700,25 @@
 
             async function adjustStock(id, delta) {
               const stockEl = document.getElementById('stock-val-' + id);
-              if (!stockEl) return;
-              const current = Number(stockEl.textContent.trim()) || 0;
+              const current = stockEl ? (Number(stockEl.textContent.trim()) || 0) : 0;
               const newStock = Math.max(0, current + delta);
               try {
-                const res = await fetch('/api/store/admin/products/' + id + '/stock', {
+                const res = await fetch('/api/store/admin/products/' + encodeURIComponent(id) + '/stock', {
                   method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ stock: newStock })
+                  headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                  credentials: 'include',
+                  body: JSON.stringify({ stock: newStock, adminPasscode: getAdminPasscode() })
                 });
                 const data = await res.json();
                 if (data.success) {
-                  stockEl.textContent = newStock;
-                  showToast('Stock → ' + newStock);
+                  if (stockEl) {
+                    stockEl.textContent = data.stock !== undefined ? data.stock : newStock;
+                    stockEl.className = 'badge ' + ((data.stock > 5) ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger');
+                  }
+                  if (typeof STORE_PRODUCTS_CACHE !== 'undefined' && STORE_PRODUCTS_CACHE[id]) {
+                    STORE_PRODUCTS_CACHE[id].stock = data.stock !== undefined ? data.stock : newStock;
+                  }
+                  showToast('Stock â†’ ' + (data.stock !== undefined ? data.stock : newStock));
                 } else {
                   showToast(data.error || 'Failed to update stock.', true);
                 }
@@ -3223,8 +3732,9 @@
               try {
                 const res = await fetch('/api/store/admin/products/' + encodeURIComponent(id), {
                   method: 'DELETE',
-                  headers: getAdminHeaders(),
-                  credentials: 'include'
+                  headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                  credentials: 'include',
+                  body: JSON.stringify({ adminPasscode: getAdminPasscode() })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -3251,7 +3761,7 @@
               });
             }
 
-            // ─── Blog Management & Image Box Helpers ─────────────────────────────────────
+            // â”€â”€â”€ Blog Management & Image Box Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             function updateCoverPreview(inputId, previewImgId) {
               const url = document.getElementById(inputId).value.trim();
@@ -3261,14 +3771,14 @@
               }
             }
 
-            // ─── Advanced Blog Editor & Management Suite ────────────────────────────────
+            // â”€â”€â”€ Advanced Blog Editor & Management Suite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             function filterBlogRows(query) {
               const searchInput = document.getElementById('blogSearchInput');
               const catFilter = document.getElementById('blogCatFilter');
               const q = (query !== undefined ? query : (searchInput ? searchInput.value : '')).trim().toLowerCase();
               const cat = catFilter ? catFilter.value.trim().toLowerCase() : '';
 
-              document.querySelectorAll('#blogTable tbody tr').forEach(row => {
+              document.querySelectorAll('#blogTable > div[id^="blog-row-"]').forEach(row => {
                 const title = row.dataset.title || '';
                 const slug = row.dataset.slug || '';
                 const rCat = row.dataset.cat || '';
@@ -3277,8 +3787,32 @@
                 const matchQuery = !q || title.includes(q) || slug.includes(q) || author.includes(q);
                 const matchCat = !cat || rCat.includes(cat);
 
-                row.style.display = (matchQuery && matchCat) ? '' : 'none';
+                row.style.display = (matchQuery && matchCat) ? 'flex' : 'none';
               });
+            }
+
+            function switchBlogContentType(value) {
+              const htmlToolbar = document.getElementById('inlineBlogToolbar');
+              const textarea   = document.getElementById('inlineBlogContent');
+              const tiptapWrap = document.getElementById('tiptapEditorWrap');
+
+              if (value === 'tiptap') {
+                // Show TipTap, hide HTML toolbar + textarea
+                if (tiptapWrap) tiptapWrap.style.display = '';
+                if (htmlToolbar) htmlToolbar.style.display = 'none';
+                if (textarea)   textarea.style.display = 'none';
+              } else if (value === 'markdown') {
+                // Show textarea as markdown, hide TipTap
+                if (tiptapWrap) tiptapWrap.style.display = 'none';
+                if (htmlToolbar) htmlToolbar.style.display = 'none';
+                if (textarea) { textarea.style.display = ''; textarea.placeholder = '# Heading\n\nWrite in **Markdown** here...'; }
+                showToast('Markdown mode â€” write raw Markdown.', false);
+              } else {
+                // HTML mode
+                if (tiptapWrap) tiptapWrap.style.display = 'none';
+                if (htmlToolbar) htmlToolbar.style.display = '';
+                if (textarea) { textarea.style.display = ''; textarea.placeholder = 'Write your article content in HTML. Use the toolbar above...'; }
+              }
             }
 
             function onBlogTitleInput(titleInputId, slugInputId) {
@@ -3313,7 +3847,7 @@
 
               const statsEl = document.getElementById(statsId);
               if (statsEl) {
-                statsEl.innerHTML = `<i class="fa-solid fa-chart-simple me-1 text-info"></i> <strong>${words}</strong> words · ~<strong>${readMins}</strong> min read · ${chars} characters`;
+                statsEl.innerHTML = `<i class="fa-solid fa-chart-simple me-1 text-info"></i> <strong>${words}</strong> words Â· ~<strong>${readMins}</strong> min read Â· ${chars} characters`;
               }
 
               const readTimeEl = document.getElementById(readTimeId);
@@ -3393,15 +3927,15 @@
               );
             }
 
-            // ─── Table Generators (User Feature) ─────────────────────────────────────────
+            // â”€â”€â”€ Table Generators (User Feature) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             function insertTable(textareaId, type) {
               let tableHtml = '';
               if (type === 'standard') {
                 tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th>Feature / Method</th>\n        <th>Description</th>\n        <th>Best For</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td><strong>Pomodoro Technique</strong></td>\n        <td>25 min study + 5 min rest cycle</td>\n        <td>High focus & avoiding burnout</td>\n      </tr>\n      <tr>\n        <td><strong>Active Recall</strong></td>\n        <td>Self-testing without looking at notes</td>\n        <td>Long-term memory retention</td>\n      </tr>\n      <tr>\n        <td><strong>Feynman Technique</strong></td>\n        <td>Explaining concepts in plain words</td>\n        <td>Mastering complex topics</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
               } else if (type === 'comparison') {
-                tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th>Aspect</th>\n        <th>Early Morning Study (05:00 AM)</th>\n        <th>Late Night Study (02:00 AM)</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td><strong>Distraction Level</strong></td>\n        <td>Low · Phone notifications rare</td>\n        <td>Zero · Complete silence & peace</td>\n      </tr>\n      <tr>\n        <td><strong>Mental State</strong></td>\n        <td>Fresh mind after full sleep</td>\n        <td>Deep creative flow state</td>\n      </tr>\n      <tr>\n        <td><strong>Best Subjects</strong></td>\n        <td>Rote memorization & formula sheets</td>\n        <td>Problem solving, coding & math</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
+                tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th>Aspect</th>\n        <th>Early Morning Study (05:00 AM)</th>\n        <th>Late Night Study (02:00 AM)</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td><strong>Distraction Level</strong></td>\n        <td>Low Â· Phone notifications rare</td>\n        <td>Zero Â· Complete silence & peace</td>\n      </tr>\n      <tr>\n        <td><strong>Mental State</strong></td>\n        <td>Fresh mind after full sleep</td>\n        <td>Deep creative flow state</td>\n      </tr>\n      <tr>\n        <td><strong>Best Subjects</strong></td>\n        <td>Rote memorization & formula sheets</td>\n        <td>Problem solving, coding & math</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
               } else if (type === 'schedule') {
-                tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th>Time Block</th>\n        <th>Activity & Subject</th>\n        <th>Target Goal</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td>09:00 PM – 10:30 PM</td>\n        <td>High-Priority Subject (e.g. Mathematics)</td>\n        <td>Solve 20 practice questions</td>\n      </tr>\n      <tr>\n        <td>10:45 PM – 12:15 AM</td>\n        <td>Theory & Concept Revision</td>\n        <td>Complete Chapter 4 & make summary cards</td>\n      </tr>\n      <tr>\n        <td>12:30 AM – 02:00 AM</td>\n        <td>Active Recall & Past Year Papers</td>\n        <td>Timed 1.5-hour mock practice</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
+                tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th>Time Block</th>\n        <th>Activity & Subject</th>\n        <th>Target Goal</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td>09:00 PM â€“ 10:30 PM</td>\n        <td>High-Priority Subject (e.g. Mathematics)</td>\n        <td>Solve 20 practice questions</td>\n      </tr>\n      <tr>\n        <td>10:45 PM â€“ 12:15 AM</td>\n        <td>Theory & Concept Revision</td>\n        <td>Complete Chapter 4 & make summary cards</td>\n      </tr>\n      <tr>\n        <td>12:30 AM â€“ 02:00 AM</td>\n        <td>Active Recall & Past Year Papers</td>\n        <td>Timed 1.5-hour mock practice</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
               } else if (type === 'glossary') {
                 tableHtml = `\n<div class="table-responsive my-4">\n  <table class="table table-bordered blog-custom-table">\n    <thead>\n      <tr>\n        <th style="width: 25%;">Key Term / Concept</th>\n        <th style="width: 50%;">Definition & Explanation</th>\n        <th style="width: 25%;">Exam Relevance</th>\n      </tr>\n    </thead>\n    <tbody>\n      <tr>\n        <td><strong>Spaced Repetition</strong></td>\n        <td>Reviewing key concepts at increasing intervals to leverage the psychological spacing effect.</td>\n        <td>Formula sheets & vocabulary</td>\n      </tr>\n      <tr>\n        <td><strong>Interleaving</strong></td>\n        <td>Switching between different topic types during one session to train cognitive flexibility.</td>\n        <td>Problem solving & mock exams</td>\n      </tr>\n    </tbody>\n  </table>\n</div>\n`;
               }
@@ -3435,10 +3969,10 @@
               html += `\n    </tbody>\n  </table>\n</div>\n`;
 
               insertAtCursor(textareaId, html);
-              showToast(`${rows}×${cols} table inserted!`);
+              showToast(`${rows}Ã—${cols} table inserted!`);
             }
 
-            // ─── Cloudinary Image Upload & Embedding (User Feature) ─────────────────────────
+            // â”€â”€â”€ Cloudinary Image Upload & Embedding (User Feature) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             async function uploadInlineImageToCloudinary(fileInput, textareaId) {
               if (!fileInput.files || !fileInput.files[0]) return;
               const file = fileInput.files[0];
@@ -3538,13 +4072,13 @@
             function insertCalloutBox(textareaId, type) {
               let html = '';
               if (type === 'tip') {
-                html = `\n<div class="pro-tip my-4">\n  <strong>💡 Pro-Tip:</strong> Review your notes within 24 hours to boost retention by over 80%.\n</div>\n`;
+                html = `\n<div class="pro-tip my-4">\n  <strong><i class="fa-solid fa-lightbulb text-warning me-1"></i> Pro-Tip:</strong> Review your notes within 24 hours to boost retention by over 80%.\n</div>\n`;
               } else if (type === 'warning') {
-                html = `\n<div class="callout-box callout-warning my-4">\n  <strong>⚠️ Important Warning:</strong> Avoid pulling all-nighters without staying hydrated and taking short 5-minute movement breaks.\n</div>\n`;
+                html = `\n<div class="callout-box callout-warning my-4">\n  <strong><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Important Warning:</strong> Avoid pulling all-nighters without staying hydrated and taking short 5-minute movement breaks.\n</div>\n`;
               } else if (type === 'info') {
-                html = `\n<div class="callout-box callout-info my-4">\n  <strong>ℹ️ Note:</strong> This technique is scientifically recommended for competitive exam preparation like JEE, NEET, and UPSC.\n</div>\n`;
+                html = `\n<div class="callout-box callout-info my-4">\n  <strong><i class="fa-solid fa-circle-info text-info me-1"></i> Note:</strong> This technique is scientifically recommended for competitive exam preparation like JEE, NEET, and UPSC.\n</div>\n`;
               } else if (type === 'takeaway') {
-                html = `\n<div class="callout-box callout-takeaway my-4">\n  <strong>🎯 Key Takeaways:</strong>\n  <ul class="mb-0 mt-2">\n    <li>Consistency beats intensity every single time.</li>\n    <li>Small daily study habits compound into extraordinary exam results.</li>\n  </ul>\n</div>\n`;
+                html = `\n<div class="callout-box callout-takeaway my-4">\n  <strong><i class="fa-solid fa-bullseye text-primary me-1"></i> Key Takeaways:</strong>\n  <ul class="mb-0 mt-2">\n    <li>Consistency beats intensity every single time.</li>\n    <li>Small daily study habits compound into extraordinary exam results.</li>\n  </ul>\n</div>\n`;
               } else if (type === 'faq') {
                 html = `\n<div class="callout-box callout-info my-4">\n  <div class="fw-bold mb-1"><i class="fa-solid fa-circle-question me-1 text-primary"></i> Frequently Asked Question: How many hours should I study daily?</div>\n  <div class="text-muted">Quality and cognitive intensity always surpass raw desk hours. 3 to 4 hours of focused, distraction-free active recall beats 8 hours of passive, phone-distracted reading.</div>\n</div>\n`;
               } else if (type === 'download') {
@@ -3586,7 +4120,7 @@
               insertAtCursor(textareaId, '\n\n<hr class="my-4">\n\n');
             }
 
-            // ─── Cover Image Upload ──────────────────────────────────────────────────────
+            // â”€â”€â”€ Cover Image Upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             function updateCoverPreview(inputId, previewImgId) {
               const url = document.getElementById(inputId).value.trim();
               const preview = document.getElementById(previewImgId);
@@ -3624,7 +4158,166 @@
               }
             }
 
-            // ─── Blog CRUD API Actions ──────────────────────────────────────────────────
+            // â”€â”€â”€ Inline Blog Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            function openInlineBlogEditor(id) {
+              // Reset form
+              document.getElementById('inlineBlogForm').reset();
+              document.getElementById('inlineBlogId').value = '';
+              document.getElementById('inlineBlogImagePreview').src = '/assets/images/logo.jpg';
+              document.getElementById('inlineBlogDate').value = new Date().toISOString().split('T')[0];
+              document.getElementById('inlineBlogAuthor').value = 'Nishant Kumar';
+              document.getElementById('inlineBlogReadTime').value = '5 min read';
+              document.getElementById('inlineBlogStatus').value = 'published';
+              document.getElementById('inlineBlogContent').value = '';
+              // Clear TipTap editor if loaded
+              if (window._tiptapEditor) window._tiptapEditor.commands.clearContent(true);
+              document.getElementById('inlineBlogStats').innerHTML = '<i class="fa-solid fa-chart-simple me-1 text-info"></i> 0 words Â· ~1 min read Â· 0 characters';
+              document.getElementById('inlineBlogLivePreview').innerHTML = '<p class="text-muted fst-italic">Start typing to see live preview...</p>';
+              document.getElementById('inlineEditorHeading').innerHTML = '<i class="fa-solid fa-pen-nib text-info me-2"></i>Write New Blog';
+              const viewLink = document.getElementById('inlineEditorViewLink');
+              if (viewLink) viewLink.classList.add('d-none');
+              const submitBtn = document.getElementById('inlineSubmitBlogBtn');
+              if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Publish Blog';
+
+              if (id) {
+                // Edit mode â€“ load existing post
+                showToast('Loading article...');
+                fetch('/api/store/admin/blogs/' + id, { credentials: 'include' })
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.success && data.post) {
+                      const p = data.post;
+                      document.getElementById('inlineBlogId').value = p.id;
+                      document.getElementById('inlineBlogTitle').value = p.title || '';
+                      document.getElementById('inlineBlogSlug').value = p.slug || '';
+                      document.getElementById('inlineBlogSeoTitle').value = p.seoTitle || p.title || '';
+                      document.getElementById('inlineBlogCategory').value = p.category || 'Study Tips';
+                      document.getElementById('inlineBlogAuthor').value = p.author || 'Nishant Kumar';
+                      document.getElementById('inlineBlogReadTime').value = p.readTime || '5 min read';
+                      document.getElementById('inlineBlogStatus').value = p.status || 'published';
+                      document.getElementById('inlineBlogExcerpt').value = p.excerpt || '';
+                      document.getElementById('inlineBlogTags').value = Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || '');
+                      document.getElementById('inlineBlogDate').value = p.date || new Date().toISOString().split('T')[0];
+                      document.getElementById('inlineBlogContent').value = p.content || '';
+                      // Load content into TipTap if active
+                      if (window._tiptapEditor) {
+                        window._tiptapEditor.commands.setContent(p.content || '', false);
+                      }
+                      const imgUrl = p.coverImage || p.image || '';
+                      document.getElementById('inlineBlogImage').value = imgUrl;
+                      document.getElementById('inlineBlogImagePreview').src = imgUrl || '/assets/images/logo.jpg';
+                      document.getElementById('inlineEditorHeading').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i>Edit Blog';
+                      if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save Changes';
+                      if (viewLink) {
+                        viewLink.href = '/blog/' + encodeURIComponent(p.slug || p.id);
+                        viewLink.classList.remove('d-none');
+                      }
+                      onBlogContentChange('inlineBlogContent','inlineBlogStats','inlineBlogLivePreview','inlineBlogReadTime');
+                    } else {
+                      showToast(data.error || 'Failed to load article.', true);
+                    }
+                  }).catch(() => showToast('Error loading blog.', true));
+              }
+
+              // Show editor panel, hide list
+              document.getElementById('blogListPanel').classList.add('d-none');
+              document.getElementById('inlineBlogEditorPanel').classList.remove('d-none');
+              setInlineEditorView('write');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function closeInlineBlogEditor() {
+              document.getElementById('inlineBlogEditorPanel').classList.add('d-none');
+              document.getElementById('blogListPanel').classList.remove('d-none');
+            }
+
+            function setInlineEditorView(mode) {
+              const colWrite = document.getElementById('inlineBlogColWrite');
+              const colPreview = document.getElementById('inlineBlogColPreview');
+              const btnWrite = document.getElementById('btnInlineModeWrite');
+              const btnPreview = document.getElementById('btnInlineModePreview');
+              const btnSplit = document.getElementById('btnInlineModeSplit');
+              [btnWrite, btnPreview, btnSplit].forEach(b => b && b.classList.remove('active'));
+              if (mode === 'write') {
+                colWrite.className = 'col-12'; colPreview.className = 'col-12 d-none';
+                if (btnWrite) btnWrite.classList.add('active');
+              } else if (mode === 'preview') {
+                colWrite.className = 'col-12 d-none'; colPreview.className = 'col-12';
+                if (btnPreview) btnPreview.classList.add('active');
+                document.getElementById('inlineBlogLivePreview').innerHTML = document.getElementById('inlineBlogContent').value || '<p class="text-muted fst-italic">Nothing to preview yet.</p>';
+              } else if (mode === 'split') {
+                colWrite.className = 'col-lg-6'; colPreview.className = 'col-lg-6';
+                if (btnSplit) btnSplit.classList.add('active');
+              }
+            }
+
+            async function submitInlineBlog(e) {
+              e.preventDefault();
+              await _doInlineBlogSubmit('published');
+            }
+
+            async function submitInlineBlogAsDraft() {
+              await _doInlineBlogSubmit('draft');
+            }
+
+            async function _doInlineBlogSubmit(forceStatus) {
+              const id = document.getElementById('inlineBlogId').value.trim();
+              const btn = document.getElementById('inlineSubmitBlogBtn');
+              const origText = btn ? btn.innerHTML : 'Publish Blog';
+              if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...'; }
+
+              const payload = {
+                title: document.getElementById('inlineBlogTitle').value.trim(),
+                slug: document.getElementById('inlineBlogSlug').value.trim(),
+                seoTitle: document.getElementById('inlineBlogSeoTitle').value.trim(),
+                category: document.getElementById('inlineBlogCategory').value.trim(),
+                author: document.getElementById('inlineBlogAuthor').value.trim(),
+                readTime: document.getElementById('inlineBlogReadTime').value.trim(),
+                coverImage: document.getElementById('inlineBlogImage').value.trim(),
+                image: document.getElementById('inlineBlogImage').value.trim(),
+                excerpt: document.getElementById('inlineBlogExcerpt').value.trim(),
+                tags: document.getElementById('inlineBlogTags').value.trim(),
+                content: (function(){
+                  const ct = document.getElementById('blogContentType');
+                  if (ct && ct.value === 'tiptap' && window._tiptapEditor) {
+                    return window._tiptapEditor.getHTML();
+                  }
+                  return document.getElementById('inlineBlogContent').value.trim();
+                })(),
+                status: forceStatus || document.getElementById('inlineBlogStatus').value,
+                date: document.getElementById('inlineBlogDate').value
+              };
+
+              if (!payload.title || !payload.content) {
+                showToast('Title and content are required.', true);
+                if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+                return;
+              }
+
+              try {
+                const url = id ? '/api/store/admin/blogs/' + encodeURIComponent(id) : '/api/store/admin/blogs';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                  method,
+                  credentials: 'include',
+                  headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                  body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                  showToast(id ? 'Blog updated successfully!' : 'Blog published successfully!');
+                  setTimeout(() => window.location.reload(), 800);
+                } else {
+                  showToast(data.error || 'Failed to save blog.', true);
+                  if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+                }
+              } catch (err) {
+                showToast('Network error saving blog.', true);
+                if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+              }
+            }
+
+            // â”€â”€â”€ Blog CRUD API Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             async function createBlog(e) {
               e.preventDefault();
               const btn = document.getElementById('submitBlogBtn');
@@ -4159,6 +4852,98 @@
               }
             }
           </script>
+
+<!-- TipTap Rich Text Editor (ESM CDN) -->
+<style>
+  #tiptapEditor .ProseMirror { outline: none; min-height: 420px; }
+  #tiptapEditor .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder); color: #4a5568; float: left; height: 0; pointer-events: none;
+  }
+  #tiptapEditor h1 { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; margin: 1.2rem 0 0.5rem; }
+  #tiptapEditor h2 { font-size: 1.35rem; font-weight: 600; color: #e2e8f0; margin: 1rem 0 0.4rem; }
+  #tiptapEditor h3 { font-size: 1.1rem;  font-weight: 600; color: #cbd5e1; margin: 0.8rem 0 0.3rem; }
+  #tiptapEditor p  { margin: 0.5rem 0; color: #cbd5e1; }
+  #tiptapEditor strong { color: #f8fafc; }
+  #tiptapEditor em { color: #a5b4fc; font-style: italic; }
+  #tiptapEditor a  { color: #60a5fa; text-decoration: underline; }
+  #tiptapEditor code { background: rgba(99,102,241,0.2); color: #a5b4fc; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 0.88em; }
+  #tiptapEditor pre { background: #0f172a; border-radius: 8px; padding: 14px 18px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.08); margin: 0.8rem 0; }
+  #tiptapEditor pre code { background: none; color: #7dd3fc; padding: 0; font-size: 0.9em; }
+  #tiptapEditor blockquote { border-left: 3px solid #6366f1; padding-left: 14px; margin: 0.8rem 0; color: #94a3b8; font-style: italic; }
+  #tiptapEditor ul { list-style: disc; padding-left: 1.4rem; color: #cbd5e1; margin: 0.5rem 0; }
+  #tiptapEditor ol { list-style: decimal; padding-left: 1.4rem; color: #cbd5e1; margin: 0.5rem 0; }
+  #tiptapEditor li { margin: 0.25rem 0; }
+  #tiptapEditor img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
+  .tt-active { background: rgba(99,102,241,0.35) !important; color: #a5b4fc !important; }
+</style>
+
+<script type="module">
+  try {
+    const { Editor } = await import('https://esm.sh/@tiptap/core@2.11.5');
+    const { StarterKit } = await import('https://esm.sh/@tiptap/starter-kit@2.11.5');
+    const { Link } = await import('https://esm.sh/@tiptap/extension-link@2.11.5');
+    const { Image } = await import('https://esm.sh/@tiptap/extension-image@2.11.5');
+    const { Placeholder } = await import('https://esm.sh/@tiptap/extension-placeholder@2.11.5');
+
+    const editor = new Editor({
+      element: document.querySelector('#tiptapEditor'),
+      extensions: [
+        StarterKit,
+        Link.configure({ openOnClick: false }),
+        Image.configure({ inline: false }),
+        Placeholder.configure({ placeholder: 'Start writing your blog post here… Use the toolbar above for formatting.' })
+      ],
+      content: '',
+      onUpdate({ editor }) {
+        const text = editor.getText();
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const readMins = Math.max(1, Math.round(words / 200));
+        const statsEl = document.getElementById('inlineBlogStats');
+        if (statsEl) statsEl.innerHTML = `<i class="fa-solid fa-chart-simple me-1 text-info"></i> ${words} words · ~${readMins} min read · ${text.length} chars`;
+        const rtEl = document.getElementById('inlineBlogReadTime');
+        if (rtEl && !rtEl._manuallyEdited) rtEl.value = readMins + ' min read';
+        _updateTTToolbar(editor);
+      },
+      onSelectionUpdate({ editor }) { _updateTTToolbar(editor); }
+    });
+
+    window._tiptapEditor = editor;
+
+    function _updateTTToolbar(ed) {
+      const map = { ttBold:'bold', ttItalic:'italic', ttStrike:'strike', ttCode:'code', ttBullet:'bulletList', ttOrdered:'orderedList', ttQuote:'blockquote', ttCodeBlock:'codeBlock' };
+      for (const [id, mark] of Object.entries(map)) {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('tt-active', ed.isActive(mark));
+      }
+    }
+
+    window.ttCmd = (cmd) => { const ed = window._tiptapEditor; if (ed) ed.chain().focus()[cmd]().run(); };
+    window.ttHeading = (level) => { const ed = window._tiptapEditor; if (ed) ed.chain().focus().toggleHeading({ level }).run(); };
+    window.ttInsertLink = () => { const ed = window._tiptapEditor; if (!ed) return; const url = prompt('Enter URL:','https://'); if (url) ed.chain().focus().setLink({ href: url, target:'_blank' }).run(); };
+    window.ttInsertImage = () => { const ed = window._tiptapEditor; if (!ed) return; const url = prompt('Image URL:','https://'); if (url) ed.chain().focus().setImage({ src: url }).run(); };
+    window.ttUndo = () => { const ed = window._tiptapEditor; if (ed) ed.chain().focus().undo().run(); };
+    window.ttRedo = () => { const ed = window._tiptapEditor; if (ed) ed.chain().focus().redo().run(); };
+    window.ttClear = () => { const ed = window._tiptapEditor; if (ed && confirm('Clear all content?')) ed.commands.clearContent(true); };
+    window.ttSetContent = (html) => { const ed = window._tiptapEditor; if (ed) ed.commands.setContent(html || '', false); };
+
+    // TipTap is default — hide HTML toolbar and textarea
+    const ht = document.getElementById('inlineBlogToolbar');
+    const ta = document.getElementById('inlineBlogContent');
+    if (ht) ht.style.display = 'none';
+    if (ta) ta.style.display = 'none';
+
+  } catch(err) {
+    console.warn('TipTap failed to load, falling back to HTML editor:', err);
+    const sel = document.getElementById('blogContentType');
+    if (sel) sel.value = 'html';
+    const ta = document.getElementById('inlineBlogContent');
+    const tw = document.getElementById('tiptapEditorWrap');
+    const ht = document.getElementById('inlineBlogToolbar');
+    if (ta) ta.style.display = '';
+    if (tw) tw.style.display = 'none';
+    if (ht) ht.style.display = '';
+  }
+</script>
 </body>
 
 </html>

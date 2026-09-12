@@ -11,7 +11,6 @@
     "orig": 299,
     "images": [
       "/assets/images/products/notebook-1.jpg",
-      "/assets/images/products/notebook-2.jpg",
       "/assets/images/products/notebook-3.jpg",
       "/assets/images/products/notebook-4.jpg"
     ],
@@ -53,7 +52,8 @@
         "comment": "Perfect for class notes. Lay-flat binding is a game changer.",
         "date": "2026-02-28"
       }
-    ]
+    ],
+    "image": "/assets/images/products/notebook-1.jpg"
   },
   {
     "id": 102,
@@ -675,11 +675,12 @@
     "orig": 799,
     "images": [
       "https://images.unsplash.com/photo-1517520287167-4bbf64ac2f3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/41umTKqeziL._SY300_SX300_QL70_FMwebp_.jpg"
     ],
     "stock": 14,
     "rating": 4.3,
-    "ratingCount": 567,
+    "ratingCount": 500,
     "features": [
       "Foldable compact design",
       "Touch-sensitive dimmer switch",
@@ -710,7 +711,8 @@
         "comment": "Folds flat and fits in my bag. Great for library study too!",
         "date": "2026-02-24"
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1517520287167-4bbf64ac2f3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
   },
   {
     "id": 407,

@@ -181,8 +181,8 @@ router.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
   const newProduct = {
     id: newId,
     cat: (cat || 'notebooks').toLowerCase(),
-    emoji: req.body.emoji || '✨',
-    badge: badge || 'top',
+    emoji: req.body.emoji ? String(req.body.emoji).trim() : '',
+    badge: badge || '',
     badgeLabel: badgeLabel || '',
     name: String(name).trim(),
     desc: String(desc || '').trim(),
@@ -191,8 +191,8 @@ router.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
     image: (Array.isArray(images) && images[0]) || '/assets/images/store/placeholder.jpg',
     images: Array.isArray(images) && images.length > 0 ? images : ['/assets/images/store/placeholder.jpg'],
     stock: Number(stock) >= 0 ? Number(stock) : 10,
-    rating: 4.5,
-    ratingCount: 0,
+    rating: req.body.rating && !isNaN(Number(req.body.rating)) ? Number(req.body.rating) : 4.5,
+    ratingCount: req.body.ratingCount && !isNaN(Number(req.body.ratingCount)) ? Number(req.body.ratingCount) : 0,
     features: Array.isArray(features) ? features : [],
     specs: typeof specs === 'object' && specs !== null ? specs : { brand: '2 AM Study' },
     reviews: []
@@ -211,10 +211,11 @@ router.post('/api/store/admin/products', requireStoreAdmin, (req, res) => {
 // Update Existing Product (Admin)
 router.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
   const STORE_PRODUCTS = productStore.getProducts();
-  const productId = Number(req.params.id);
-  const index = STORE_PRODUCTS.findIndex(p => p.id === productId);
+  const rawId = req.params.id;
+  const numId = Number(rawId);
+  const index = STORE_PRODUCTS.findIndex(p => String(p.id) === String(rawId) || (!isNaN(numId) && Number(p.id) === numId));
   if (index === -1) {
-    return res.status(404).json({ success: false, error: `Product #${productId} not found.` });
+    return res.status(404).json({ success: false, error: `Product #${rawId} not found.` });
   }
 
   const existing = STORE_PRODUCTS[index];
@@ -227,18 +228,18 @@ router.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
     name: name !== undefined ? String(name).trim() : existing.name,
     cat: cat !== undefined ? String(cat).toLowerCase() : existing.cat,
     desc: desc !== undefined ? String(desc).trim() : existing.desc,
-    price: price !== undefined ? Number(price) : existing.price,
-    orig: orig !== undefined ? Number(orig) : existing.orig,
-    stock: stock !== undefined ? Number(stock) : existing.stock,
+    price: price !== undefined && !isNaN(Number(price)) ? Number(price) : existing.price,
+    orig: orig !== undefined && !isNaN(Number(orig)) ? Number(orig) : existing.orig,
+    stock: stock !== undefined && !isNaN(Number(stock)) ? Number(stock) : existing.stock,
     badge: badge !== undefined ? badge : existing.badge,
     badgeLabel: badgeLabel !== undefined ? badgeLabel : existing.badgeLabel,
-    emoji: emoji !== undefined ? String(emoji).trim() : existing.emoji,
+    emoji: emoji !== undefined ? String(emoji).trim() : (existing.emoji || ''),
     image: (finalImages && finalImages[0]) || existing.image || '/assets/images/store/placeholder.jpg',
     images: finalImages,
     features: Array.isArray(features) ? features : existing.features,
     specs: typeof specs === 'object' && specs !== null ? specs : existing.specs,
-    rating: rating !== undefined ? Number(rating) : existing.rating,
-    ratingCount: ratingCount !== undefined ? Number(ratingCount) : existing.ratingCount
+    rating: rating !== undefined && !isNaN(Number(rating)) ? Number(rating) : existing.rating,
+    ratingCount: ratingCount !== undefined && !isNaN(Number(ratingCount)) ? Number(ratingCount) : existing.ratingCount
   };
 
   productStore.savePersistedProducts();
@@ -253,9 +254,10 @@ router.put('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
 // Quick Stock Adjustment (Admin)
 router.patch('/api/store/admin/products/:id/stock', requireStoreAdmin, (req, res) => {
   const STORE_PRODUCTS = productStore.getProducts();
-  const productId = Number(req.params.id);
+  const rawId = req.params.id;
+  const numId = Number(rawId);
   const { stock, delta } = req.body;
-  const product = STORE_PRODUCTS.find(p => p.id === productId);
+  const product = STORE_PRODUCTS.find(p => String(p.id) === String(rawId) || (!isNaN(numId) && Number(p.id) === numId));
   if (!product) {
     return res.status(404).json({ success: false, error: 'Product not found.' });
   }
@@ -278,10 +280,11 @@ router.patch('/api/store/admin/products/:id/stock', requireStoreAdmin, (req, res
 // Delete Product (Admin)
 router.delete('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => {
   const STORE_PRODUCTS = productStore.getProducts();
-  const productId = Number(req.params.id);
-  const index = STORE_PRODUCTS.findIndex(p => p.id === productId);
+  const rawId = req.params.id;
+  const numId = Number(rawId);
+  const index = STORE_PRODUCTS.findIndex(p => String(p.id) === String(rawId) || (!isNaN(numId) && Number(p.id) === numId));
   if (index === -1) {
-    return res.status(404).json({ success: false, error: `Product #${productId} not found.` });
+    return res.status(404).json({ success: false, error: `Product #${rawId} not found.` });
   }
 
   const deleted = STORE_PRODUCTS.splice(index, 1)[0];
@@ -289,7 +292,7 @@ router.delete('/api/store/admin/products/:id', requireStoreAdmin, (req, res) => 
 
   res.json({
     success: true,
-    message: `Product #${productId} (${deleted.name}) deleted successfully.`
+    message: `Product #${rawId} (${deleted.name}) deleted successfully.`
   });
 });
 
