@@ -1,3 +1,22 @@
+const crypto = require('crypto');
+
+function getAuthSecrets() {
+  const list = [
+    process.env.ADMIN_PASSWORD,
+    process.env.LIVE_ADMIN_PASSWORD,
+    process.env.SESSION_SECRET,
+    process.env.ADMIN_PASSCODE,
+    process.env.STORE_ADMIN_PASSWORD
+  ]
+    .filter(Boolean)
+    .map(s => String(s).trim().replace(/^["']|["']$/g, ''));
+
+  if (list.length === 0) {
+    list.push('2am-study-admin-session-fallback-secret');
+  }
+  return list;
+}
+
 function checkMasterPassword(pass) {
   if (!pass) return false;
   const input = String(pass).trim();
@@ -18,6 +37,54 @@ function checkMasterPassword(pass) {
   }
 
   return envPasswords.some(p => p === input);
+}
+
+function generateAdminToken(maxAgeDays = 7) {
+  const secrets = getAuthSecrets();
+  const primarySecret = secrets[0];
+  const expiresAt = Date.now() + (maxAgeDays * 24 * 60 * 60 * 1000);
+  const payload = `admin:${expiresAt}`;
+  const signature = crypto.createHmac('sha256', primarySecret).update(payload).digest('hex');
+  return `${payload}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+  if (!token || typeof token !== 'string') return false;
+
+  const dotIndex = token.lastIndexOf('.');
+  if (dotIndex === -1) return false;
+
+  const payload = token.slice(0, dotIndex);
+  const signature = token.slice(dotIndex + 1);
+
+  const [role, expiresAtStr] = payload.split(':');
+  if (role !== 'admin') return false;
+
+  const expiresAt = parseInt(expiresAtStr, 10);
+  if (isNaN(expiresAt) || Date.now() > expiresAt) return false;
+
+  const secrets = getAuthSecrets();
+  for (const sec of secrets) {
+    const expectedSig = crypto.createHmac('sha256', sec).update(payload).digest('hex');
+    if (signature.length === expectedSig.length) {
+      try {
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+          return true;
+        }
+      } catch (e) {}
+    }
+  }
+  return false;
+}
+
+function getCookieFromHeaders(req, name) {
+  if (req && req.headers && req.headers.cookie) {
+    const match = req.headers.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+    if (match) {
+      return decodeURIComponent(match[1]);
+    }
+  }
+  return null;
 }
 
 // Simple IP-based Rate Limiter for Admin Login Protection
@@ -44,13 +111,13 @@ function recordAdminLoginFailure(ip) {
   const now = Date.now();
   const record = adminLoginAttempts.get(ip) || { count: 0, lockedUntil: null };
   record.count += 1;
-  if (record.count >= 2) {
-    record.lockedUntil = now + (5 * 60 * 1000); // 5 minute cooldown after 2 failed attempts
+  if (record.count >= 5) {
+    record.lockedUntil = now + (2 * 60 * 1000); // 2 minute cooldown after 5 failed attempts
     record.count = 0;
   }
   adminLoginAttempts.set(ip, record);
   return record.lockedUntil > now
-    ? 'Admin login locked for 5 minutes after 2 failed attempts. Please verify your password before trying again.'
+    ? 'Admin login locked for 2 minutes after 5 failed attempts. Please verify your password before trying again.'
     : null;
 }
 
@@ -64,13 +131,12 @@ function isMasterAdminAuthenticated(req) {
     return true;
   }
 
-  // 2. Custom Passcode Headers (e.g. x-admin-passcode or Authorization: Bearer <passcode>)
-  const headerPasscode = req.headers?.['x-admin-passcode'] ||
-    req.headers?.['x-admin-password'] ||
-    req.headers?.['admin-passcode'] ||
-    (req.headers?.authorization && typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.slice(7).trim() : null);
+  // 2. Cookie authentication (stateless, works across serverless lambdas and multi-instance)
+  const cookieToken = (req.cookies && (req.cookies.admin_session || req.cookies.admin_token)) ||
+    getCookieFromHeaders(req, 'admin_session') ||
+    getCookieFromHeaders(req, 'admin_token');
 
-  if (headerPasscode && checkMasterPassword(headerPasscode)) {
+  if (cookieToken && verifyAdminToken(cookieToken)) {
     if (req.session) {
       req.session.isAdmin = true;
       req.session.isStoreAdmin = true;
@@ -79,7 +145,22 @@ function isMasterAdminAuthenticated(req) {
     return true;
   }
 
-  // 3. Body Passcode fallback for same-session admin requests
+  // 3. Custom Passcode / Token Headers (e.g. x-admin-passcode or Authorization: Bearer <token/passcode>)
+  const headerPasscode = req.headers?.['x-admin-passcode'] ||
+    req.headers?.['x-admin-password'] ||
+    req.headers?.['admin-passcode'] ||
+    (req.headers?.authorization && typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.slice(7).trim() : null);
+
+  if (headerPasscode && (verifyAdminToken(headerPasscode) || checkMasterPassword(headerPasscode))) {
+    if (req.session) {
+      req.session.isAdmin = true;
+      req.session.isStoreAdmin = true;
+      req.session.liveAdminAuthed = true;
+    }
+    return true;
+  }
+
+  // 4. Body Passcode fallback for same-session admin requests
   const directPass = req.body?.adminPasscode || req.body?.adminPassword;
   if (directPass && checkMasterPassword(directPass)) {
     if (req.session) {
@@ -114,6 +195,9 @@ function requireAdminForCollegeLife(req, res, next) {
 
 module.exports = {
   checkMasterPassword,
+  generateAdminToken,
+  verifyAdminToken,
+  getCookieFromHeaders,
   getClientIp,
   checkAdminRateLimit,
   recordAdminLoginFailure,

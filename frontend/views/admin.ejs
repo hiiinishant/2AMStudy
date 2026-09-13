@@ -3156,12 +3156,19 @@
 
             // Helper to pass admin authorization headers with fetch calls
             function getAdminHeaders() {
+              const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || '';
+              if (token) {
+                return {
+                  'Authorization': 'Bearer ' + token,
+                  'x-admin-passcode': token
+                };
+              }
               return {};
             }
 
             // Helper to get admin passcode for body/query fallback
             function getAdminPasscode() {
-              return '';
+              return sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || '';
             }
 
             // Login Form
@@ -3185,6 +3192,12 @@
                   });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && data.success) {
+                    if (data.token) {
+                      try {
+                        sessionStorage.setItem('admin_token', data.token);
+                        localStorage.setItem('admin_token', data.token);
+                      } catch (_) {}
+                    }
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirectParam = urlParams.get('redirect');
                     if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -3210,6 +3223,12 @@
             // Logout
             async function logoutAdmin() {
               if (!confirm('Sign out of Admin?')) return;
+              try {
+                sessionStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_passcode');
+                localStorage.removeItem('admin_passcode');
+              } catch (_) {}
               try {
                 await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
                 window.location.href = '/admin';

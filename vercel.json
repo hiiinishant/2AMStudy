@@ -10,6 +10,22 @@
       "destination": "https://twoamstudy-1.onrender.com/api/student-safety/cases/:caseId/support"
     },
     {
+      "source": "/api/admin/login",
+      "destination": "/api/admin/login"
+    },
+    {
+      "source": "/api/admin/logout",
+      "destination": "/api/admin/logout"
+    },
+    {
+      "source": "/api/store/admin/login",
+      "destination": "/api/store/admin/login"
+    },
+    {
+      "source": "/api/store/admin/logout",
+      "destination": "/api/store/admin/logout"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://twoamstudy-1.onrender.com/api/:path*"
     },
