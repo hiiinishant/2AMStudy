@@ -104,7 +104,7 @@ app.use((req, res, next) => {
 
 // Help Bot Doubt Solver (AI Proxy)
 try {
-  const doubtHandler = require('../api/doubt');
+  const doubtHandler = require('./services/doubtHandler');
   app.post('/api/doubt', doubtHandler);
 } catch (e) {
   console.warn('[Doubt Solver] Notice:', e.message);
