@@ -2,10 +2,6 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/doubt",
-      "destination": "/api/doubt"
-    },
-    {
       "source": "/student-safety/cases/:caseId/support",
       "destination": "https://twoamstudy-1.onrender.com/api/student-safety/cases/:caseId/support"
     },

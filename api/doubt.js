@@ -5,7 +5,8 @@ const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 30;
 
 function getClientIp(req) {
-  return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+  const headers = req?.headers || {};
+  return headers['x-forwarded-for']?.split(',')[0].trim() || req?.socket?.remoteAddress || 'unknown';
 }
 
 function isRateLimited(ip) {
@@ -20,36 +21,38 @@ function isRateLimited(ip) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  try {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-  if (isRateLimited(getClientIp(req))) {
-    return res.status(429).json({ error: 'Too many requests. Please try again in a minute.' });
-  }
+    if (isRateLimited(getClientIp(req))) {
+      return res.status(429).json({ error: 'Too many requests. Please try again in a minute.' });
+    }
 
-  const { history, prompt } = req.body || {};
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: 'AI service is not configured.' });
-  }
-  if (typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 4000) {
-    return res.status(400).json({ error: 'A prompt between 1 and 4000 characters is required.' });
-  }
-  if (history && (!Array.isArray(history) || history.length > 30)) {
-    return res.status(400).json({ error: 'Conversation history is invalid or too long.' });
-  }
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const { history, prompt } = body;
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ error: 'AI service is not configured.' });
+    }
+    if (typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 4000) {
+      return res.status(400).json({ error: 'A prompt between 1 and 4000 characters is required.' });
+    }
+    if (history && (!Array.isArray(history) || history.length > 30)) {
+      return res.status(400).json({ error: 'Conversation history is invalid or too long.' });
+    }
 
   // Build the contents array for Gemini multi-turn chat
   // If 'history' is provided, it should be an array of { role: 'user'|'model', text: '' }
   let contents = [];
   
-  if (history && Array.isArray(history)) {
-    contents = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }));
-  }
+    if (history && Array.isArray(history)) {
+      contents = history.map(msg => ({
+        role: msg && msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: String(msg?.text || '').slice(0, 4000) }]
+      }));
+    }
 
   // System instructions for the persona and format
   const systemContext = `You are "2 AM Study Assistant", a smart, friendly, and concise study partner for Indian students created by Nishant Kumar (founder of 2AM Study).
@@ -65,7 +68,7 @@ MANDATORY RESPONSE LENGTH CONSTRAINTS:
 - NEVER write more than 3 lines. NEVER write a long essay or multi-paragraph answer.
 - Explain clearly using simple Hinglish/English in 2 to 3 crisp lines.`;
   
-  if (prompt) {
+    if (prompt) {
     // Check if the latest message in history is already this prompt (avoid duplication)
     const lastMsg = contents[contents.length - 1];
     if (!lastMsg || lastMsg.parts[0].text !== prompt) {
@@ -75,7 +78,7 @@ MANDATORY RESPONSE LENGTH CONSTRAINTS:
         parts: [{ text: finalPrompt }]
       });
     }
-  }
+    }
 
   const data = JSON.stringify({
     contents: contents,
@@ -96,7 +99,7 @@ MANDATORY RESPONSE LENGTH CONSTRAINTS:
     }
   };
 
-  const aiRequest = https.request(options, (aiRes) => {
+    const aiRequest = https.request(options, (aiRes) => {
     let responseData = '';
     aiRes.on('data', (chunk) => {
       responseData += chunk;
@@ -124,13 +127,17 @@ MANDATORY RESPONSE LENGTH CONSTRAINTS:
         res.status(200).json({ answer: friendlyErrorMessage });
       }
     });
-  });
+    });
 
-  aiRequest.on('error', (error) => {
+    aiRequest.on('error', (error) => {
     console.error('Gemini Request Error:', error);
     res.status(200).json({ answer: "Sorry! I'm a little busy with Nishant right now. Please try again in about a minute. 😊" });
-  });
+    });
 
-  aiRequest.write(data);
-  aiRequest.end();
+    aiRequest.write(data);
+    aiRequest.end();
+  } catch (error) {
+    console.error('Doubt function error:', error);
+    return res.status(500).json({ error: 'AI service request failed.' });
+  }
 };
