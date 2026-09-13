@@ -17,7 +17,7 @@ function checkMasterPassword(pass) {
     return false;
   }
 
-  return envPasswords.some(p => p === input || p.toLowerCase() === input.toLowerCase());
+  return envPasswords.some(p => p === input);
 }
 
 // Simple IP-based Rate Limiter for Admin Login Protection
@@ -44,11 +44,14 @@ function recordAdminLoginFailure(ip) {
   const now = Date.now();
   const record = adminLoginAttempts.get(ip) || { count: 0, lockedUntil: null };
   record.count += 1;
-  if (record.count >= 6) {
-    record.lockedUntil = now + (60 * 1000); // 1 minute cooldown after 6 failed attempts
+  if (record.count >= 2) {
+    record.lockedUntil = now + (5 * 60 * 1000); // 5 minute cooldown after 2 failed attempts
     record.count = 0;
   }
   adminLoginAttempts.set(ip, record);
+  return record.lockedUntil > now
+    ? 'Admin login locked for 5 minutes after 2 failed attempts. Please verify your password before trying again.'
+    : null;
 }
 
 function recordAdminLoginSuccess(ip) {
@@ -61,28 +64,7 @@ function isMasterAdminAuthenticated(req) {
     return true;
   }
 
-  // 2. Parsed cookies
-  if (req.cookies && (req.cookies.admin_session === 'authenticated' || req.cookies.is_admin === 'true')) {
-    if (req.session) {
-      req.session.isAdmin = true;
-      req.session.isStoreAdmin = true;
-      req.session.liveAdminAuthed = true;
-    }
-    return true;
-  }
-
-  // 3. Raw Cookie header fallback (in case req.cookies was not populated by proxy)
-  const rawCookie = req.headers?.cookie || '';
-  if (rawCookie && (rawCookie.includes('admin_session=authenticated') || rawCookie.includes('is_admin=true'))) {
-    if (req.session) {
-      req.session.isAdmin = true;
-      req.session.isStoreAdmin = true;
-      req.session.liveAdminAuthed = true;
-    }
-    return true;
-  }
-
-  // 4. Custom Passcode Headers (e.g. x-admin-passcode or Authorization: Bearer <passcode>)
+  // 2. Custom Passcode Headers (e.g. x-admin-passcode or Authorization: Bearer <passcode>)
   const headerPasscode = req.headers?.['x-admin-passcode'] ||
     req.headers?.['x-admin-password'] ||
     req.headers?.['admin-passcode'] ||
@@ -97,27 +79,9 @@ function isMasterAdminAuthenticated(req) {
     return true;
   }
 
-  // 5. Query or Body Passcode fallback
-  const directPass = req.body?.adminPasscode || req.body?.adminPassword || req.query?.adminPasscode || req.query?.adminPassword;
+  // 3. Body Passcode fallback for same-session admin requests
+  const directPass = req.body?.adminPasscode || req.body?.adminPassword;
   if (directPass && checkMasterPassword(directPass)) {
-    if (req.session) {
-      req.session.isAdmin = true;
-      req.session.isStoreAdmin = true;
-      req.session.liveAdminAuthed = true;
-    }
-    return true;
-  }
-
-  // 6. User Session or Firebase Token Admin Email Check
-  const userEmail = (req.session?.user?.email || req.firebaseEmail || req.firebaseUser?.email || '').toString().toLowerCase().trim();
-  const configuredAdminEmails = [
-    process.env.ADMIN_EMAIL,
-    process.env.STORE_ADMIN_EMAIL,
-    'hiiinishant@gmail.com',
-    'safety@2amstudy.online'
-  ].filter(Boolean).map(e => String(e).toLowerCase().trim());
-
-  if (userEmail && configuredAdminEmails.includes(userEmail)) {
     if (req.session) {
       req.session.isAdmin = true;
       req.session.isStoreAdmin = true;

@@ -227,8 +227,10 @@ function savePersistedProducts() {
     const stockData = {};
     STORE_PRODUCTS.forEach(p => { stockData[p.id] = p.stock; });
     fs.writeFileSync(storeStockFilePath, JSON.stringify(stockData, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.warn('[Store] Notice saving products:', e.message);
+    return false;
   }
 }
 
@@ -263,8 +265,10 @@ function savePersistedStoreOrders() {
   try {
     fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
     fs.writeFileSync(storeOrdersFilePath, JSON.stringify(PERSISTED_STORE_ORDERS, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.warn('[Store Orders] Notice saving orders:', e.message);
+    return false;
   }
 }
 

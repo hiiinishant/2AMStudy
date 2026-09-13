@@ -12,42 +12,12 @@ const {
 router.post('/api/auth/session', (req, res) => {
   const { user } = req.body;
   if (user) {
-    const email = (user.email || '').toString().toLowerCase().trim();
     req.session.user = {
       uid: user.uid,
       email: user.email,
       name: user.displayName || user.name || user.email?.split('@')[0] || 'Student',
       photoURL: user.photoURL || null
     };
-
-    const adminEmails = [
-      process.env.ADMIN_EMAIL,
-      process.env.STORE_ADMIN_EMAIL,
-      'hiiinishant@gmail.com',
-      'safety@2amstudy.online'
-    ].filter(Boolean).map(e => String(e).toLowerCase().trim());
-
-    if (email && adminEmails.includes(email)) {
-      req.session.isAdmin = true;
-      req.session.isStoreAdmin = true;
-      req.session.liveAdminAuthed = true;
-      req.session.adminLoggedInAt = new Date().toISOString();
-
-      const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
-      res.cookie('admin_session', 'authenticated', {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: isSecure,
-        path: '/'
-      });
-      res.cookie('is_admin', 'true', {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: 'lax',
-        secure: isSecure,
-        path: '/'
-      });
-    }
   } else {
     delete req.session.user;
   }
@@ -104,14 +74,17 @@ function handleAdminLogin(req, res) {
 
     if (req.session && typeof req.session.save === 'function') {
       return req.session.save(() => {
-        return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin', token: password });
+        return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
       });
     }
-    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin', token: password });
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
-  recordAdminLoginFailure(clientIp);
-  return res.status(401).json({ success: false, error: 'Incorrect passcode. Please try again.' });
+  const lockMessage = recordAdminLoginFailure(clientIp);
+  return res.status(lockMessage ? 429 : 401).json({
+    success: false,
+    error: lockMessage || 'Incorrect passcode. Please try again.'
+  });
 }
 
 router.post('/api/admin/login', handleAdminLogin);

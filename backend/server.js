@@ -14,6 +14,18 @@ require('./config/firebase');
 // App Initialization
 const app = express();
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 
 // View Engine & Static Assets (from frontend/)
 app.set('view engine', 'ejs');
@@ -52,20 +64,24 @@ app.use(cors({
     ) {
       return callback(null, true);
     }
-    return callback(null, true);
+    return callback(new Error('Origin not allowed by CORS'));
   },
   credentials: true
 }));
 
 // Body & Cookie Parsers
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '50kb' }));
+app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
 // Session Middleware
 const isProduction = process.env.NODE_ENV === 'production';
+const sessionSecret = process.env.SESSION_SECRET || (isProduction ? null : '2am-study-store-secret');
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET must be configured in production.');
+}
 app.use(session({
-  secret: process.env.SESSION_SECRET || '2am-study-store-secret',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {

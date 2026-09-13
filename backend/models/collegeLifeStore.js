@@ -16,8 +16,10 @@ function saveCollegeLifeVideos() {
   try {
     fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
     fs.writeFileSync(collegeLifeVideosFilePath, JSON.stringify(collegeLifeVideos, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[CollegeLifeStore] Could not save collegeLifeVideos.json:', e.message);
+    return false;
   }
 }
 

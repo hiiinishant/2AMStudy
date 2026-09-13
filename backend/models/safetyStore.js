@@ -18,8 +18,10 @@ try {
 function saveStudentSafetyCases() {
   try {
     fs.writeFileSync(casesDataFilePath, JSON.stringify(studentSafetyCases, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save studentSafetyCases.json:', e.message);
+    return false;
   }
 }
 
@@ -37,8 +39,10 @@ try {
 function saveModerationLogs() {
   try {
     fs.writeFileSync(modLogsFilePath, JSON.stringify(studentSafetyModerationLogs, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save studentSafetyModerationLogs.json:', e.message);
+    return false;
   }
 }
 
@@ -56,8 +60,10 @@ try {
 function saveNotifications() {
   try {
     fs.writeFileSync(notificationsFilePath, JSON.stringify(studentSafetyNotifications, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save studentSafetyNotifications.json:', e.message);
+    return false;
   }
 }
 
@@ -75,8 +81,10 @@ try {
 function saveStudentSafetySupports() {
   try {
     fs.writeFileSync(supportsFilePath, JSON.stringify(studentSafetySupports, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save studentSafetySupports.json:', e.message);
+    return false;
   }
 }
 
@@ -94,8 +102,10 @@ try {
 function saveNotificationLogs() {
   try {
     fs.writeFileSync(notifLogsFilePath, JSON.stringify(studentSafetyNotificationLogs, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save studentSafetyNotificationLogs.json:', e.message);
+    return false;
   }
 }
 
@@ -113,8 +123,10 @@ try {
 function savePushSubscriptions() {
   try {
     fs.writeFileSync(pushSubsFilePath, JSON.stringify(userPushSubscriptions, null, 2), 'utf8');
+    return true;
   } catch (e) {
     console.error('[SafetyStore] Could not save userPushSubscriptions.json:', e.message);
+    return false;
   }
 }
 

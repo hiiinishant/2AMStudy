@@ -21,6 +21,24 @@ function normalizeProfileUrl(urlStr) {
   return urlStr.trim().toLowerCase().replace(/\/+$/, '');
 }
 
+function isHttpUrl(value) {
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getClientIp(req) {
   if (!req) return '127.0.0.1';
   const forwarded = req.headers?.['x-forwarded-for'];
@@ -213,10 +231,10 @@ async function dispatchSmartNotification({ userId, userEmail, caseId, title, mes
           <div style="text-align:center;margin-bottom:24px;">
             <span style="background:#d1fae5;color:#065f46;padding:6px 16px;border-radius:99px;font-size:12px;font-weight:700;">🛡️ STUDENT IDENTITY SHIELD</span>
           </div>
-          <h2 style="color:#0f172a;margin-bottom:12px;text-align:center;">${title || 'Case Status Update'}</h2>
-          <p style="color:#334155;font-size:15px;line-height:1.6;">${message}</p>
+          <h2 style="color:#0f172a;margin-bottom:12px;text-align:center;">${escapeHtml(title || 'Case Status Update')}</h2>
+          <p style="color:#334155;font-size:15px;line-height:1.6;">${escapeHtml(message)}</p>
           <div style="text-align:center;margin-top:28px;">
-            <a href="https://2amstudy.com${targetUrl || `/student-safety#${caseId}`}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:99px;font-weight:700;text-decoration:none;font-size:14px;">View Verified Case</a>
+            <a href="https://2amstudy.com${escapeHtml(targetUrl || `/student-safety#${caseId}`)}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:99px;font-weight:700;text-decoration:none;font-size:14px;">View Verified Case</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:32px;">You received this fallback email because Push Notifications were unreached or disabled.</p>
         </div>
@@ -312,7 +330,7 @@ router.post('/student-safety/report', (req, res, next) => {
       description,
       college,
       reporterName,
-      reporterEmail: inputReporterEmail,
+      reporterEmail: _inputReporterEmail,
       anonymous,
       truthConfirmed
     } = req.body;
@@ -322,6 +340,9 @@ router.post('/student-safety/report', (req, res, next) => {
         success: false,
         message: 'Please fill in all required fields (Platform, Username, Fake Profile Link, Reason, and Description).'
       });
+    }
+    if (!isHttpUrl(fakeProfileUrl) || (realProfileUrl && !isHttpUrl(realProfileUrl))) {
+      return res.status(400).json({ success: false, message: 'Profile URLs must use http or https.' });
     }
 
     if (!req.files || req.files.length === 0) {
@@ -338,8 +359,8 @@ router.post('/student-safety/report', (req, res, next) => {
       });
     }
 
-    const reporterEmail = req.firebaseEmail || inputReporterEmail || null;
-    const finalUserId = req.firebaseUid || (reporterEmail ? ('USER-' + Buffer.from(reporterEmail).toString('hex').substring(0, 10)) : ('USER-' + Date.now().toString(36)));
+    const reporterEmail = req.firebaseEmail || null;
+    const finalUserId = req.firebaseUid;
 
     const studentSafetyCases = safetyStore.getCases();
     const now = Date.now();
@@ -415,7 +436,10 @@ router.post('/student-safety/report', (req, res, next) => {
     };
 
     studentSafetyCases.unshift(newCase);
-    safetyStore.saveStudentSafetyCases();
+    if (!safetyStore.saveStudentSafetyCases()) {
+      studentSafetyCases.shift();
+      return res.status(500).json({ success: false, message: 'Could not save your report. Please try again.' });
+    }
 
     const notifs = safetyStore.getNotifications();
     const submitNotif = {
@@ -440,8 +464,8 @@ router.post('/student-safety/report', (req, res, next) => {
         <p>Hello,</p>
         <p>Your fake profile report has been successfully submitted to 2AM Study's Student Safety team.</p>
         <table style="width:100%;background:#f8fafc;border-radius:8px;padding:16px;margin:16px 0;">
-          <tr><td><strong>Case ID:</strong></td><td>${generatedCaseId}</td></tr>
-          <tr><td><strong>Platform:</strong></td><td>${platform}</td></tr>
+          <tr><td><strong>Case ID:</strong></td><td>${escapeHtml(generatedCaseId)}</td></tr>
+          <tr><td><strong>Platform:</strong></td><td>${escapeHtml(platform)}</td></tr>
           <tr><td><strong>Status:</strong></td><td>Pending Review</td></tr>
         </table>
         <p>Our moderation team will review your report within 24–48 hours. You'll be notified when the status changes.</p>
@@ -460,11 +484,11 @@ router.post('/student-safety/report', (req, res, next) => {
         </div>
         <div style="background:#ffffff;padding:28px 32px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
           <table style="width:100%;border-collapse:collapse;">
-            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;width:38%;">Case ID</td><td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${generatedCaseId}</td></tr>
-            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td><td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;">${platform}</td></tr>
-            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Username</td><td style="padding:10px 0;color:#dc2626;font-size:13px;font-weight:700;">@${fakeUsername}</td></tr>
-            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile URL</td><td style="padding:10px 0;font-size:13px;"><a href="${fakeProfileUrl}" style="color:#2563eb;word-break:break-all;">${fakeProfileUrl}</a></td></tr>
-            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Reason</td><td style="padding:10px 0;color:#0f172a;font-size:13px;">${reason}</td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;width:38%;">Case ID</td><td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;font-family:monospace;">${escapeHtml(generatedCaseId)}</td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Platform</td><td style="padding:10px 0;color:#0f172a;font-size:13px;font-weight:700;">${escapeHtml(platform)}</td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Username</td><td style="padding:10px 0;color:#dc2626;font-size:13px;font-weight:700;">@${escapeHtml(fakeUsername)}</td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Fake Profile URL</td><td style="padding:10px 0;font-size:13px;"><a href="${escapeHtml(fakeProfileUrl)}" style="color:#2563eb;word-break:break-all;">${escapeHtml(fakeProfileUrl)}</a></td></tr>
+            <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0;color:#64748b;font-size:13px;font-weight:600;">Reason</td><td style="padding:10px 0;color:#0f172a;font-size:13px;">${escapeHtml(reason)}</td></tr>
           </table>
         </div>
         <div style="background:#f8fafc;padding:24px 32px;text-align:center;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
@@ -513,6 +537,7 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
   }
 
   const targetCase = studentSafetyCases[caseIndex];
+  const previousCase = JSON.parse(JSON.stringify(targetCase));
   const previousStatus = targetCase.status;
   const modUser = moderatorUid || 'MASTER-ADMIN';
   const modName = moderatorName || 'Master Admin';
@@ -563,7 +588,10 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
     notificationMsg = `Case ${caseId} has been reopened for moderation review.`;
   } else if (action === 'delete') {
     studentSafetyCases.splice(caseIndex, 1);
-    safetyStore.saveStudentSafetyCases();
+    if (!safetyStore.saveStudentSafetyCases()) {
+      studentSafetyCases.splice(caseIndex, 0, targetCase);
+      return res.status(500).json({ success: false, message: 'Could not save moderation changes.' });
+    }
 
     const modLogs = safetyStore.getModerationLogs();
     modLogs.unshift({
@@ -585,7 +613,11 @@ router.post('/api/student-safety/admin/moderate', (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid moderation action.' });
   }
 
-  safetyStore.saveStudentSafetyCases();
+  if (!safetyStore.saveStudentSafetyCases()) {
+    Object.keys(targetCase).forEach(key => delete targetCase[key]);
+    Object.assign(targetCase, previousCase);
+    return res.status(500).json({ success: false, message: 'Could not save moderation changes.' });
+  }
 
   const modLogs = safetyStore.getModerationLogs();
   modLogs.unshift({
@@ -632,12 +664,15 @@ router.get('/api/student-safety/vapid-public-key', (req, res) => {
   res.json({ success: true, publicKey: keys ? keys.publicKey : null });
 });
 
-router.post('/api/student-safety/save-push-token', (req, res) => {
-  const { userId, userEmail, pushSubscription, pushEnabled, emailNotifications, safetyAlerts } = req.body;
-  const key = userId || userEmail;
-  if (!key) return res.status(400).json({ success: false, message: 'userId or userEmail required.' });
+router.post('/api/student-safety/save-push-token', verifyFirebaseToken, (req, res) => {
+  const { pushSubscription, pushEnabled, emailNotifications, safetyAlerts } = req.body;
+  const userId = req.firebaseUid;
+  const userEmail = req.firebaseEmail || null;
+  const key = userId;
+  if (!key) return res.status(400).json({ success: false, message: 'Authenticated user required.' });
 
   const userPushSubscriptions = safetyStore.getPushSubscriptions();
+  const previousSubscription = userPushSubscriptions[key];
   userPushSubscriptions[key] = {
     userId: userId || null,
     userEmail: userEmail || null,
@@ -647,7 +682,11 @@ router.post('/api/student-safety/save-push-token', (req, res) => {
     safetyAlerts: safetyAlerts !== undefined ? safetyAlerts : true,
     updatedAt: new Date().toISOString()
   };
-  safetyStore.savePushSubscriptions();
+  if (!safetyStore.savePushSubscriptions()) {
+    if (previousSubscription) userPushSubscriptions[key] = previousSubscription;
+    else delete userPushSubscriptions[key];
+    return res.status(500).json({ success: false, message: 'Could not save notification preferences.' });
+  }
   res.json({ success: true, message: 'Notification preferences & push token saved cleanly.' });
 });
 
@@ -672,12 +711,13 @@ router.get('/api/student-safety/my-reports', verifyFirebaseToken, (req, res) => 
 });
 
 router.get('/api/student-safety/cases', (req, res) => {
-  // Only master admin gets raw data; all other callers get sanitized owner-view
+  // Only master admin gets the moderation dataset. Public callers see verified cases only.
   if (isMasterAdminAuthenticated(req)) {
     return res.json({ success: true, cases: safetyStore.getCases() });
   }
-  // Non-admin: return sanitized cases (hides reporterEmail on anonymous reports)
-  const sanitized = safetyStore.getCases().map(c => sanitizeCaseForOwner(c));
+  const sanitized = safetyStore.getCases()
+    .filter(c => c.status === 'Verified' || c.status === 'Resolved')
+    .map(c => sanitizeCaseForPublic(c));
   res.json({ success: true, cases: sanitized });
 });
 
@@ -710,9 +750,12 @@ router.get('/api/student-safety/public-cases', (req, res) => {
 });
 
 // Trust Score for a specific user
-router.get('/api/student-safety/trust-score/:userId', (req, res) => {
+router.get('/api/student-safety/trust-score/:userId', verifyFirebaseToken, (req, res) => {
   const { userId } = req.params;
   if (!userId) return res.status(400).json({ success: false, message: 'userId is required.' });
+  if (userId !== req.firebaseUid && userId !== req.firebaseEmail) {
+    return res.status(403).json({ success: false, message: 'You can only view your own trust score.' });
+  }
 
   const allCases = safetyStore.getCases();
   const allSupports = safetyStore.getSupports();
@@ -776,7 +819,7 @@ router.get('/api/student-safety/leaderboard', (req, res) => {
       // Anonymize: show only first 3 chars + *** of userId
       const uid = String(u.userId);
       const displayId = uid.length > 6 ? uid.substring(0, 3) + '***' + uid.slice(-3) : uid.substring(0, 3) + '***';
-      return { userId: u.userId, displayId, verifiedReports: u.verifiedReports, supportsGiven: u.supportsGiven, score };
+      return { displayId, verifiedReports: u.verifiedReports, supportsGiven: u.supportsGiven, score };
     })
     .filter(u => u.score > 0)
     .sort((a, b) => b.score - a.score)
@@ -844,11 +887,19 @@ router.post(['/student-safety/cases/:caseId/support', '/api/student-safety/cases
     userEmail: userEmail || null,
     createdAt: new Date().toISOString()
   });
-  safetyStore.saveStudentSafetySupports();
+  if (!safetyStore.saveStudentSafetySupports()) {
+    supports.pop();
+    return res.status(500).json({ success: false, message: 'Could not save your support.' });
+  }
 
   cases[caseIndex].supportCount = (cases[caseIndex].supportCount || 0) + 1;
   cases[caseIndex].updatedAt = new Date().toISOString();
-  safetyStore.saveStudentSafetyCases();
+  if (!safetyStore.saveStudentSafetyCases()) {
+    cases[caseIndex].supportCount = Math.max(0, cases[caseIndex].supportCount - 1);
+    supports.pop();
+    safetyStore.saveStudentSafetySupports();
+    return res.status(500).json({ success: false, message: 'Could not save your support.' });
+  }
 
   res.json({ success: true, supportCount: cases[caseIndex].supportCount, message: '✅ Thank you! You supported this case.' });
 });

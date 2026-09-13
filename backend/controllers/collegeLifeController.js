@@ -62,7 +62,10 @@ function addVideo(req, res) {
   }
 
   videos.unshift(newVideo);
-  collegeLifeStore.saveCollegeLifeVideos();
+  if (!collegeLifeStore.saveCollegeLifeVideos()) {
+    videos.shift();
+    return res.status(500).json({ success: false, error: 'Could not save the College Life video.' });
+  }
   res.json({ success: true, video: newVideo });
 }
 
@@ -86,17 +89,24 @@ function deleteVideo(req, res) {
   }
 
   const deleted = videos.splice(idx, 1)[0];
-  collegeLifeStore.saveCollegeLifeVideos();
+  if (!collegeLifeStore.saveCollegeLifeVideos()) {
+    videos.splice(idx, 0, deleted);
+    return res.status(500).json({ success: false, error: 'Could not save the College Life video changes.' });
+  }
   res.json({ success: true, message: 'Video deleted successfully.', video: deleted });
 }
 
 function setFeaturedVideo(req, res) {
   const videos = collegeLifeStore.getVideos();
+  const previousFeatured = videos.map(v => ({ video: v, isFeatured: v.isFeatured }));
   videos.forEach(v => { v.isFeatured = false; });
   const video = videos.find(v => v.id === req.params.id);
   if (!video) return res.status(404).json({ success: false, error: 'Video not found.' });
   video.isFeatured = true;
-  collegeLifeStore.saveCollegeLifeVideos();
+  if (!collegeLifeStore.saveCollegeLifeVideos()) {
+    previousFeatured.forEach(({ video: previousVideo, isFeatured }) => { previousVideo.isFeatured = isFeatured; });
+    return res.status(500).json({ success: false, error: 'Could not save the featured video change.' });
+  }
   res.json({ success: true, video });
 }
 
@@ -111,6 +121,8 @@ function updateVideo(req, res) {
   const videos = collegeLifeStore.getVideos();
   const video = videos.find(v => v.id === req.params.id);
   if (!video) return res.status(404).json({ success: false, error: 'Video not found.' });
+  const previousVideo = { ...video };
+  const previousFeatured = videos.map(v => ({ video: v, isFeatured: v.isFeatured }));
 
   const { youtubeUrl, title, description, category, duration, thumbnail, isFeatured } = req.body;
 
@@ -154,7 +166,11 @@ function updateVideo(req, res) {
   }
 
   video.updatedAt = new Date().toISOString();
-  collegeLifeStore.saveCollegeLifeVideos();
+  if (!collegeLifeStore.saveCollegeLifeVideos()) {
+    Object.assign(video, previousVideo);
+    previousFeatured.forEach(({ video: previousVideoItem, isFeatured }) => { previousVideoItem.isFeatured = isFeatured; });
+    return res.status(500).json({ success: false, error: 'Could not save the College Life video changes.' });
+  }
 
   res.json({ success: true, message: 'Video updated successfully.', video });
 }

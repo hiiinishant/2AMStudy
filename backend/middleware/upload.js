@@ -6,11 +6,16 @@ const { v4: uuidv4 } = require('uuid');
 const evidenceStorage = multer.memoryStorage();
 
 const evidenceFileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+  const allowedMimeTypes = {
+    '.jpg': ['image/jpeg', 'image/jpg'],
+    '.jpeg': ['image/jpeg', 'image/jpg'],
+    '.png': ['image/png'],
+    '.webp': ['image/webp'],
+    '.pdf': ['application/pdf']
+  };
   const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
 
-  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
+  if (allowedMimeTypes[ext]?.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file format. Only JPG, PNG, and PDF files are allowed.'), false);
@@ -30,11 +35,17 @@ const uploadProductImage = multer({
   storage: imageMemoryStorage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: function (req, file, cb) {
-    const allowed = /jpg|jpeg|png|webp|gif|svg|avif/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype.split('/')[1]);
-    if (ext || mime) cb(null, true);
-    else cb(new Error('Only image files (jpg, png, webp, gif, svg, avif) are allowed'));
+    const allowedMimeByExt = {
+      '.jpg': ['image/jpeg'],
+      '.jpeg': ['image/jpeg'],
+      '.png': ['image/png'],
+      '.webp': ['image/webp'],
+      '.gif': ['image/gif'],
+      '.avif': ['image/avif']
+    };
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedMimeByExt[ext]?.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only matching JPG, PNG, WEBP, GIF, or AVIF image files are allowed'));
   }
 });
 

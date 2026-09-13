@@ -15,33 +15,23 @@ function createFirebaseAuthMiddleware(firebaseAdmin, firestoreDb) {
   async function verifyFirebaseToken(req, res, next) {
     const token = getBearerToken(req);
 
-    if (token && firebaseAdmin && firebaseAdmin.apps && firebaseAdmin.apps.length > 0) {
-      try {
-        const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-        req.firebaseUser = decoded;
-        req.firebaseUid = decoded.uid;
-        req.firebaseEmail = decoded.email || null;
-        return next();
-      } catch (err) {
-        console.warn('[FirebaseAuth] Token verification failed:', err.message);
-      }
+    if (!firebaseAdmin || !firebaseAdmin.apps || firebaseAdmin.apps.length === 0) {
+      return res.status(503).json({ success: false, message: 'Authentication service is not configured on the server.' });
     }
 
-    // Fallback: Check body or headers or guest identifier
-    const fallbackUid = req.body?.userId || req.headers['x-user-id'] || req.session?.user?.uid || (req.body?.reporterEmail ? ('USER-' + Buffer.from(req.body.reporterEmail).toString('hex').substring(0, 10)) : ('GUEST-' + Date.now().toString(36)));
-    const fallbackEmail = req.body?.reporterEmail || req.headers['x-user-email'] || req.session?.user?.email || null;
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Authorization token required.' });
+    }
 
-    if (fallbackUid) {
-      req.firebaseUid = fallbackUid;
-      req.firebaseEmail = fallbackEmail || null;
+    try {
+      const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+      req.firebaseUser = decoded;
+      req.firebaseUid = decoded.uid;
+      req.firebaseEmail = decoded.email || null;
       return next();
-    }
-
-    if (token) {
+    } catch (err) {
       return res.status(401).json({ success: false, message: 'Invalid or expired authorization token.' });
     }
-
-    return res.status(401).json({ success: false, message: 'Authorization token or login required.' });
   }
 
   async function requireAdmin(req, res, next) {

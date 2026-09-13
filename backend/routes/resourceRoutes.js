@@ -4,11 +4,23 @@ const { v4: uuidv4 } = require('uuid');
 const resourceStore = require('../models/resourceStore');
 const { requireAdminForCollegeLife } = require('../middleware/adminAuth');
 
+function isHttpUrl(value) {
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
 // Add resource card
 router.post('/api/resources', requireAdminForCollegeLife, (req, res) => {
   const { title, exam, category, officialUrl, description, latestYear } = req.body;
   if (!title || !exam || !officialUrl) {
     return res.status(400).json({ success: false, error: 'Title, exam name, and official URL are required.' });
+  }
+  if (!isHttpUrl(officialUrl)) {
+    return res.status(400).json({ success: false, error: 'Official URL must use http or https.' });
   }
 
   const examResources = resourceStore.getResources();

@@ -7,7 +7,7 @@ const productStore = require('../models/productStore');
 const feedbackStore = require('../models/feedbackStore');
 const razorpay = require('../config/razorpay');
 const { firestoreDb } = require('../config/firebase');
-const { requireStoreAdmin } = require('../middleware/adminAuth');
+const { requireStoreAdmin, isMasterAdminAuthenticated } = require('../middleware/adminAuth');
 const { uploadProductImage } = require('../middleware/upload');
 
 // Price Calculation (server-authoritative)
@@ -24,6 +24,16 @@ function computeCheckoutSummary(cart, coupon) {
   const totalSaved = baseStoreDiscount + couponDiscount;
   const itemCount = cart.reduce((s, i) => s + i.qty, 0);
   return { spSubtotal, mrpSubtotal, baseStoreDiscount, couponDiscount, freeDelivery, delivery, platformFee, finalTotal, totalSaved, itemCount };
+}
+
+function canAccessOrder(req, order) {
+  if (!order) return false;
+  if (isMasterAdminAuthenticated(req)) return true;
+  if (req.session?.lastOrder?.orderId === order.orderId) return true;
+
+  const sessionEmail = (req.session?.user?.email || '').toString().trim().toLowerCase();
+  const orderEmail = (order.customer?.email || order.customerEmail || '').toString().trim().toLowerCase();
+  return Boolean(sessionEmail && orderEmail && sessionEmail === orderEmail);
 }
 
 // ─── Store View Routes ────────────────────────────────────────────────────────
@@ -133,6 +143,13 @@ router.get('/store/invoice/:orderId', (req, res) => {
   }
   if (!storedOrder && req.session?.lastOrder?.orderId === orderId) {
     storedOrder = req.session.lastOrder;
+  }
+
+  if (!storedOrder || !canAccessOrder(req, storedOrder)) {
+    return res.status(404).render('404', {
+      pageTitle: 'Invoice Not Found | 2AM Study Store',
+      metaDescription: 'The requested invoice is not available.'
+    });
   }
 
   // Ensure invoice number is registered
@@ -535,6 +552,12 @@ router.post('/store/api/store/create-order', async (req, res) => {
 
     const order = await razorpay.orders.create(options);
     req.session.pendingOrderSummary = { ...summary, orderId: order.id };
+    req.session.pendingOrder = {
+      orderId: order.id,
+      cart: cart.map(item => ({ ...item })),
+      customer: { ...customer },
+      coupon: coupon ? { ...coupon } : null
+    };
     return res.json({ ...order, serverSummary: summary });
   } catch (error) {
     console.error('Razorpay create order error:', error);
@@ -557,7 +580,22 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
       return res.status(400).json({ verified: false, error: 'Payment verification failed.' });
     }
 
-    const cart = req.session.cart || [];
+    const pendingOrder = req.session.pendingOrder;
+    if (!pendingOrder || pendingOrder.orderId !== razorpay_order_id) {
+      return res.status(400).json({ verified: false, error: 'Payment order does not match the active checkout.' });
+    }
+
+    const cart = Array.isArray(pendingOrder.cart) ? pendingOrder.cart : [];
+    const customer = pendingOrder.customer || null;
+    const coupon = pendingOrder.coupon || null;
+    if (!cart.length || !customer) {
+      return res.status(400).json({ verified: false, error: 'The active checkout is incomplete.' });
+    }
+    const summary = req.session.pendingOrderSummary;
+    if (!summary || summary.orderId !== razorpay_order_id) {
+      return res.status(400).json({ verified: false, error: 'Payment summary does not match the active checkout.' });
+    }
+
     const storeInvoicesMap = productStore.storeInvoicesMap;
     const STORE_PRODUCTS = productStore.getProducts();
 
@@ -565,28 +603,48 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
       return res.json({ verified: true, duplicate: true });
     }
 
+    for (const item of cart) {
+      const product = STORE_PRODUCTS.find(p => p.id === item.productId);
+      if (!product) {
+        return res.status(400).json({ verified: false, error: `Product ${item.productId} is no longer available.` });
+      }
+      if (product.stock < item.qty) {
+        return res.status(409).json({
+          verified: false,
+          error: `Insufficient stock for "${product.name}". Only ${product.stock} left.`
+        });
+      }
+    }
+
+    const previousInventory = cart.map(item => {
+      const product = STORE_PRODUCTS.find(p => p.id === item.productId);
+      return { product, stock: product.stock, sold: product.sold || 0 };
+    });
+
     // Deduct inventory
     for (const item of cart) {
       const product = STORE_PRODUCTS.find(p => p.id === item.productId);
-      if (product) {
-        const qty = item.qty || 1;
-        product.stock = Math.max(0, product.stock - qty);
-        product.sold = (product.sold || 0) + qty;
-      }
+      const qty = item.qty || 1;
+      product.stock -= qty;
+      product.sold = (product.sold || 0) + qty;
     }
-    productStore.savePersistedProducts();
+    if (!productStore.savePersistedProducts()) {
+      previousInventory.forEach(({ product, stock, sold }) => {
+        product.stock = stock;
+        product.sold = sold;
+      });
+      return res.status(500).json({ verified: false, error: 'Could not save inventory changes.' });
+    }
 
     const invoiceNo = `INV-2026${String(productStore.incrementInvoiceCounter()).padStart(5, '0')}`;
     const now = new Date();
-    const coupon = req.session.checkoutCoupon || null;
-    const summary = req.session.pendingOrderSummary || computeCheckoutSummary(cart, coupon);
     const completedOrder = {
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
       paymentMethod: 'Razorpay (Card/UPI/NetBanking)',
       invoiceNo,
-      customerName: req.session.checkoutCustomer?.name || 'Student Customer',
-      customer: req.session.checkoutCustomer,
+      customerName: customer.name || 'Student Customer',
+      customer,
       items: cart.length ? [...cart] : [],
       // Financial details (fixes ₹0 in admin dashboard and my-orders)
       amount: summary.finalTotal,
@@ -602,6 +660,18 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
       createdAt: now.toISOString()
     };
 
+    const orders = productStore.getOrders();
+    orders.unshift(completedOrder);
+    if (!productStore.savePersistedStoreOrders()) {
+      orders.shift();
+      previousInventory.forEach(({ product, stock, sold }) => {
+        product.stock = stock;
+        product.sold = sold;
+      });
+      productStore.savePersistedProducts();
+      return res.status(500).json({ verified: false, error: 'Could not save the order.' });
+    }
+
     if (firestoreDb) {
       try {
         await firestoreDb.collection('storeOrders').doc(razorpay_order_id).set(completedOrder);
@@ -610,11 +680,10 @@ router.post('/store/api/store/verify-payment', async (req, res) => {
       }
     }
 
-    const orders = productStore.getOrders();
-    orders.unshift(completedOrder);
-    productStore.savePersistedStoreOrders();
     storeInvoicesMap.set(razorpay_order_id, completedOrder);
     req.session.lastOrder = completedOrder;
+    delete req.session.pendingOrder;
+    delete req.session.pendingOrderSummary;
 
     return res.json({ verified: true });
   } catch (error) {
@@ -632,12 +701,18 @@ router.get('/api/store/orders/:orderId', async (req, res) => {
   // 1. Check storeInvoicesMap (in-memory, populated on verify-payment)
   const mapEntry = productStore.storeInvoicesMap.get(orderId);
   if (mapEntry && typeof mapEntry === 'object' && mapEntry.orderId) {
-    return res.json({ success: true, order: mapEntry });
+    return canAccessOrder(req, mapEntry)
+      ? res.json({ success: true, order: mapEntry })
+      : res.status(404).json({ success: false, error: 'Order not found' });
   }
 
   // 2. Check persisted in-memory orders array
   const memOrder = productStore.getOrders().find(o => o.orderId === orderId);
-  if (memOrder) return res.json({ success: true, order: memOrder });
+  if (memOrder) {
+    return canAccessOrder(req, memOrder)
+      ? res.json({ success: true, order: memOrder })
+      : res.status(404).json({ success: false, error: 'Order not found' });
+  }
 
   // 3. Check session last order
   if (req.session?.lastOrder?.orderId === orderId) {
@@ -659,7 +734,7 @@ router.get('/api/store/orders/:orderId', async (req, res) => {
 
 // GET /api/store/my-orders — fetch all orders for current user by email/uid
 router.get('/api/store/my-orders', async (req, res) => {
-  const email = (req.session?.user?.email || req.session?.checkoutCustomer?.email || '').toLowerCase();
+  const email = (req.session?.user?.email || '').toLowerCase();
   const uid = req.session?.user?.uid || null;
 
   let ordersList = [];
@@ -744,10 +819,17 @@ router.post('/store/api/store/products/:id/reviews', (req, res) => {
   if (!user || !rating || !comment) {
     return res.status(400).json({ success: false, error: 'user, rating, and comment are required.' });
   }
-  const ratingNum = Math.min(5, Math.max(1, Number(rating)));
-  if (isNaN(ratingNum)) return res.status(400).json({ success: false, error: 'rating must be a number between 1 and 5.' });
+  const ratingNum = Number(rating);
+  if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+    return res.status(400).json({ success: false, error: 'rating must be a whole number between 1 and 5.' });
+  }
 
   const sanitize = str => String(str).trim().replace(/</g, '&lt;').replace(/>/g, '&gt;').slice(0, 500);
+  const previousReviewState = {
+    reviews: Array.isArray(product.reviews) ? [...product.reviews] : null,
+    rating: product.rating,
+    ratingCount: product.ratingCount
+  };
 
   if (!product.reviews) product.reviews = [];
 
@@ -771,25 +853,33 @@ router.post('/store/api/store/products/:id/reviews', (req, res) => {
   product.rating = Math.round((allRatings.reduce((s, r) => s + r, 0) / allRatings.length) * 10) / 10;
   product.ratingCount = (product.ratingCount || 0) + (existingIdx >= 0 ? 0 : 1);
 
-  // Sync to global shopperFeedbacks
-  try {
-    const feedbacks = feedbackStore.getFeedbacks();
-    feedbacks.unshift({
-      id: 'fb-' + Date.now(),
-      name: newReview.user,
-      avatar: '',
-      rating: ratingNum,
-      comment: newReview.comment,
-      product: product.name,
-      verified: true,
-      date: newReview.date
-    });
-    feedbackStore.saveShopperFeedbacks();
-  } catch (e) {
-    console.warn('[Store] Could not sync review to feedbackStore:', e.message);
+  if (!productStore.savePersistedProducts()) {
+    if (previousReviewState.reviews === null) delete product.reviews;
+    else product.reviews = previousReviewState.reviews;
+    product.rating = previousReviewState.rating;
+    product.ratingCount = previousReviewState.ratingCount;
+    return res.status(500).json({ success: false, error: 'Could not save the review. Please try again.' });
   }
 
-  productStore.savePersistedProducts();
+  // Sync only new reviews to the global shopper feedback list.
+  if (existingIdx < 0) {
+    try {
+      const feedbacks = feedbackStore.getFeedbacks();
+      feedbacks.unshift({
+        id: 'fb-' + Date.now(),
+        name: newReview.user,
+        avatar: '',
+        rating: ratingNum,
+        comment: newReview.comment,
+        product: product.name,
+        verified: false,
+        date: newReview.date
+      });
+      feedbackStore.saveShopperFeedbacks();
+    } catch (e) {
+      console.warn('[Store] Could not sync review to feedbackStore:', e.message);
+    }
+  }
 
   res.json({ success: true, message: 'Review submitted successfully!', review: newReview, product });
 });
@@ -802,6 +892,10 @@ router.get('/store/api/store/feedbacks', (req, res) => {
 router.post('/store/api/store/feedback', (req, res) => {
   const { name, comment, rating, product } = req.body;
   if (!name || !comment) return res.status(400).json({ success: false, error: 'Name and feedback comment are required.' });
+  const ratingNum = Number(rating);
+  if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+    return res.status(400).json({ success: false, error: 'rating must be a whole number between 1 and 5.' });
+  }
 
   const feedbacks = feedbackStore.getFeedbacks();
   const avatarList = [
@@ -814,10 +908,10 @@ router.post('/store/api/store/feedback', (req, res) => {
     id: 'fb-' + Date.now(),
     name: name.trim(),
     avatar: avatarList[Math.floor(Math.random() * avatarList.length)],
-    rating: Number(rating) || 5,
+    rating: ratingNum,
     comment: comment.trim(),
     product: (product && product.trim()) ? product.trim() : '2 AM Study Essentials',
-    verified: true,
+    verified: false,
     date: new Date().toISOString().split('T')[0]
   };
 

@@ -3156,13 +3156,12 @@
 
             // Helper to pass admin authorization headers with fetch calls
             function getAdminHeaders() {
-              const pass = sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
-              return pass ? { 'x-admin-passcode': pass } : {};
+              return {};
             }
 
             // Helper to get admin passcode for body/query fallback
             function getAdminPasscode() {
-              return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
+              return '';
             }
 
             // Login Form
@@ -3186,11 +3185,6 @@
                   });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && data.success) {
-                    try {
-                      sessionStorage.setItem('admin_passcode', pass);
-                      localStorage.setItem('admin_passcode', pass);
-                    } catch (_) { }
-
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirectParam = urlParams.get('redirect');
                     if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -3217,8 +3211,6 @@
             async function logoutAdmin() {
               if (!confirm('Sign out of Admin?')) return;
               try {
-                sessionStorage.removeItem('admin_passcode');
-                localStorage.removeItem('admin_passcode');
                 await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
                 window.location.href = '/admin';
               } catch (e) {
@@ -4657,7 +4649,10 @@
               showToast('Loading video details...');
               try {
                 const res = await fetch('/api/college-life/videos/' + id, {
-                  headers: { 'Accept': 'application/json' },
+                  headers: {
+                    'Accept': 'application/json',
+                    ...(getAdminHeaders())
+                  },
                   credentials: 'include'
                 });
                 const data = await res.json();
@@ -4708,7 +4703,11 @@
               try {
                 const res = await fetch('/api/college-life/videos/' + id, {
                   method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...(getAdminHeaders())
+                  },
                   credentials: 'include',
                   body: JSON.stringify({ youtubeUrl, title, category, duration, description, isFeatured })
                 });

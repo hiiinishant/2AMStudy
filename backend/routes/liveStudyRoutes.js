@@ -98,8 +98,11 @@ router.post('/api/live-study/auth', (req, res) => {
     return res.json({ success: true });
   }
 
-  recordAdminLoginFailure(clientIp);
-  return res.status(401).json({ success: false, message: 'Incorrect password.' });
+  const lockMessage = recordAdminLoginFailure(clientIp);
+  return res.status(lockMessage ? 429 : 401).json({
+    success: false,
+    message: lockMessage || 'Incorrect password.'
+  });
 });
 
 // POST — Activate a live session

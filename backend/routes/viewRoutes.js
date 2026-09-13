@@ -8,6 +8,30 @@ const collegeLifeStore = require('../models/collegeLifeStore');
 const resourceStore = require('../models/resourceStore');
 const transporter = require('../config/mail');
 
+const contactRequestCounts = new Map();
+const CONTACT_WINDOW_MS = 60 * 60 * 1000;
+const MAX_CONTACT_REQUESTS = 5;
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isContactRateLimited(ip) {
+  const now = Date.now();
+  const record = contactRequestCounts.get(ip);
+  if (!record || now - record.startedAt >= CONTACT_WINDOW_MS) {
+    contactRequestCounts.set(ip, { startedAt: now, count: 1 });
+    return false;
+  }
+  record.count += 1;
+  return record.count > MAX_CONTACT_REQUESTS;
+}
+
 // Home Page
 router.get('/', (req, res) => {
   const studySessions = sessionStore.getSessions();
@@ -372,15 +396,23 @@ router.get('/faq', (req, res) => {
 
 // Contact / Registration form submission
 router.post('/send-email', async (req, res) => {
-  const { formName } = req.body;
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+  if (isContactRateLimited(ip)) {
+    return res.status(429).json({ error: 'Too many contact requests. Please try again later.' });
+  }
+
+  const { formName } = req.body || {};
+  if (JSON.stringify(req.body || {}).length > 12000) {
+    return res.status(413).json({ error: 'Form submission is too large.' });
+  }
   let bodyContent = '';
-  let htmlContent = `<p><strong>Form:</strong> ${formName || 'Contact Form'}</p>`;
+  let htmlContent = `<p><strong>Form:</strong> ${escapeHtml(formName || 'Contact Form')}</p>`;
 
   for (const [key, value] of Object.entries(req.body)) {
     if (key !== 'formName') {
       const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
       bodyContent += `${capitalizedKey}: ${value}\n`;
-      htmlContent += `<p><strong>${capitalizedKey}:</strong> ${value}</p>`;
+      htmlContent += `<p><strong>${escapeHtml(capitalizedKey)}:</strong> ${escapeHtml(value)}</p>`;
     }
   }
 

@@ -5,6 +5,16 @@ const fs = require('fs');
 const blogStore = require('../models/blogStore');
 const { requireStoreAdmin, isMasterAdminAuthenticated } = require('../middleware/adminAuth');
 const { uploadProductImage } = require('../middleware/upload');
+
+function isSafeImageUrl(value) {
+  if (!value) return true;
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'https:' || url.protocol === 'http:' || url.pathname.startsWith('/');
+  } catch (_) {
+    return false;
+  }
+}
 const { uploadToCloudinary } = require('../config/cloudinary');
 
 let saveViewsTimeout = null;
@@ -86,6 +96,9 @@ router.post('/api/store/admin/blogs', requireStoreAdmin, (req, res) => {
   }
 
   const finalImage = coverImage || image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80';
+  if (!isSafeImageUrl(finalImage)) {
+    return res.status(400).json({ success: false, error: 'Cover image URL must use http or https.' });
+  }
 
   const newPost = {
     id: 'blog-' + Date.now(),
@@ -136,6 +149,9 @@ router.put('/api/store/admin/blogs/:id', requireStoreAdmin, (req, res) => {
   }
 
   const finalImage = coverImage !== undefined ? coverImage : (image !== undefined ? image : existing.image);
+  if (!isSafeImageUrl(finalImage)) {
+    return res.status(400).json({ success: false, error: 'Cover image URL must use http or https.' });
+  }
 
   BLOG_POSTS[index] = {
     ...existing,

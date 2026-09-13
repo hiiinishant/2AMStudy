@@ -1,12 +1,44 @@
 const https = require('https');
 
+const requestCounts = new Map();
+const WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 30;
+
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const record = requestCounts.get(ip);
+  if (!record || now - record.startedAt >= WINDOW_MS) {
+    requestCounts.set(ip, { startedAt: now, count: 1 });
+    return false;
+  }
+  record.count += 1;
+  return record.count > MAX_REQUESTS_PER_WINDOW;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { history, prompt } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyCghN9iAKYhEbnsjijJDggNfBkISpgVo8I';
+  if (isRateLimited(getClientIp(req))) {
+    return res.status(429).json({ error: 'Too many requests. Please try again in a minute.' });
+  }
+
+  const { history, prompt } = req.body || {};
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(503).json({ error: 'AI service is not configured.' });
+  }
+  if (typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 4000) {
+    return res.status(400).json({ error: 'A prompt between 1 and 4000 characters is required.' });
+  }
+  if (history && (!Array.isArray(history) || history.length > 30)) {
+    return res.status(400).json({ error: 'Conversation history is invalid or too long.' });
+  }
 
   // Build the contents array for Gemini multi-turn chat
   // If 'history' is provided, it should be an array of { role: 'user'|'model', text: '' }
