@@ -25,12 +25,17 @@ function saveCollegeLifeVideos() {
 
 function extractYoutubeVideoId(url) {
   if (!url) return null;
-  const trimmed = url.trim();
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  const str = String(url).trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+
+  // Comprehensive YouTube video ID regex matcher (matches youtu.be, watch?v=, embed, shorts, live, etc.)
+  const regexMatch = str.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+  if (regexMatch && regexMatch[1]) return regexMatch[1];
+
   try {
-    const validUrl = trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`;
+    const validUrl = str.startsWith('http://') || str.startsWith('https://') ? str : `https://${str}`;
     const u = new URL(validUrl);
-    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0].split('?')[0];
+    if (u.hostname === 'youtu.be' || u.hostname === 'www.youtu.be') return u.pathname.slice(1).split('/')[0].split('?')[0];
     if (u.pathname.startsWith('/live/')) return u.pathname.split('/live/')[1].split('/')[0].split('?')[0];
     if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('/')[0].split('?')[0];
     if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('/')[0].split('?')[0];

@@ -44,13 +44,18 @@ function addVideo(req, res) {
     return res.status(409).json({ success: false, error: 'This YouTube video has already been added to College Life.' });
   }
 
+  const youtubeUrlTrimmed = String(youtubeUrl || '').trim();
+  const normalizedYoutubeUrl = youtubeUrlTrimmed.startsWith('http')
+    ? youtubeUrlTrimmed
+    : `https://www.youtube.com/watch?v=${youtubeVideoId}`;
+
   const newVideo = {
     id: 'cl-' + uuidv4().split('-')[0],
     title: title.trim(),
     description: (description || '').trim(),
-    category: (category || 'College Life').trim(),
+    category: (category || 'Campus Vibe').trim(),
     duration: (duration || '').trim(),
-    youtubeUrl: youtubeUrl.trim(),
+    youtubeUrl: normalizedYoutubeUrl,
     youtubeVideoId,
     thumbnail: (thumbnail && thumbnail.trim()) || `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`,
     isFeatured: Boolean(isFeatured),
@@ -140,7 +145,11 @@ function updateVideo(req, res) {
       if (!videoId) {
         return res.status(400).json({ success: false, error: 'Invalid YouTube URL.' });
       }
-      video.youtubeUrl = trimmedUrl;
+      const duplicate = videos.find(v => v.id !== video.id && v.youtubeVideoId === videoId);
+      if (duplicate) {
+        return res.status(409).json({ success: false, error: 'Another video with this YouTube link already exists.' });
+      }
+      video.youtubeUrl = trimmedUrl.startsWith('http') ? trimmedUrl : `https://www.youtube.com/watch?v=${videoId}`;
       video.youtubeVideoId = videoId;
       if (!thumbnail) {
         video.thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;

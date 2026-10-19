@@ -342,8 +342,14 @@
               <% } %>
           </div>
           <div class="yt-embed-wrapper mb-4">
+            <% 
+              // For auto-detected live streams use live_stream embed; for manually activated use standard embed
+              const embedSrc = liveSession.autoDetected
+                ? `https://www.youtube.com/embed/live_stream?channel=<%= liveSession.youtubeVideoId %>&autoplay=1&mute=1&rel=0&modestbranding=1`
+                : `https://www.youtube.com/embed/<%= liveSession.youtubeVideoId %>?autoplay=0&rel=0&modestbranding=1`;
+            %>
             <iframe
-              src="https://www.youtube.com/embed/<%= liveSession.youtubeVideoId %>?autoplay=0&rel=0&modestbranding=1"
+              src="<%= embedSrc %>"
               allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share"
               allowfullscreen title="<%= liveSession.title %>"></iframe>
           </div>
@@ -424,5 +430,34 @@
 
     </div>
   </main>
+
+  <script>
+    // ── Live Status Poller ───────────────────────────────────────────────────
+    // Checks /api/live-study/status every 45 seconds.
+    // If live state changes (e.g. session goes live or ends), reloads the page
+    // so the user sees the correct live/offline content automatically.
+    (function () {
+      const POLL_INTERVAL = 45 * 1000; // 45 seconds
+      // Capture current state from server render (no extra request on first load)
+      const currentIsLive = <%= liveSession ? 'true' : 'false' %>;
+
+      async function checkLiveStatus() {
+        try {
+          const res = await fetch('/api/live-study/status', { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          // If live state has flipped, reload to get fresh server-rendered content
+          if (data.isLive !== currentIsLive) {
+            window.location.reload();
+          }
+        } catch (_) {
+          // Silently ignore network errors — will retry next interval
+        }
+      }
+
+      // Start polling
+      setInterval(checkLiveStatus, POLL_INTERVAL);
+    })();
+  </script>
 
   <%- include('partials/footer') %>

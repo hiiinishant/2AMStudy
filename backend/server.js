@@ -121,6 +121,10 @@ app.use(require('./routes/blogRoutes'));
 app.use(require('./routes/safetyRoutes'));
 app.use(require('./routes/viewRoutes'));
 
+// ─── YouTube Live Auto-Detection Watcher ─────────────────────────────────────
+const { startYoutubeWatcher } = require('./services/youtubeWatcher');
+startYoutubeWatcher().catch(err => console.warn('[YTWatcher] Startup error:', err.message));
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).render('404', {

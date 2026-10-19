@@ -587,7 +587,7 @@
         </form>
 
         <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 text-center">
-          <a href="/" class="text-decoration-none text-white-50 small hover-white">â† Return to Website</a>
+          <a href="/" class="text-decoration-none text-white-50 small hover-white"><i class="fa-solid fa-arrow-left me-1"></i> Return to Website</a>
         </div>
       </div>
     </div>
@@ -1677,10 +1677,24 @@
                     <i class="fa-solid fa-list text-primary me-2"></i>All College Life Videos
                     (<%= typeof collegeVideos !=='undefined' ? collegeVideos.length : 0 %>)
                   </h4>
-                  <a href="/college-life" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3"
-                    style="font-size: 11px;">
-                    <i class="fa-solid fa-eye me-1"></i> View Public Page
-                  </a>
+                  <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <input type="text" class="form-control form-control-dark" id="collegeSearchInput"
+                      placeholder="Search videos..." style="max-width: 200px; font-size: 0.82rem;"
+                      oninput="filterCollegeRows(this.value)">
+                    <select class="form-select form-select-dark" id="collegeCatFilter"
+                      style="max-width: 160px; font-size: 0.82rem;" onchange="filterCollegeRows()">
+                      <option value="">All Categories</option>
+                      <option value="Campus Vibe">Campus Vibe</option>
+                      <option value="Hostel Fun">Hostel Fun</option>
+                      <option value="Study Break">Study Break</option>
+                      <option value="College Fest">College Fest</option>
+                      <option value="Friends & Fun">Friends & Fun</option>
+                    </select>
+                    <a href="/college-life" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3"
+                      style="font-size: 11px;">
+                      <i class="fa-solid fa-eye me-1"></i> View Public Page
+                    </a>
+                  </div>
                 </div>
 
                 <% if (typeof collegeVideos !=='undefined' && collegeVideos.length) { %>
@@ -1698,7 +1712,7 @@
                       </thead>
                       <tbody>
                         <% collegeVideos.forEach(function(v) { %>
-                          <tr id="cv-row-<%= v.id %>">
+                          <tr id="cv-row-<%= v.id %>" data-title="<%= (v.title||'').toLowerCase() %>" data-cat="<%= (v.category||'').toLowerCase() %>">
                             <td style="width: 90px;">
                               <img
                                 src="<%= (v.thumbnail && !v.thumbnail.includes('maxresdefault')) ? v.thumbnail : ('https://img.youtube.com/vi/' + v.youtubeVideoId + '/hqdefault.jpg') %>"
@@ -1720,7 +1734,7 @@
                               </span>
                             </td>
                             <td class="text-white-50 small">
-                              <%= v.duration || 'â€”' %>
+                              <%= v.duration || '' %><% if (!v.duration) { %>&mdash;<% } %>
                             </td>
                             <td>
                               <% if (v.isFeatured) { %>
@@ -2985,10 +2999,13 @@
                 <input type="hidden" id="editClId">
                 <div class="modal-body p-4">
                   <!-- Thumbnail Preview Box -->
-                  <div class="mb-3 text-center p-2 rounded-3 bg-dark border border-secondary border-opacity-25">
+                  <div id="editClThumbContainer" class="mb-3 p-2 rounded-3 bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-3">
                     <img id="editClThumbPreview" src="" alt="Thumbnail" class="rounded-2 shadow-sm"
-                      style="max-height: 140px; width: auto; max-width: 100%; object-fit: cover;">
-                    <div class="small text-muted mt-1" style="font-size: 11px;">YouTube Video Thumbnail Preview</div>
+                      style="width: 96px; height: 54px; object-fit: cover;">
+                    <div class="small text-muted" style="font-size: 11px;">
+                      <span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> YouTube Video Detected!</span>
+                      <div class="text-white-50">Thumbnail confirmed from YouTube CDN</div>
+                    </div>
                   </div>
 
                   <div class="mb-3">
@@ -3143,7 +3160,8 @@
             });
 
             // Handle Hash on Load & Setup Clipboard Paste
-            document.addEventListener('DOMContentLoaded', () => {
+            // NOTE: Script is at end of <body> so DOM is already ready — no need for DOMContentLoaded
+            (function initAdminOnLoad() {
               const hash = window.location.hash.replace('#', '').replace('tab-', '').replace('sec-', '');
               if (hash && sectionTitles[hash]) {
                 switchSection(hash);
@@ -3152,23 +3170,17 @@
                 setupClipboardImagePaste('blogContent');
                 setupClipboardImagePaste('editBlogContent');
               }
-            });
+            })();
 
             // Helper to pass admin authorization headers with fetch calls
             function getAdminHeaders() {
-              const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || '';
-              if (token) {
-                return {
-                  'Authorization': 'Bearer ' + token,
-                  'x-admin-passcode': token
-                };
-              }
-              return {};
+              const pass = sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
+              return pass ? { 'x-admin-passcode': pass } : {};
             }
 
             // Helper to get admin passcode for body/query fallback
             function getAdminPasscode() {
-              return sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || '';
+              return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
             }
 
             // Login Form
@@ -3192,12 +3204,10 @@
                   });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && data.success) {
-                    if (data.token) {
-                      try {
-                        sessionStorage.setItem('admin_token', data.token);
-                        localStorage.setItem('admin_token', data.token);
-                      } catch (_) {}
-                    }
+                    try {
+                      sessionStorage.setItem('admin_passcode', pass);
+                      localStorage.setItem('admin_passcode', pass);
+                    } catch (_) {}
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirectParam = urlParams.get('redirect');
                     if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
@@ -3224,8 +3234,6 @@
             async function logoutAdmin() {
               if (!confirm('Sign out of Admin?')) return;
               try {
-                sessionStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_token');
                 sessionStorage.removeItem('admin_passcode');
                 localStorage.removeItem('admin_passcode');
               } catch (_) {}
@@ -3253,7 +3261,8 @@
               try {
                 const res = await fetch('/api/live-study/activate', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                  credentials: 'include',
                   body: JSON.stringify({ youtubeUrl, title })
                 });
                 const data = await res.json();
@@ -3282,7 +3291,7 @@
             async function endLiveStream() {
               if (!confirm('End the current live stream?')) return;
               try {
-                const res = await fetch('/api/live-study/end', { method: 'POST' });
+                const res = await fetch('/api/live-study/end', { method: 'POST', headers: getAdminHeaders(), credentials: 'include' });
                 const data = await res.json();
                 if (data.success) {
                   showToast('Live stream ended.');
@@ -3315,7 +3324,8 @@
               try {
                 const res = await fetch('/api/live-study/add-past', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...getAdminHeaders() },
+                  credentials: 'include',
                   body: JSON.stringify({ youtubeUrl, title, duration, thumbnail })
                 });
                 const data = await res.json();
@@ -3344,7 +3354,7 @@
             async function deleteStudySession(id) {
               if (!confirm('Delete this recorded study session?')) return;
               try {
-                const res = await fetch('/api/live-study/delete/' + id, { method: 'DELETE' });
+                const res = await fetch('/api/live-study/delete/' + id, { method: 'DELETE', headers: getAdminHeaders(), credentials: 'include' });
                 const data = await res.json();
                 if (data.success) {
                   const row = document.getElementById('session-row-' + id);
@@ -4583,12 +4593,21 @@
               e.preventDefault();
               const form = document.getElementById('addCollegeVideoForm');
               const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
-              const youtubeUrl = document.getElementById('clYtUrl').value.trim();
-              const title = document.getElementById('clTitle').value.trim();
-              const category = document.getElementById('clCategory').value;
-              const duration = document.getElementById('clDuration').value.trim();
-              const description = document.getElementById('clDescription').value.trim();
-              const isFeatured = document.getElementById('clFeatured').checked;
+              const youtubeUrl = (document.getElementById('clYtUrl')?.value || '').trim();
+              const title = (document.getElementById('clTitle')?.value || '').trim();
+              const category = document.getElementById('clCategory')?.value || 'Campus Vibe';
+              const duration = (document.getElementById('clDuration')?.value || '').trim();
+              const description = (document.getElementById('clDescription')?.value || '').trim();
+              const isFeatured = Boolean(document.getElementById('clFeatured')?.checked);
+
+              if (!youtubeUrl) {
+                showToast('Please enter a YouTube video URL.', true);
+                return;
+              }
+              if (!title) {
+                showToast('Please enter a video title.', true);
+                return;
+              }
 
               if (submitBtn) {
                 submitBtn.disabled = true;
@@ -4596,7 +4615,9 @@
               }
 
               try {
-                const res = await fetch('/api/college-life/videos', {
+                const adminPass = getAdminPasscode();
+                const addUrl = '/api/college-life/videos' + (adminPass ? '?adminPasscode=' + encodeURIComponent(adminPass) : '');
+                const res = await fetch(addUrl, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -4604,15 +4625,23 @@
                     ...(getAdminHeaders())
                   },
                   credentials: 'include',
-                  body: JSON.stringify({ youtubeUrl, title, category, duration, description, isFeatured })
+                  body: JSON.stringify({
+                    youtubeUrl,
+                    title,
+                    category,
+                    duration,
+                    description,
+                    isFeatured,
+                    adminPasscode: adminPass
+                  })
                 });
                 const data = await res.json();
                 if (data.success) {
-                  showToast('College Life video added!');
+                  showToast('College Life video added successfully!');
                   setTimeout(() => {
                     window.location.hash = 'college';
                     window.location.reload();
-                  }, 800);
+                  }, 700);
                 } else {
                   showToast(data.error || 'Failed to add video.', true);
                   if (submitBtn) {
@@ -4632,12 +4661,16 @@
             // College Life Video Helpers & Actions
             function extractCollegeYtId(url) {
               if (!url) return '';
-              const trimmed = url.trim();
-              if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+              const str = String(url).trim();
+              if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+
+              const regexMatch = str.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+              if (regexMatch && regexMatch[1]) return regexMatch[1];
+
               try {
-                const validUrl = trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`;
+                const validUrl = str.startsWith('http://') || str.startsWith('https://') ? str : `https://${str}`;
                 const u = new URL(validUrl);
-                if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('/')[0].split('?')[0];
+                if (u.hostname === 'youtu.be' || u.hostname === 'www.youtu.be') return u.pathname.slice(1).split('/')[0].split('?')[0];
                 if (u.pathname.startsWith('/live/')) return u.pathname.split('/live/')[1].split('/')[0].split('?')[0];
                 if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('/')[0].split('?')[0];
                 if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1].split('/')[0].split('?')[0];
@@ -4651,12 +4684,26 @@
               const preview = document.getElementById(previewImgId);
               if (!input || !preview) return;
               const vidId = extractCollegeYtId(input.value);
-              const container = document.getElementById('addClThumbContainer');
+              const containerPrefix = urlInputId.startsWith('edit') ? 'editClThumbContainer' : 'addClThumbContainer';
+              const container = document.getElementById(containerPrefix);
               if (vidId) {
                 preview.src = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
                 if (container) {
                   container.classList.remove('d-none');
                   container.classList.add('d-flex');
+                }
+                // Auto-fill video title if empty
+                const titleInputId = urlInputId.startsWith('edit') ? 'editClTitle' : 'clTitle';
+                const titleInput = document.getElementById(titleInputId);
+                if (titleInput && !titleInput.value.trim()) {
+                  fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${vidId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data && data.title && !titleInput.value.trim()) {
+                        titleInput.value = data.title;
+                      }
+                    })
+                    .catch(() => {});
                 }
               } else if (container) {
                 container.classList.add('d-none');
@@ -4664,11 +4711,36 @@
               }
             }
 
+            function filterCollegeRows(searchQuery) {
+              const searchInput = document.getElementById('collegeSearchInput');
+              const catSelect = document.getElementById('collegeCatFilter');
+              const query = (typeof searchQuery === 'string' ? searchQuery : (searchInput ? searchInput.value : '')).toLowerCase().trim();
+              const selectedCat = (catSelect ? catSelect.value : '').toLowerCase().trim();
+
+              const rows = document.querySelectorAll('#sec-college tbody tr');
+              rows.forEach(row => {
+                const title = (row.getAttribute('data-title') || '').toLowerCase();
+                const cat = (row.getAttribute('data-cat') || '').toLowerCase();
+                const matchesQuery = !query || title.includes(query) || cat.includes(query);
+                const matchesCat = !selectedCat || cat === selectedCat;
+                if (matchesQuery && matchesCat) {
+                  row.style.display = '';
+                } else {
+                  row.style.display = 'none';
+                }
+              });
+            }
+
             async function openEditCollegeVideoModal(id) {
               showToast('Loading video details...');
               try {
-                const res = await fetch('/api/college-life/videos/' + id, {
-                  headers: { 'Accept': 'application/json' },
+                const adminPass = getAdminPasscode();
+                const editUrl = '/api/college-life/videos/' + encodeURIComponent(id) + (adminPass ? '?adminPasscode=' + encodeURIComponent(adminPass) : '');
+                const res = await fetch(editUrl, {
+                  headers: {
+                    'Accept': 'application/json',
+                    ...(getAdminHeaders())
+                  },
                   credentials: 'include'
                 });
                 const data = await res.json();
@@ -4683,8 +4755,19 @@
                   document.getElementById('editClFeatured').checked = Boolean(v.isFeatured);
 
                   const preview = document.getElementById('editClThumbPreview');
+                  const container = document.getElementById('editClThumbContainer');
                   if (preview) {
-                    preview.src = v.thumbnail || (v.youtubeVideoId ? `https://img.youtube.com/vi/${v.youtubeVideoId}/hqdefault.jpg` : '');
+                    const thumbSrc = v.thumbnail || (v.youtubeVideoId ? `https://img.youtube.com/vi/${v.youtubeVideoId}/hqdefault.jpg` : '');
+                    preview.src = thumbSrc;
+                    if (container) {
+                      if (thumbSrc) {
+                        container.classList.remove('d-none');
+                        container.classList.add('d-flex');
+                      } else {
+                        container.classList.add('d-none');
+                        container.classList.remove('d-flex');
+                      }
+                    }
                   }
 
                   const modal = new bootstrap.Modal(document.getElementById('editCollegeVideoModal'));
@@ -4717,11 +4800,25 @@
               const isFeatured = document.getElementById('editClFeatured').checked;
 
               try {
-                const res = await fetch('/api/college-life/videos/' + id, {
+                const adminPass = getAdminPasscode();
+                const updateUrl = '/api/college-life/videos/' + encodeURIComponent(id) + (adminPass ? '?adminPasscode=' + encodeURIComponent(adminPass) : '');
+                const res = await fetch(updateUrl, {
                   method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...(getAdminHeaders())
+                  },
                   credentials: 'include',
-                  body: JSON.stringify({ youtubeUrl, title, category, duration, description, isFeatured })
+                  body: JSON.stringify({
+                    youtubeUrl,
+                    title,
+                    category,
+                    duration,
+                    description,
+                    isFeatured,
+                    adminPasscode: adminPass
+                  })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -4729,7 +4826,7 @@
                   setTimeout(() => {
                     window.location.hash = 'college';
                     window.location.reload();
-                  }, 800);
+                  }, 700);
                 } else {
                   showToast(data.error || 'Failed to update video.', true);
                   if (btn) {

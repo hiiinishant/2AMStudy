@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const {
   checkMasterPassword,
-  generateAdminToken,
   getClientIp,
   checkAdminRateLimit,
   recordAdminLoginFailure,
@@ -51,8 +50,6 @@ function handleAdminLogin(req, res) {
 
   if (checkMasterPassword(password)) {
     recordAdminLoginSuccess(clientIp);
-    const adminToken = generateAdminToken(7);
-
     if (req.session) {
       req.session.isAdmin = true;
       req.session.isStoreAdmin = true;
@@ -61,16 +58,7 @@ function handleAdminLogin(req, res) {
     }
 
     const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
-    
-    // Set signed stateless admin cookies
-    res.cookie('admin_session', adminToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: isSecure,
-      path: '/'
-    });
-    res.cookie('admin_token', adminToken, {
+    res.cookie('admin_session', 'authenticated', {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       sameSite: 'lax',
@@ -84,19 +72,12 @@ function handleAdminLogin(req, res) {
       path: '/'
     });
 
-    const sendResponse = () => {
-      return res.json({
-        success: true,
-        message: 'Logged in successfully.',
-        token: adminToken,
-        redirect: '/admin'
-      });
-    };
-
     if (req.session && typeof req.session.save === 'function') {
-      return req.session.save(sendResponse);
+      return req.session.save(() => {
+        return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
+      });
     }
-    return sendResponse();
+    return res.json({ success: true, message: 'Logged in successfully.', redirect: '/admin' });
   }
 
   const lockMessage = recordAdminLoginFailure(clientIp);
@@ -119,9 +100,7 @@ function handleAdminLogout(req, res, isRedirect = false) {
     req.session.destroy(() => {});
   }
   res.clearCookie('admin_session', { path: '/' });
-  res.clearCookie('admin_token', { path: '/' });
   res.clearCookie('is_admin', { path: '/' });
-  res.clearCookie('connect.sid', { path: '/' });
 
   if (isRedirect) {
     return res.redirect('/admin');

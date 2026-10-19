@@ -10,36 +10,12 @@
       "destination": "https://twoamstudy-1.onrender.com/api/student-safety/cases/:caseId/support"
     },
     {
+      "source": "/api/:path*",
+      "destination": "https://twoamstudy-1.onrender.com/api/:path*"
+    },
+    {
       "source": "/store/api/:path*",
       "destination": "https://twoamstudy-1.onrender.com/store/api/:path*"
-    },
-    {
-      "source": "/api/store/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/store/:path*"
-    },
-    {
-      "source": "/api/blogs/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/blogs/:path*"
-    },
-    {
-      "source": "/api/resources/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/resources/:path*"
-    },
-    {
-      "source": "/api/college-life/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/college-life/:path*"
-    },
-    {
-      "source": "/api/live-study/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/live-study/:path*"
-    },
-    {
-      "source": "/api/live/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/live/:path*"
-    },
-    {
-      "source": "/api/student-safety/:path*",
-      "destination": "https://twoamstudy-1.onrender.com/api/student-safety/:path*"
     }
   ]
 }
