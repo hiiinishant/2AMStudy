@@ -255,8 +255,13 @@
       font-size: 1rem;
       font-weight: 700;
       color: #f1f5f9;
-      line-height: 1.3;
+      line-height: 1.35;
       margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .past-card-desc {
@@ -382,9 +387,9 @@
                   <p class="small">No recorded sessions yet. Check back after our first live session!</p>
                 </div>
                 <% } else { %>
-                  <div class="row g-4">
-                    <% pastSessions.forEach(function(session){ %>
-                      <div class="col-sm-6 col-lg-4">
+                  <div class="row g-4" id="pastSessionsGrid">
+                    <% pastSessions.forEach(function(session, index){ %>
+                      <div class="col-sm-6 col-lg-4 past-session-col <%= index >= 6 ? 'd-none past-session-extra' : '' %>" data-extra="<%= index >= 6 ? 'true' : 'false' %>">
                         <div class="past-card h-100">
                           <a href="/live-study/<%= session.id %>" class="past-card-thumb text-decoration-none">
                             <img src="<%= session.thumbnail %>" alt="<%= session.title %>" loading="lazy"
@@ -406,7 +411,7 @@
                                     </span>
                                     <% } %>
                             </div>
-                            <h3 class="past-card-title">
+                            <h3 class="past-card-title" title="<%= session.title %>">
                               <a href="/live-study/<%= session.id %>" class="text-white text-decoration-none">
                                 <%= session.title %>
                               </a>
@@ -423,7 +428,16 @@
                       </div>
                       <% }) %>
                   </div>
+
+                  <% if (pastSessions.length > 6) { %>
+                    <div class="text-center mt-5" id="viewMoreWrap">
+                      <button id="toggleSessionsBtn" class="browse-past-btn" type="button" style="cursor: pointer; border: 1px solid rgba(99,102,241,0.35); background: rgba(99,102,241,0.15); color: #c7d2fe; padding: 12px 32px; border-radius: 999px; font-weight: 700;">
+                        <i class="fa-solid fa-angles-down me-2" id="toggleIcon"></i>
+                        <span id="toggleText">View More Sessions (<%= pastSessions.length - 6 %> more)</span>
+                      </button>
+                    </div>
                   <% } %>
+                <% } %>
             </div>
 
     </div>
@@ -457,6 +471,45 @@
 
       // Start polling
       setInterval(checkLiveStatus, POLL_INTERVAL);
+    })();
+
+    // ── Toggle View More Past Sessions ──────────────────────────────────────
+    (function () {
+      const toggleBtn = document.getElementById('toggleSessionsBtn');
+      if (!toggleBtn) return;
+      let isExpanded = false;
+      const toggleText = document.getElementById('toggleText');
+      const toggleIcon = document.getElementById('toggleIcon');
+      const extraItems = document.querySelectorAll('.past-session-extra');
+      const totalExtra = extraItems.length;
+
+      toggleBtn.addEventListener('click', function () {
+        isExpanded = !isExpanded;
+        extraItems.forEach(function (el) {
+          if (isExpanded) {
+            el.classList.remove('d-none');
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(12px)';
+            el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+            setTimeout(function () {
+              el.style.opacity = '1';
+              el.style.transform = 'translateY(0)';
+            }, 30);
+          } else {
+            el.classList.add('d-none');
+          }
+        });
+
+        if (isExpanded) {
+          toggleText.textContent = 'Show Less';
+          toggleIcon.className = 'fa-solid fa-angles-up me-2';
+        } else {
+          toggleText.textContent = 'View More Sessions (' + totalExtra + ' more)';
+          toggleIcon.className = 'fa-solid fa-angles-down me-2';
+          const anchor = document.getElementById('past-sessions');
+          if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     })();
   </script>
 
