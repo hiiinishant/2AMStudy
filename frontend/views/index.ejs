@@ -234,13 +234,13 @@
               <!-- Animated Study Video Screen -->
               <% const activeVideo=(typeof liveSession !=='undefined' && liveSession) ? liveSession : ((typeof
                 latestPastSession !=='undefined' && latestPastSession) ? latestPastSession : null); const
-                vidId=activeVideo ? activeVideo.youtubeVideoId : 'jfKfPfyJRdk' ; const videoTitle=activeVideo ?
-                activeVideo.title : '5 Hour Deep Focus Study Session' ; const videoDuration=(activeVideo &&
+                vidId=activeVideo ? activeVideo.youtubeVideoId : 'JJExmHRDC0E' ; const videoTitle=activeVideo ?
+                activeVideo.title : '2 AM Study Session | Day - 4 | 2 AM Study' ; const videoDuration=(activeVideo &&
                 activeVideo.duration) ? activeVideo.duration : '' ; %>
                 <div class="position-relative rounded-3 overflow-hidden mb-2.5"
                   style="aspect-ratio: 16/9; background: #000; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);">
                   <iframe
-                    src="https://www.youtube.com/embed/<%= vidId %>?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1"
+                    src="https://www.youtube.com/embed/<%= vidId %>?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&loop=1&playlist=<%= vidId %>"
                     class="w-100 h-100 position-absolute top-0 start-0 border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowfullscreen title="<%= videoTitle %>">

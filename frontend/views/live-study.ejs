@@ -344,7 +344,7 @@
           <div class="yt-embed-wrapper mb-4">
             <% 
               const videoId = encodeURIComponent(liveSession.youtubeVideoId || '');
-              const embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=${liveSession.autoDetected ? '1&mute=1' : '0'}&rel=0&modestbranding=1`;
+              const embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`;
             %>
             <iframe
               src="<%= embedSrc %>"
