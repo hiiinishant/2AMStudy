@@ -343,10 +343,8 @@
           </div>
           <div class="yt-embed-wrapper mb-4">
             <% 
-              // For auto-detected live streams use live_stream embed; for manually activated use standard embed
-              const embedSrc = liveSession.autoDetected
-                ? `https://www.youtube.com/embed/live_stream?channel=<%= liveSession.youtubeVideoId %>&autoplay=1&mute=1&rel=0&modestbranding=1`
-                : `https://www.youtube.com/embed/<%= liveSession.youtubeVideoId %>?autoplay=0&rel=0&modestbranding=1`;
+              const videoId = encodeURIComponent(liveSession.youtubeVideoId || '');
+              const embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=${liveSession.autoDetected ? '1&mute=1' : '0'}&rel=0&modestbranding=1`;
             %>
             <iframe
               src="<%= embedSrc %>"
@@ -354,7 +352,7 @@
               allowfullscreen title="<%= liveSession.title %>"></iframe>
           </div>
           <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="<%= liveSession.youtubeUrl %>" target="_blank" rel="noopener noreferrer" class="btn-join-live"><i
+            <a href="<%= liveSession.youtubeUrl || ('https://www.youtube.com/watch?v=' + liveSession.youtubeVideoId) %>" target="_blank" rel="noopener noreferrer" class="btn-join-live"><i
                 class="fa-brands fa-youtube"></i> Join Live Study Stream</a>
             <div class="small text-muted"><i class="fa-solid fa-circle-info me-1"></i>Opens on YouTube — study along
               with us live</div>
@@ -440,14 +438,16 @@
       const POLL_INTERVAL = 45 * 1000; // 45 seconds
       // Capture current state from server render (no extra request on first load)
       const currentIsLive = <%= liveSession ? 'true' : 'false' %>;
+      const currentSessionId = <%= liveSession && liveSession.id ? JSON.stringify(liveSession.id) : 'null' %>;
 
       async function checkLiveStatus() {
         try {
           const res = await fetch('/api/live-study/status', { cache: 'no-store' });
           if (!res.ok) return;
           const data = await res.json();
-          // If live state has flipped, reload to get fresh server-rendered content
-          if (data.isLive !== currentIsLive) {
+          const activeSessionId = (data.session && data.session.id) ? data.session.id : null;
+          // If live state has flipped or active session changed, reload to get fresh server-rendered content
+          if (data.isLive !== currentIsLive || activeSessionId !== currentSessionId) {
             window.location.reload();
           }
         } catch (_) {
