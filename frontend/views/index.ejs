@@ -216,13 +216,22 @@
 
               <!-- Card Header -->
               <div class="d-flex align-items-center justify-content-between mb-3 pb-1">
-                <span
-                  class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
-                  style="background: rgba(255, 255, 255, 0.08); font-size: 11px; font-weight: 600; padding: 6px 12px; white-space: nowrap;">
+                <% if (typeof liveSession !=='undefined' && liveSession) { %>
                   <span
-                    style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: liveNavPulse 1.4s ease-in-out infinite;"></span>
-                  <span>Live Now</span>
-                </span>
+                    class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
+                    style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3) !important; font-size: 11px; font-weight: 600; padding: 6px 12px; white-space: nowrap;">
+                    <span
+                      style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: liveNavPulse 1.4s ease-in-out infinite;"></span>
+                    <span style="color: #fca5a5;">Live Now</span>
+                  </span>
+                <% } else { %>
+                  <span
+                    class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
+                    style="background: rgba(255, 255, 255, 0.08); font-size: 11px; font-weight: 500; padding: 6px 12px; white-space: nowrap;">
+                    <i class="fa-solid fa-play text-primary" style="font-size: 9px;"></i>
+                    <span>Study Session</span>
+                  </span>
+                <% } %>
                 <span
                   class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
                   style="background: rgba(255, 255, 255, 0.08); font-size: 11px; font-weight: 500; padding: 6px 12px; white-space: nowrap;">
@@ -245,14 +254,6 @@
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowfullscreen title="<%= videoTitle %>">
                   </iframe>
-
-                  <!-- Corner Brand Tag -->
-                  <div
-                    class="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-1 px-2 py-0.5 rounded-pill"
-                    style="background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); font-size: 10px; color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.35); pointer-events: none;">
-                    <i class="fa-solid fa-moon"></i>
-                    <span>2 AM Study</span>
-                  </div>
                 </div>
 
                 <!-- Stream Title (Clean gap below video) -->
