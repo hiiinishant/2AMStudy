@@ -1,4 +1,4 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <style>
   .session-page {
@@ -141,7 +141,7 @@
         <h1 class="text-white fw-bold mb-2" style="font-size:clamp(1.4rem,3.5vw,2rem);">
           <%= session.title %>
         </h1>
-        <% if (session.description) { %>
+        <% if (session.description && session.status !== 'LIVE') { %>
         <p class="text-muted mb-0" style="font-size:0.95rem;line-height:1.6;max-width:640px;"><%= session.description %></p>
         <% } %>
       </div>
