@@ -211,23 +211,23 @@
           <!-- Right Column: Live Study Stream / Study Together Card -->
           <div class="col-lg-5 col-12">
             <div
-              class="card border-0 shadow-lg rounded-4 pt-2.5 pt-md-3 px-3 px-md-4 pb-3 pb-md-4 position-relative overflow-hidden"
+              class="card border-0 shadow-lg rounded-4 p-3 p-md-4 position-relative overflow-hidden"
               style="background: radial-gradient(ellipse at 50% 0%, #170d2c 0%, #0c0a18 60%, #03020a 100%); border: 1px solid rgba(99, 102, 241, 0.25) !important;">
 
               <!-- Card Header -->
-              <div class="d-flex align-items-center justify-content-between mb-4 pb-2">
-                <div class="d-flex align-items-center gap-2">
+              <div class="d-flex align-items-center justify-content-between mb-3 pb-1">
+                <span
+                  class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
+                  style="background: rgba(255, 255, 255, 0.08); font-size: 11px; font-weight: 600; padding: 6px 12px; white-space: nowrap;">
                   <span
-                    class="badge rounded-pill px-2.5 py-1 text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
-                    style="background: rgba(255, 255, 255, 0.06); font-size: 11px; font-weight: 500;">
-                    <span
-                      style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: liveNavPulse 1.4s ease-in-out infinite;"></span>
-                    <% if (typeof liveSession !=='undefined' && liveSession) { %>Live Now<% } else { %>Study Live<% } %>
-                  </span>
-                </div>
-                <span class="badge rounded-pill px-2.5 py-1 text-white border border-white border-opacity-10"
-                  style="background: rgba(255, 255, 255, 0.06); font-size: 11px; font-weight: 500;">
-                  <i class="fa-solid fa-users me-1 text-info opacity-75"></i> 2,400+ studying
+                    style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; animation: liveNavPulse 1.4s ease-in-out infinite;"></span>
+                  <span>Live Now</span>
+                </span>
+                <span
+                  class="badge rounded-pill text-white border border-white border-opacity-10 d-inline-flex align-items-center gap-1.5"
+                  style="background: rgba(255, 255, 255, 0.08); font-size: 11px; font-weight: 500; padding: 6px 12px; white-space: nowrap;">
+                  <i class="fa-solid fa-users text-info opacity-75"></i>
+                  <span>2,400+ studying</span>
                 </span>
               </div>
 
@@ -246,24 +246,13 @@
                     allowfullscreen title="<%= videoTitle %>">
                   </iframe>
 
-                  <!-- Corner Live Tag (only if currently live) -->
-                  <% if (typeof liveSession !=='undefined' && liveSession) { %>
-                    <div
-                      class="position-absolute top-0 start-0 m-2 d-flex align-items-center gap-1.5 px-2 py-0.5 rounded-pill"
-                      style="background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); font-size: 10px; color: #f87171; border: 1px solid rgba(220, 38, 38, 0.35); font-weight: 700; pointer-events: none;">
-                      <span
-                        style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
-                      <span>LIVE NOW</span>
-                    </div>
-                    <% } %>
-
-                      <!-- Corner Brand Tag -->
-                      <div
-                        class="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-1 px-2 py-0.5 rounded-pill"
-                        style="background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); font-size: 10px; color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.35); pointer-events: none;">
-                        <i class="fa-solid fa-moon"></i>
-                        <span>2 AM Study</span>
-                      </div>
+                  <!-- Corner Brand Tag -->
+                  <div
+                    class="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-1 px-2 py-0.5 rounded-pill"
+                    style="background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); font-size: 10px; color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.35); pointer-events: none;">
+                    <i class="fa-solid fa-moon"></i>
+                    <span>2 AM Study</span>
+                  </div>
                 </div>
 
                 <!-- Stream Title (Clean gap below video) -->
