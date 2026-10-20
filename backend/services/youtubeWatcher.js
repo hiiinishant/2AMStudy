@@ -1,26 +1,27 @@
 /**
  * youtubeWatcher.js
- * Polls the YouTube Data API every 60 seconds.
- * When the 2amstudy channel goes LIVE, automatically activates a session.
- * When it goes offline, automatically ends the session.
+ * Detects live streams on the @2amstudy YouTube channel in real time.
+ * Uses the uploads playlist + video liveStreamingDetails check (2 quota units)
+ * which instantly catches new live broadcasts without search-indexing delays.
  */
 
 const sessionStore = require('../models/sessionStore');
 const { extractYoutubeVideoId } = require('../models/collegeLifeStore');
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-// Channel ID for @2amstudy — resolved once on startup, or set here directly
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyB5QU3Nuhv3ENRpraq83GFX_PognBOkCB8';
 const CHANNEL_HANDLE = '@2amstudy';
-// Fallback hardcoded channel ID (fetch once via resolveChannelId, or set manually)
-let CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || null;
+let CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UCR1O6_kdj7nDGWeDJHmZqjQ';
+const UPLOADS_PLAYLIST_ID = 'UUR1O6_kdj7nDGWeDJHmZqjQ';
 
 const POLL_INTERVAL_MS = 60 * 1000; // check every 60 seconds
 let pollTimer = null;
 let lastKnownLiveVideoId = null;
 
+let lastOnDemandCheck = 0;
+const ON_DEMAND_CACHE_TTL_MS = 30 * 1000; // 30 seconds
+
 /**
- * Resolve the numeric channel ID from a handle using YouTube API.
- * Only called once on startup if CHANNEL_ID is not already set.
+ * Resolve the numeric channel ID from a handle using YouTube API if needed.
  */
 async function resolveChannelId() {
   if (!YOUTUBE_API_KEY) return null;
@@ -41,37 +42,55 @@ async function resolveChannelId() {
 
 /**
  * Check YouTube for an active live stream on the channel.
- * Returns { isLive, videoId, title, description } or null on failure.
+ * Fast & accurate: checks the uploads playlist (1 quota) and inspects video details (1 quota).
  */
 async function checkYoutubeLiveStatus() {
-  if (!YOUTUBE_API_KEY || !CHANNEL_ID) return null;
+  if (!YOUTUBE_API_KEY) return null;
   try {
     const { default: fetch } = await import('node-fetch');
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${YOUTUBE_API_KEY}`;
-    const res = await fetch(url, { timeout: 8000 });
-    if (!res.ok) {
-      console.warn(`[YTWatcher] YouTube API error: ${res.status}`);
+
+    // Step 1: Get latest 3 uploads from the channel playlist
+    const pUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${UPLOADS_PLAYLIST_ID}&maxResults=3&key=${YOUTUBE_API_KEY}`;
+    const pRes = await fetch(pUrl, { timeout: 8000 });
+    if (!pRes.ok) {
+      console.warn(`[YTWatcher] PlaylistItems error: ${pRes.status}`);
       return null;
     }
-    const data = await res.json();
-    if (!data.items || data.items.length === 0) {
-      return { isLive: false };
+    const pData = await pRes.json();
+    const ids = (pData.items || []).map(i => i.contentDetails?.videoId).filter(Boolean);
+
+    if (ids.length === 0) return { isLive: false };
+
+    // Step 2: Check live streaming details on recent videos
+    const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${ids.join(',')}&key=${YOUTUBE_API_KEY}`;
+    const vRes = await fetch(vUrl, { timeout: 8000 });
+    if (!vRes.ok) {
+      console.warn(`[YTWatcher] Videos API error: ${vRes.status}`);
+      return null;
     }
-    const item = data.items[0];
-    return {
-      isLive: true,
-      videoId: item.id?.videoId,
-      title: item.snippet?.title || '2AM Study — Live Session',
-      description: item.snippet?.description || '',
-    };
+    const vData = await vRes.json();
+
+    for (const item of (vData.items || [])) {
+      if (item.snippet && item.snippet.liveBroadcastContent === 'live') {
+        return {
+          isLive: true,
+          videoId: item.id,
+          title: item.snippet.title || '2AM Study — Live Session',
+          description: item.snippet.description || '',
+          startedAt: item.liveStreamingDetails?.actualStartTime || new Date().toISOString()
+        };
+      }
+    }
+
+    return { isLive: false };
   } catch (err) {
-    console.warn('[YTWatcher] Poll error:', err.message);
+    console.warn('[YTWatcher] Live check error:', err.message);
     return null;
   }
 }
 
 /**
- * Core poll tick — runs every POLL_INTERVAL_MS.
+ * Core poll tick — runs on schedule and on-demand.
  */
 async function pollTick() {
   const result = await checkYoutubeLiveStatus();
@@ -83,13 +102,19 @@ async function pollTick() {
   if (result.isLive && result.videoId) {
     // Channel IS live on YouTube
     if (existingLive) {
-      // Already tracked — nothing to do
-      lastKnownLiveVideoId = result.videoId;
-      return;
+      if (existingLive.youtubeVideoId !== result.videoId) {
+        // Stream video ID changed
+        existingLive.status = 'COMPLETED';
+        existingLive.endedAt = new Date().toISOString();
+      } else {
+        lastKnownLiveVideoId = result.videoId;
+        return;
+      }
     }
-    // NEW live stream detected — auto-create session
+
+    // Activate live session
     const youtubeUrl = `https://www.youtube.com/watch?v=${result.videoId}`;
-    const now = new Date().toISOString();
+    const now = result.startedAt || new Date().toISOString();
     const session = {
       id: require('crypto').randomUUID(),
       title: result.title,
@@ -103,7 +128,7 @@ async function pollTick() {
       startedAt: now,
       endedAt: null,
       createdAt: now,
-      autoDetected: true, // flag: created by watcher, not admin
+      autoDetected: true
     };
     studySessions.unshift(session);
     sessionStore.saveStudySessions();
@@ -113,12 +138,11 @@ async function pollTick() {
   } else {
     // Channel is NOT live on YouTube
     if (!existingLive || !existingLive.autoDetected) {
-      // Either no live session, or it was manually created — don't auto-end manual ones
       lastKnownLiveVideoId = null;
       return;
     }
     // Auto-created session → auto-end it
-    const elapsed = Date.now() - new Date(existingLive.startedAt).getTime();
+    const elapsed = Date.now() - new Date(existingLive.startedAt || Date.now()).getTime();
     const diffMin = Math.round(elapsed / (1000 * 60));
     const hours = Math.floor(diffMin / 60);
     const mins = diffMin % 60;
@@ -138,8 +162,21 @@ async function pollTick() {
 }
 
 /**
- * Start the background YouTube watcher.
- * Called once from server.js on startup.
+ * On-demand sync helper: called by SSR routes (/live-study, /api/live-study/status, /)
+ * Ensures fresh YouTube state even on serverless environments without persistent timers.
+ */
+async function syncLiveSessionOnDemand() {
+  const now = Date.now();
+  if (now - lastOnDemandCheck >= ON_DEMAND_CACHE_TTL_MS) {
+    lastOnDemandCheck = now;
+    await pollTick();
+  }
+  const studySessions = sessionStore.getSessions();
+  return studySessions.find(s => s.status === 'LIVE') || null;
+}
+
+/**
+ * Start the background YouTube watcher (for long-running processes like Render).
  */
 async function startYoutubeWatcher() {
   if (!YOUTUBE_API_KEY) {
@@ -147,27 +184,15 @@ async function startYoutubeWatcher() {
     return;
   }
 
-  // Resolve channel ID if not already set
   if (!CHANNEL_ID) {
     CHANNEL_ID = await resolveChannelId();
-    if (!CHANNEL_ID) {
-      console.warn('[YTWatcher] Could not resolve YouTube channel ID — auto-detection disabled.');
-      return;
-    }
   }
 
   console.log(`[YTWatcher] Started. Polling every ${POLL_INTERVAL_MS / 1000}s for channel ${CHANNEL_ID}`);
-
-  // Run immediately on start
   await pollTick();
-
-  // Then repeat on interval
   pollTimer = setInterval(pollTick, POLL_INTERVAL_MS);
 }
 
-/**
- * Stop the watcher (for clean shutdown / tests).
- */
 function stopYoutubeWatcher() {
   if (pollTimer) {
     clearInterval(pollTimer);
@@ -176,4 +201,9 @@ function stopYoutubeWatcher() {
   }
 }
 
-module.exports = { startYoutubeWatcher, stopYoutubeWatcher };
+module.exports = {
+  startYoutubeWatcher,
+  stopYoutubeWatcher,
+  checkYoutubeLiveStatus,
+  syncLiveSessionOnDemand
+};

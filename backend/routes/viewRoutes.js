@@ -33,9 +33,16 @@ function isContactRateLimited(ip) {
 }
 
 // Home Page
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+  let liveSession = null;
+  try {
+    const { syncLiveSessionOnDemand } = require('../services/youtubeWatcher');
+    liveSession = await syncLiveSessionOnDemand();
+  } catch (_) {
+    const studySessions = sessionStore.getSessions();
+    liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  }
   const studySessions = sessionStore.getSessions();
-  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
   const latestPastSession = studySessions
     .filter(s => s.status === 'COMPLETED')
     .sort((a, b) => new Date(b.endedAt || b.createdAt) - new Date(a.endedAt || a.createdAt))[0] || null;

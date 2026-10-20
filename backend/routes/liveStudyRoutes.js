@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const sessionStore = require('../models/sessionStore');
 const { extractYoutubeVideoId } = require('../models/collegeLifeStore');
+const { syncLiveSessionOnDemand } = require('../services/youtubeWatcher');
 const {
   isMasterAdminAuthenticated,
   checkMasterPassword,
@@ -28,9 +29,15 @@ function formatElapsedDuration(startIso, endIso) {
 }
 
 // GET — Public live study page
-router.get('/live-study', (req, res) => {
+router.get('/live-study', async (req, res) => {
+  let liveSession = null;
+  try {
+    liveSession = await syncLiveSessionOnDemand();
+  } catch (_) {
+    const studySessions = sessionStore.getSessions();
+    liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  }
   const studySessions = sessionStore.getSessions();
-  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
   const pastSessions = studySessions
     .filter(s => s.status === 'COMPLETED')
     .sort((a, b) => new Date(b.endedAt || b.createdAt) - new Date(a.endedAt || a.createdAt));
@@ -66,9 +73,14 @@ router.get('/live-admin', (req, res) => {
 });
 
 // GET — Public status API (used by header and pages)
-router.get('/api/live-study/status', (req, res) => {
-  const studySessions = sessionStore.getSessions();
-  const liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+router.get('/api/live-study/status', async (req, res) => {
+  let liveSession = null;
+  try {
+    liveSession = await syncLiveSessionOnDemand();
+  } catch (_) {
+    const studySessions = sessionStore.getSessions();
+    liveSession = studySessions.find(s => s.status === 'LIVE') || null;
+  }
   res.json({ isLive: !!liveSession, session: liveSession });
 });
 
