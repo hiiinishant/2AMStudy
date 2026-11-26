@@ -1,5 +1,41 @@
 [
   {
+    "id": "cl-d32b67f4",
+    "title": "New vlog video | Chandigarh university student | Nishant | Nishant Kumar vlog",
+    "description": "",
+    "category": "Friends & Fun",
+    "duration": "12 minutes",
+    "youtubeUrl": "https://youtu.be/pjCwFTptp2w?si=wOMcCTL4hAxMICOL",
+    "youtubeVideoId": "pjCwFTptp2w",
+    "thumbnail": "https://img.youtube.com/vi/pjCwFTptp2w/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-11-26T23:21:46.365Z"
+  },
+  {
+    "id": "cl-678b1dec",
+    "title": "Diwali Celebration in my college  | Chandigarh University | Nishant's World of Vibes",
+    "description": "",
+    "category": "Campus Vibe",
+    "duration": "7 minutes",
+    "youtubeUrl": "https://youtu.be/-zCZyulh9I8?si=Kn5mhL6I2RArrfrf",
+    "youtubeVideoId": "-zCZyulh9I8",
+    "thumbnail": "https://img.youtube.com/vi/-zCZyulh9I8/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-11-26T23:20:38.698Z"
+  },
+  {
+    "id": "cl-b597f21a",
+    "title": "First Time in Shimla | Part  - 2 🔥 | Nishant video",
+    "description": "",
+    "category": "Friends & Fun",
+    "duration": "9 minutes",
+    "youtubeUrl": "https://youtu.be/1FEQMt4GHjw?si=_msbGpJTdD_cnIdc",
+    "youtubeVideoId": "1FEQMt4GHjw",
+    "thumbnail": "https://img.youtube.com/vi/1FEQMt4GHjw/hqdefault.jpg",
+    "isFeatured": false,
+    "createdAt": "2026-11-26T23:19:27.736Z"
+  },
+  {
     "id": "cl-cd0c39b0",
     "title": "First time in Zoo | Chandigarh | ChhattBir Zoo |  Hiii  Nishant",
     "description": "Join me on an exciting adventure as we visit the ChhattBir Zoo near Chandigarh for the first time! 🦁🐒🌳",

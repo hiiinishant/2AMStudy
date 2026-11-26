@@ -6,6 +6,14 @@
       "destination": "https://twoamstudy-1.onrender.com/tools/bihar-stet-marks-predictor"
     },
     {
+      "source": "/college-life",
+      "destination": "https://twoamstudy-1.onrender.com/college-life"
+    },
+    {
+      "source": "/college-life/:id",
+      "destination": "https://twoamstudy-1.onrender.com/college-life/:id"
+    },
+    {
       "source": "/admin",
       "destination": "https://twoamstudy-1.onrender.com/admin"
     },
