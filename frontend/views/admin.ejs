@@ -3200,8 +3200,16 @@
             // Login Form
             const loginForm = document.getElementById('adminLoginForm');
             if (loginForm) {
+              console.info('[Admin Login diagnostic] submit handler attached');
+              loginForm.addEventListener('invalid', function (e) {
+                console.warn('[Admin Login diagnostic] browser validation blocked form submission', {
+                  fieldId: e.target.id || 'unknown'
+                });
+              }, true);
               loginForm.addEventListener('submit', async function (e) {
+                console.info('[Admin Login diagnostic] submit event received');
                 e.preventDefault();
+                console.info('[Admin Login diagnostic] native submission prevented; continuing with API request');
                 const pass = (document.getElementById('masterPassInput').value || '').trim();
                 const errAlert = document.getElementById('loginErrorAlert');
                 const btn = document.getElementById('loginSubmitBtn');
@@ -3210,12 +3218,14 @@
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying...';
 
                 try {
+                  console.info('[Admin Login diagnostic] sending request to /api/admin/login');
                   const res = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({ password: pass })
                   });
+                  console.info('[Admin Login diagnostic] API response received', { status: res.status });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && data.success) {
                     try {
@@ -3236,6 +3246,9 @@
                     btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Unlock Dashboard';
                   }
                 } catch (err) {
+                  console.error('[Admin Login diagnostic] API request failed', {
+                    errorName: (err && err.name) || 'UnknownError'
+                  });
                   errAlert.textContent = err.message || 'Server connection error. Please try again.';
                   errAlert.classList.remove('d-none');
                   btn.disabled = false;
