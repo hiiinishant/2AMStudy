@@ -6,6 +6,14 @@
       "destination": "https://twoamstudy-1.onrender.com/tools/bihar-stet-marks-predictor"
     },
     {
+      "source": "/admin",
+      "destination": "https://twoamstudy-1.onrender.com/admin"
+    },
+    {
+      "source": "/admin/logout",
+      "destination": "https://twoamstudy-1.onrender.com/admin/logout"
+    },
+    {
       "source": "/admin/bihar-stet",
       "destination": "https://twoamstudy-1.onrender.com/admin/bihar-stet"
     },
