@@ -43,6 +43,7 @@
 
   <!-- Popular Study Tools Hub & Utilities -->
   <url><loc>https://2amstudy.com/study-tools</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://2amstudy.com/tools/bihar-stet-marks-predictor</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/timer</loc><changefreq>weekly</changefreq><priority>0.95</priority></url>
   <url><loc>https://2amstudy.com/clock</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://2amstudy.com/music</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>

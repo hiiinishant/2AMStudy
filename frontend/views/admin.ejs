@@ -542,9 +542,12 @@
       width: 100%;
     }
   </style>
+  <% if (isAuthed) { %>
+  <link rel="stylesheet" href="/assets/css/bihar-stet.css?v=7">
+  <% } %>
 </head>
 
-<body>
+<body class="<%= isAuthed ? 'bstet-admin-host' : '' %>">
 
   <!-- ========================================== -->
   <!-- 1. AUTH GATE (IF NOT LOGGED IN) -->
@@ -682,6 +685,10 @@
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
                 <%= typeof resources !=='undefined' ? resources.length : 0 %>
               </span>
+            </button>
+            <button class="sidebar-btn" data-section="bihar-stet">
+              <span><i class="fa-solid fa-square-poll-vertical me-2"></i>Bihar STET Keys</span>
+              <i class="fa-solid fa-chevron-right small"></i>
             </button>
           </nav>
 
@@ -1907,6 +1914,12 @@
               </div>
             </div>
 
+            <div class="admin-section d-none" id="sec-bihar-stet">
+              <div class="bstet-admin-console bstet-admin-embedded">
+                <%- include('admin-bihar-stet', { embedded: true }) %>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -3121,7 +3134,8 @@
               safety: 'Student Safety',
               reviews: 'Shopper Reviews',
               college: 'College Life',
-              resources: 'Exam Resources'
+              resources: 'Exam Resources',
+              'bihar-stet': 'Bihar STET Keys'
             };
 
             function switchSection(secKey) {
@@ -5052,6 +5066,9 @@
     if (ht) ht.style.display = '';
   }
 </script>
+<% if (isAuthed) { %>
+<script src="/assets/js/bihar-stet-admin.js?v=4" defer></script>
+<% } %>
 </body>
 
 </html>

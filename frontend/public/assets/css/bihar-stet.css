@@ -1,0 +1,1490 @@
+html.bstet-hide-scrollbar {
+  scrollbar-width: none;
+}
+
+html.bstet-hide-scrollbar body {
+  scrollbar-width: none;
+}
+
+html.bstet-hide-scrollbar::-webkit-scrollbar,
+html.bstet-hide-scrollbar body::-webkit-scrollbar {
+  display: none;
+}
+
+.bstet-page {
+  min-height: 70vh;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.bstet-container {
+  max-width: 960px;
+}
+
+.bstet-hero {
+  padding: 38px 0 42px;
+  background:
+    radial-gradient(ellipse at 82% 15%, rgba(80, 110, 255, .18), transparent 42%),
+    linear-gradient(135deg, #101c3a, #172c58 58%, #253d73);
+  color: #fff;
+}
+
+.bstet-back-link {
+  display: inline-block;
+  margin-bottom: 30px;
+  color: #c9d6f5;
+  text-decoration: none;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+.bstet-back-link:hover {
+  color: #fff;
+}
+
+.bstet-eyebrow {
+  color: #7799ff;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.bstet-hero h1 {
+  margin: 10px 0 8px;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 850;
+  letter-spacing: -.045em;
+}
+
+.bstet-hero h1 span {
+  color: #91aaff;
+}
+
+.bstet-hero p {
+  max-width: 650px;
+  margin: 0;
+  color: #d3ddf2;
+  font-size: 1.02rem;
+}
+
+.bstet-content {
+  padding-top: 30px;
+  padding-bottom: 55px;
+}
+
+.bstet-notice {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 17px 19px;
+  border: 1px solid #d9e3ff;
+  border-radius: 14px;
+  background: #eef3ff;
+  color: #40506e;
+  font-size: .92rem;
+  line-height: 1.55;
+}
+
+.bstet-notice > i {
+  margin-top: 3px;
+  color: #4168d5;
+  font-size: 1.15rem;
+}
+
+.bstet-notice strong {
+  color: #1d376f;
+}
+
+.bstet-card {
+  margin-bottom: 20px;
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid #e6eaf2;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: 0 10px 35px rgba(31, 48, 87, .055);
+}
+
+.bstet-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.bstet-step {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: #edf2ff;
+  color: #345ed0;
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+.bstet-card-heading h2 {
+  margin: 1px 0 4px;
+  color: #15213a;
+  font-size: 1.16rem;
+  font-weight: 800;
+}
+
+.bstet-card-heading p {
+  margin: 0;
+  color: #778198;
+  font-size: .87rem;
+}
+
+.bstet-card .form-label {
+  color: #35415a;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.bstet-card .form-select,
+.bstet-card .form-control {
+  min-height: 47px;
+  border-color: #dfe4ee;
+  border-radius: 10px;
+  color: #202c43;
+}
+
+.bstet-method-heading {
+  margin-top: 34px;
+  margin-bottom: 17px;
+}
+
+.bstet-method-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 5px;
+  border-radius: 12px;
+  background: #f1f3f8;
+}
+
+.bstet-method-switch button {
+  flex: 1;
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #68748a;
+  font-size: .88rem;
+  font-weight: 750;
+}
+
+.bstet-method-switch button.active {
+  background: #fff;
+  color: #234fc3;
+  box-shadow: 0 2px 8px rgba(24, 39, 75, .1);
+}
+
+.bstet-upload {
+  display: flex;
+  min-height: 164px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  border: 1.5px dashed #b6c5e9;
+  border-radius: 14px;
+  background: #fafbff;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .2s, background .2s;
+}
+
+.bstet-upload:hover {
+  border-color: #4168d5;
+  background: #f4f7ff;
+}
+
+.bstet-upload > i {
+  margin-bottom: 11px;
+  color: #4268d2;
+  font-size: 1.55rem;
+}
+
+.bstet-upload strong {
+  color: #24324d;
+}
+
+.bstet-upload span,
+.bstet-help {
+  margin-top: 6px;
+  color: #7d8799;
+  font-size: .81rem;
+}
+
+.bstet-help {
+  margin-bottom: 0;
+}
+
+.bstet-manual-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  color: #35415a;
+  font-size: .89rem;
+}
+
+.bstet-manual-intro span {
+  color: #788298;
+  font-size: .82rem;
+}
+
+.bstet-manual-rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 440px;
+  overflow: auto;
+  padding: 2px;
+}
+
+.bstet-manual-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e7eaf1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.bstet-manual-row label {
+  overflow: hidden;
+  color: #566177;
+  font-size: .8rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+.bstet-manual-row input {
+  width: 105px;
+  min-height: 38px;
+  padding: 6px 9px;
+  border: 1px solid #dfe4ee;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.bstet-empty {
+  color: #7d8799;
+  font-size: .9rem;
+}
+
+.bstet-actions,
+.bstet-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.bstet-primary {
+  min-height: 47px;
+  padding: 0 21px;
+  border: 0;
+  border-radius: 10px;
+  background: #315ed0;
+  color: #fff;
+  font-weight: 750;
+}
+
+.bstet-primary:hover,
+.bstet-primary:focus {
+  background: #244bb1;
+  color: #fff;
+}
+
+.bstet-primary:disabled {
+  background: #a7b5d8;
+  color: #fff;
+}
+
+.bstet-privacy {
+  color: #8791a3;
+  font-size: .81rem;
+}
+
+.bstet-error {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #ffd1d1;
+  border-radius: 9px;
+  background: #fff5f5;
+  color: #a12828;
+  font-size: .88rem;
+}
+
+.bstet-result {
+  border-color: #dce5fb;
+}
+
+.bstet-step-result {
+  background: #e8f7ef;
+  color: #16834c;
+}
+
+.bstet-score-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff4ff, #f8faff);
+}
+
+.bstet-score-banner span {
+  color: #64718a;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.bstet-score-banner strong {
+  margin: 2px 0;
+  color: #254fbb;
+  font-size: clamp(2.4rem, 7vw, 3.5rem);
+  font-weight: 850;
+  letter-spacing: -.05em;
+}
+
+.bstet-score-banner small {
+  color: #778198;
+}
+
+.bstet-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 17px 0;
+}
+
+.bstet-stat-grid > div {
+  display: flex;
+  min-height: 80px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px;
+  border: 1px solid #e8ebf2;
+  border-radius: 11px;
+  text-align: center;
+}
+
+.bstet-stat-grid span {
+  color: #7d8799;
+  font-size: .75rem;
+}
+
+.bstet-stat-grid strong {
+  margin-top: 3px;
+  color: #26334c;
+  font-size: 1.35rem;
+}
+
+.bstet-verification {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #f6f7fa;
+  color: #667187;
+  font-size: .84rem;
+}
+
+.bstet-disclaimer {
+  margin: 14px auto 0;
+  color: #8a93a3;
+  font-size: .78rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.bstet-admin-page .bstet-admin-schema {
+  margin-top: 14px;
+  color: #7b8496;
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
+.bstet-admin-schema code {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f5f7fa;
+  color: #48566e;
+  white-space: normal;
+}
+
+.bstet-admin-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 27px 0 14px;
+}
+
+.bstet-admin-list-heading h2 {
+  margin: 4px 0 0;
+  color: #17233c;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.bstet-admin-key {
+  margin-bottom: 13px;
+}
+
+.bstet-admin-key h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.bstet-admin-key-meta {
+  margin-bottom: 16px;
+  color: #7c8698;
+  font-size: .83rem;
+}
+
+.bstet-admin-version {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid #eef0f4;
+}
+
+.bstet-admin-version-label {
+  color: #34415a;
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.bstet-admin-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.bstet-admin-version-actions .btn {
+  font-size: .77rem;
+}
+
+.bstet-admin-editor {
+  margin-top: 15px;
+}
+
+.bstet-admin-editor textarea {
+  min-height: 240px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .79rem;
+}
+
+.bstet-admin-pdf-editor {
+  margin-top: 22px;
+}
+
+.bstet-admin-pdf-table-wrap {
+  max-height: 520px;
+  border: 1px solid #e7eaf1;
+  border-radius: 10px;
+}
+
+.bstet-admin-pdf-table {
+  min-width: 650px;
+  margin-bottom: 0;
+}
+
+.bstet-admin-pdf-table input {
+  min-width: 130px;
+}
+
+.bstet-admin-pdf-status {
+  overflow-wrap: anywhere;
+  color: #788298;
+  font-size: .78rem;
+}
+
+.bstet-admin-content {
+  max-width: 1120px;
+}
+
+.bstet-admin-hero {
+  background:
+    radial-gradient(ellipse at 82% 15%, rgba(80, 110, 255, .2), transparent 42%),
+    linear-gradient(135deg, #101c3a, #172c58 58%, #253d73);
+}
+
+.bstet-admin-section-heading,
+.bstet-admin-paper-heading,
+.bstet-admin-subject-heading,
+.bstet-admin-shift-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.bstet-admin-section-heading {
+  margin-bottom: 18px;
+}
+
+.bstet-admin-section-heading h2 {
+  margin: 4px 0 0;
+  color: #17233c;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.bstet-admin-section-heading > p {
+  max-width: 480px;
+  margin: 0;
+  color: #7a8497;
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.bstet-admin-upload-section {
+  margin: 28px 0 36px;
+}
+
+.bstet-admin-embedded .bstet-admin-upload-section {
+  margin-top: 0;
+}
+
+.bstet-admin-upload-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.bstet-admin-pdf-card {
+  grid-row: 1;
+}
+
+.bstet-admin-new-selection {
+  padding: 12px;
+  border: 1px solid #e3e8f1;
+  border-radius: 10px;
+  background: #f8faff;
+}
+
+.bstet-admin-exam-selection {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #e7ebf3;
+  border-radius: 12px;
+  background: #f9faff;
+}
+
+.bstet-admin-exam-selection > p {
+  margin: 0 0 14px;
+  color: #788298;
+  font-size: .79rem;
+  line-height: 1.5;
+}
+
+.bstet-admin-step-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.bstet-admin-step-label > span,
+.bstet-admin-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 50%;
+  background: #e9edff;
+  color: #3c55bb;
+  font-size: .68rem;
+  font-weight: 850;
+}
+
+.bstet-admin-exam-date {
+  display: inline-flex;
+  vertical-align: middle;
+  font-size: .75rem;
+}
+
+.bstet-admin-legacy-import {
+  grid-row: 2;
+  min-width: 0;
+}
+
+.bstet-admin-legacy-import > summary {
+  padding: 14px 17px;
+  border: 1px solid #e3e8f1;
+  border-radius: 10px;
+  background: #fff;
+  color: #536078;
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 750;
+  list-style-position: inside;
+}
+
+.bstet-admin-legacy-import[open] > summary {
+  margin-bottom: 14px;
+}
+
+.bstet-admin-upload-card {
+  height: 100%;
+  margin-bottom: 0;
+  padding: clamp(18px, 2.8vw, 27px);
+}
+
+.bstet-admin-upload-card .bstet-card-heading {
+  gap: 12px;
+}
+
+.bstet-admin-upload-card .bstet-card-heading h3 {
+  margin: 1px 0 4px;
+  color: #15213a;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.bstet-admin-upload-card .bstet-card-heading p {
+  margin: 0;
+  color: #778198;
+  font-size: .82rem;
+}
+
+.bstet-admin-json-help {
+  margin-top: 13px;
+  padding: 13px;
+  border: 1px solid #e7ebf3;
+  border-radius: 10px;
+  background: #f9faff;
+}
+
+.bstet-admin-template-link {
+  color: #3158b8;
+  font-size: .84rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.bstet-admin-template-link:hover {
+  color: #203f8c;
+  text-decoration: underline;
+}
+
+.bstet-admin-json-help p {
+  margin: 7px 0 0;
+  color: #7c8698;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+.bstet-admin-schema-details {
+  margin-top: 14px;
+  color: #68748a;
+  font-size: .8rem;
+}
+
+.bstet-admin-schema-details summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bstet-admin-schema {
+  max-height: 290px;
+  overflow: auto;
+  margin: 9px 0 0;
+  padding: 13px;
+  border-radius: 9px;
+  background: #f5f7fa;
+  color: #48566e;
+  font-size: .73rem;
+  line-height: 1.55;
+}
+
+.bstet-admin-schema code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  white-space: pre;
+}
+
+.bstet-admin-form-label {
+  margin: 18px 0 13px;
+  color: #35415a;
+  font-size: .87rem;
+  font-weight: 800;
+}
+
+.bstet-admin-review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 24px 0 12px;
+}
+
+.bstet-admin-review-heading h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  color: #26334c;
+  font-size: .97rem;
+  font-weight: 800;
+}
+
+.bstet-admin-review-heading p {
+  margin: 0;
+  color: #7c8698;
+  font-size: .75rem;
+  line-height: 1.45;
+}
+
+.bstet-admin-keys {
+  margin-top: 34px;
+}
+
+.bstet-admin-keys-heading {
+  margin-bottom: 16px;
+}
+
+.bstet-admin-paper-section {
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 1px solid #e2e7f0;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(31, 48, 87, .035);
+}
+
+.bstet-admin-paper-heading {
+  padding: 17px 20px;
+  border-bottom: 1px solid #e9edf4;
+  background: #f8faff;
+}
+
+.bstet-admin-paper-heading h3 {
+  margin: 0;
+  color: #1b2b4d;
+  font-size: 1.08rem;
+  font-weight: 850;
+}
+
+.bstet-admin-paper-heading p {
+  margin: 4px 0 0;
+  color: #7d8799;
+  font-size: .76rem;
+}
+
+.bstet-admin-empty-state,
+.bstet-admin-empty-note {
+  padding: 17px 20px;
+  color: #7c8698;
+  font-size: .83rem;
+}
+
+.bstet-admin-subject-section {
+  padding: 18px 20px 20px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.bstet-admin-subject-section:last-child {
+  border-bottom: 0;
+}
+
+.bstet-admin-subject-heading {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.bstet-admin-subject-heading h4 {
+  margin: 0;
+  color: #26334c;
+  font-size: .97rem;
+  font-weight: 800;
+}
+
+.bstet-admin-identifier {
+  display: inline-block;
+  overflow-wrap: anywhere;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f1f3f7;
+  color: #788298;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .68rem;
+}
+
+.bstet-admin-shift-card {
+  margin-top: 10px;
+  padding: 15px;
+  border: 1px solid #e8ebf2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bstet-admin-shift-heading {
+  align-items: flex-start;
+}
+
+.bstet-admin-shift-heading h4 {
+  margin: 0 0 6px;
+  color: #35415a;
+  font-size: .87rem;
+  font-weight: 800;
+}
+
+.bstet-admin-shift-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bstet-admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.bstet-admin-badge-no-key,
+.bstet-admin-badge-superseded {
+  border-color: #e1e4ea;
+  background: #f2f3f6;
+  color: #687386;
+}
+
+.bstet-admin-badge-draft {
+  border-color: #f1dfbd;
+  background: #fff7e9;
+  color: #95600a;
+}
+
+.bstet-admin-badge-provisional {
+  border-color: #d7e3ff;
+  background: #eff4ff;
+  color: #3658a9;
+}
+
+.bstet-admin-badge-final {
+  border-color: #cdebd9;
+  background: #edf9f2;
+  color: #187447;
+}
+
+.bstet-admin-source-warning {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid #f0d7a4;
+  border-radius: 9px;
+  background: #fff9ec;
+  color: #785718;
+  font-size: .77rem;
+  line-height: 1.5;
+}
+
+.bstet-admin-history-heading {
+  margin: 18px 0 9px;
+  color: #35415a;
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.bstet-admin-history-wrap {
+  border: 1px solid #e8ebf2;
+  border-radius: 9px;
+}
+
+.bstet-admin-history-table {
+  min-width: 920px;
+  margin-bottom: 0;
+  font-size: .76rem;
+}
+
+.bstet-admin-history-table thead th {
+  padding: 11px 10px;
+  background: #f7f8fb;
+  color: #68748a;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.bstet-admin-history-table tbody th,
+.bstet-admin-history-table tbody td {
+  padding: 11px 10px;
+  vertical-align: middle;
+}
+
+.bstet-admin-history-table tbody th {
+  color: #34415a;
+  white-space: nowrap;
+}
+
+.bstet-admin-source-cell {
+  min-width: 250px;
+  color: #6f7a8e;
+  line-height: 1.5;
+}
+
+.bstet-admin-source-label {
+  color: #536078;
+  font-weight: 700;
+}
+
+.bstet-admin-source-value,
+.bstet-admin-source-missing {
+  overflow-wrap: anywhere;
+}
+
+.bstet-admin-source-missing {
+  color: #a12828;
+  font-weight: 750;
+}
+
+.bstet-admin-name-editor {
+  max-width: 520px;
+}
+
+@media (max-width: 800px) {
+  .bstet-admin-upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .bstet-hero {
+    padding: 27px 0 32px;
+  }
+
+  .bstet-back-link {
+    margin-bottom: 23px;
+  }
+
+  .bstet-manual-rows {
+    grid-template-columns: 1fr;
+  }
+
+  .bstet-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bstet-actions,
+  .bstet-result-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bstet-privacy {
+    text-align: center;
+  }
+
+  .bstet-admin-version {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bstet-admin-version-actions {
+    justify-content: flex-start;
+  }
+
+  .bstet-admin-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bstet-admin-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bstet-admin-review-heading,
+  .bstet-admin-paper-heading,
+  .bstet-admin-shift-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bstet-admin-shift-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .bstet-admin-paper-heading,
+  .bstet-admin-subject-section {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .bstet-admin-shift-card {
+    padding: 12px;
+  }
+
+  .bstet-admin-review-heading > button,
+  .bstet-admin-keys-heading > button {
+    width: 100%;
+  }
+}
+
+body.bstet-admin-console {
+  min-height: 100vh;
+  background: #090d16;
+  color: #f9fafb;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.bstet-admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #090d16;
+}
+
+.bstet-admin-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 260px;
+  height: 100vh;
+  flex: 0 0 260px;
+  flex-direction: column;
+  padding: 16px 12px;
+  border-right: 1px solid rgba(255, 255, 255, .08);
+  background: #0d121f;
+}
+
+.bstet-admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 7px 8px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  color: #f9fafb;
+  text-decoration: none;
+}
+
+.bstet-admin-brand-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #dc2626, #6366f1);
+  color: #fff;
+}
+
+.bstet-admin-brand strong,
+.bstet-admin-brand small {
+  display: block;
+}
+
+.bstet-admin-brand strong {
+  font-size: .94rem;
+}
+
+.bstet-admin-brand small {
+  margin-top: 2px;
+  color: #38bdf8;
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+.bstet-admin-nav-label {
+  margin: 24px 10px 9px;
+  color: #64748b;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.bstet-admin-nav {
+  display: grid;
+  gap: 5px;
+}
+
+.bstet-admin-nav a {
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #94a3b8;
+  font-size: .83rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease;
+}
+
+.bstet-admin-nav a > i {
+  width: 17px;
+  color: #818cf8;
+  text-align: center;
+}
+
+.bstet-admin-nav a:hover,
+.bstet-admin-nav a.active {
+  border-color: rgba(99, 102, 241, .28);
+  background: rgba(99, 102, 241, .12);
+  color: #fff;
+}
+
+.bstet-admin-sidebar-foot {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding: 16px 9px 5px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  color: #64748b;
+  font-size: .7rem;
+}
+
+.bstet-admin-sidebar-foot a {
+  color: #94a3b8;
+  text-decoration: none;
+}
+
+.bstet-admin-sidebar-foot a:hover {
+  color: #fff;
+}
+
+.bstet-admin-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.bstet-admin-topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px clamp(16px, 2.4vw, 32px);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(13, 18, 31, .92);
+  backdrop-filter: blur(12px);
+}
+
+.bstet-admin-topbar > div {
+  display: grid;
+  gap: 2px;
+}
+
+.bstet-admin-topbar-kicker {
+  color: #64748b;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.bstet-admin-topbar strong {
+  color: #f8fafc;
+  font-size: .87rem;
+}
+
+.bstet-admin-topbar-link {
+  color: #a5b4fc;
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bstet-admin-topbar-link:hover {
+  color: #fff;
+}
+
+.bstet-admin-console .bstet-page {
+  min-height: calc(100vh - 64px);
+  background: transparent;
+  color: #e2e8f0;
+}
+
+.bstet-admin-console .bstet-container {
+  width: 100%;
+  max-width: none;
+}
+
+.bstet-admin-console .bstet-admin-content {
+  max-width: 1440px;
+  padding: 24px clamp(16px, 2.4vw, 34px) 48px;
+}
+
+.bstet-admin-console .bstet-admin-hero {
+  margin: 0;
+  padding: 25px clamp(16px, 2.4vw, 34px);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+  background: linear-gradient(115deg, #111a2d, #17233a);
+}
+
+.bstet-admin-console .bstet-admin-hero .bstet-container {
+  padding: 0;
+}
+
+.bstet-admin-console .bstet-admin-hero .bstet-back-link {
+  margin-bottom: 12px;
+  color: #a5b4fc;
+  font-size: .78rem;
+}
+
+.bstet-admin-console .bstet-admin-hero .bstet-eyebrow {
+  color: #818cf8;
+  font-size: .68rem;
+}
+
+.bstet-admin-console .bstet-admin-hero h1 {
+  margin: 7px 0 5px;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+.bstet-admin-console .bstet-admin-hero p {
+  color: #94a3b8;
+  font-size: .9rem;
+}
+
+.bstet-admin-console .bstet-card,
+.bstet-admin-console .bstet-admin-paper-section {
+  border-color: rgba(255, 255, 255, .08);
+  background: #131b2e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .22);
+  color: #e2e8f0;
+}
+
+.bstet-admin-console .bstet-admin-section-heading h2,
+.bstet-admin-console .bstet-admin-list-heading h2 {
+  color: #f8fafc;
+}
+
+.bstet-admin-console .bstet-admin-section-heading > p,
+.bstet-admin-console .bstet-admin-key-meta,
+.bstet-admin-console .bstet-admin-upload-card .bstet-card-heading p {
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-admin-shift-card {
+  border-color: rgba(255, 255, 255, .08);
+  background: #0f1729;
+}
+
+.bstet-admin-console .bstet-admin-upload-card .bstet-card-heading h3,
+.bstet-admin-console .bstet-admin-version-label,
+.bstet-admin-console .bstet-admin-paper-heading h3,
+.bstet-admin-console .bstet-admin-subject-heading h4,
+.bstet-admin-console .bstet-admin-shift-heading h4,
+.bstet-admin-console .bstet-admin-history-heading {
+  color: #e2e8f0;
+}
+
+.bstet-admin-console .bstet-admin-empty-state,
+.bstet-admin-console .bstet-admin-empty-note {
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-admin-legacy-import > summary {
+  border-color: rgba(255, 255, 255, .1);
+  background: #131b2e;
+  color: #cbd5e1;
+}
+
+.bstet-admin-console .bstet-admin-json-help,
+.bstet-admin-console .bstet-admin-schema code,
+.bstet-admin-console .bstet-admin-schema {
+  border-color: rgba(255, 255, 255, .08);
+  background: #0f1729;
+  color: #cbd5e1;
+}
+
+.bstet-admin-console .bstet-admin-template-link {
+  color: #a5b4fc;
+}
+
+.bstet-admin-console .bstet-admin-json-help p,
+.bstet-admin-console .bstet-admin-schema-details {
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-card .form-control,
+.bstet-admin-console .bstet-card .form-select,
+.bstet-admin-console .bstet-admin-pdf-table input,
+.bstet-admin-console .bstet-admin-name-editor {
+  border-color: rgba(255, 255, 255, .14);
+  background-color: #090d16;
+  color: #f1f5f9;
+}
+
+.bstet-admin-console .bstet-card .form-control::placeholder,
+.bstet-admin-console .bstet-admin-pdf-table input::placeholder {
+  color: #64748b;
+}
+
+.bstet-admin-console .bstet-admin-paper-heading {
+  border-color: rgba(255, 255, 255, .08);
+  background: #1a233a;
+}
+
+.bstet-admin-console .bstet-admin-subject-section,
+.bstet-admin-console .bstet-admin-version {
+  border-color: rgba(255, 255, 255, .08);
+}
+
+.bstet-admin-console .bstet-admin-identifier,
+.bstet-admin-console .bstet-admin-history-wrap {
+  border-color: rgba(255, 255, 255, .1);
+  background: #0f1729;
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-admin-new-selection {
+  border-color: rgba(255, 255, 255, .1);
+  background: #0f1729;
+}
+
+.bstet-admin-console .bstet-admin-exam-selection {
+  border-color: rgba(255, 255, 255, .08);
+  background: #0f1729;
+}
+
+.bstet-admin-console .bstet-admin-exam-selection > p {
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-admin-step-label > span,
+.bstet-admin-console .bstet-admin-step-number {
+  background: rgba(99, 102, 241, .16);
+  color: #a5b4fc;
+}
+
+.bstet-admin-console .bstet-admin-history-table,
+.bstet-admin-console .bstet-admin-pdf-table {
+  --bs-table-bg: #131b2e;
+  --bs-table-color: #cbd5e1;
+  --bs-table-border-color: rgba(255, 255, 255, .08);
+}
+
+.bstet-admin-console .bstet-admin-history-table thead th {
+  background: #1a233a;
+  color: #94a3b8;
+}
+
+.bstet-admin-console .bstet-admin-history-table tbody th,
+.bstet-admin-console .bstet-admin-source-cell {
+  color: #cbd5e1;
+}
+
+.bstet-admin-console .bstet-admin-source-label {
+  color: #e2e8f0;
+}
+
+.bstet-admin-console .btn-outline-primary {
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+.bstet-admin-console .btn-outline-primary:hover {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.bstet-admin-console .btn-outline-secondary {
+  border-color: #64748b;
+  color: #cbd5e1;
+}
+
+.bstet-admin-console .btn-outline-secondary:hover {
+  background: #334155;
+  color: #fff;
+}
+
+.bstet-admin-console .bstet-primary {
+  background: #4f46e5;
+}
+
+.bstet-admin-console .bstet-primary:hover,
+.bstet-admin-console .bstet-primary:focus {
+  background: #4338ca;
+}
+
+@media (max-width: 991px) {
+  .bstet-admin-sidebar {
+    display: none;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .bstet-admin-topbar {
+    min-height: 60px;
+  }
+
+  .bstet-admin-topbar-kicker {
+    display: none;
+  }
+
+  .bstet-admin-topbar strong {
+    font-size: .78rem;
+  }
+
+  .bstet-admin-topbar-link {
+    font-size: .7rem;
+  }
+
+  .bstet-admin-console .bstet-admin-hero {
+    padding-top: 20px;
+    padding-bottom: 22px;
+  }
+
+}
+
+@media print {
+  body:not(.bstet-admin-host) * {
+    visibility: hidden !important;
+  }
+
+  body:not(.bstet-admin-host) #bstetResult,
+  body:not(.bstet-admin-host) #bstetResult * {
+    visibility: visible !important;
+  }
+
+  body:not(.bstet-admin-host) #bstetResult {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+
+  body:not(.bstet-admin-host) .bstet-result-actions {
+    display: none !important;
+  }
+}

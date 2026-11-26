@@ -1,0 +1,116 @@
+<%- include('../partials/header') %>
+
+<main class="bstet-page">
+  <section class="bstet-hero">
+    <div class="container bstet-container">
+      <a class="bstet-back-link" href="/study-tools"><i class="fa-solid fa-arrow-left me-2"></i>Study Tools</a>
+      <div class="bstet-eyebrow"><i class="fa-solid fa-chart-line me-2"></i>BIHAR STET 2026</div>
+      <h1>Marks <span>Predictor</span></h1>
+      <p>Check your expected raw marks with a published answer key. No candidate details are stored.</p>
+    </div>
+  </section>
+
+  <section class="container bstet-container bstet-content">
+    <div class="bstet-notice" id="bstetCatalogNotice" role="status" aria-live="polite">
+      <i class="fa-solid fa-circle-info"></i>
+      <div>
+        <strong id="bstetCatalogTitle">Checking for verified answer keys…</strong><br>
+        <span id="bstetCatalogMessage">The calculator will be available when an official answer key and marking scheme are published.</span>
+      </div>
+    </div>
+
+    <form class="bstet-card" id="bstetPredictorForm" hidden>
+      <div class="bstet-card-heading">
+        <div class="bstet-step">01</div>
+        <div><h2>Choose your exam</h2><p>Select the exact paper, subject and examination shift.</p></div>
+      </div>
+      <input type="hidden" name="year" value="2026">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="bstetPaper">Paper</label>
+          <select class="form-select" id="bstetPaper" name="paperId" required>
+            <option value="">Select paper</option>
+            <option value="paper-1">Paper I</option>
+            <option value="paper-2">Paper II</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="bstetSubject">Subject</label>
+          <select class="form-select" id="bstetSubject" name="subjectId" required disabled>
+            <option value="">Select paper first</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="bstetShift">Examination shift</label>
+          <select class="form-select" id="bstetShift" name="shiftId" required disabled>
+            <option value="">Select subject first</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bstet-card-heading bstet-method-heading">
+        <div class="bstet-step">02</div>
+        <div><h2>Enter your responses</h2><p>Upload a response sheet or enter answers manually.</p></div>
+      </div>
+      <div class="bstet-method-switch" role="tablist" aria-label="Response entry method">
+        <button type="button" class="active" data-bstet-mode="pdf" role="tab" aria-selected="true"><i class="fa-regular fa-file-pdf me-2"></i>Upload PDF</button>
+        <button type="button" data-bstet-mode="manual" role="tab" aria-selected="false"><i class="fa-solid fa-keyboard me-2"></i>Manual entry</button>
+      </div>
+
+      <div id="bstetPdfPanel" class="bstet-entry-panel">
+        <label class="bstet-upload" for="bstetPdf">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <strong>Choose your response-sheet PDF</strong>
+          <span id="bstetFileName">Text-based PDF only · 10 MB maximum</span>
+        </label>
+        <input class="visually-hidden" type="file" id="bstetPdf" accept="application/pdf,.pdf">
+        <p class="bstet-help">Text-based PDFs only; scanned or unsupported layouts are not guessed. Your file is processed in memory for this request and discarded afterward. If the sheet format cannot be read, use manual entry.</p>
+      </div>
+
+      <div id="bstetManualPanel" class="bstet-entry-panel" hidden>
+        <div class="bstet-manual-intro">
+          <strong>Enter the answer shown for each question ID.</strong>
+          <span>Leave an answer blank only when the question was unanswered. Any unreadable or missing question will prevent a complete score.</span>
+        </div>
+        <div id="bstetManualRows" class="bstet-manual-rows">
+          <p class="bstet-empty">Select a published paper, subject and shift to load question IDs.</p>
+        </div>
+      </div>
+
+      <div class="bstet-actions">
+        <button class="btn bstet-primary" id="bstetCalculate" type="submit" disabled>
+          Calculate marks <i class="fa-solid fa-arrow-right ms-2"></i>
+        </button>
+        <span class="bstet-privacy"><i class="fa-solid fa-lock me-1"></i>Private by design</span>
+      </div>
+      <div id="bstetFormError" class="bstet-error" role="alert" hidden></div>
+    </form>
+
+    <section class="bstet-card bstet-result" id="bstetResult" aria-live="polite" hidden>
+      <div class="bstet-card-heading">
+        <div class="bstet-step bstet-step-result"><i class="fa-solid fa-check"></i></div>
+        <div><h2>Your result</h2><p id="bstetResultSubtitle"></p></div>
+      </div>
+      <div class="bstet-score-banner">
+        <span>Expected raw marks</span>
+        <strong id="bstetRawMarks">—</strong>
+        <small id="bstetScoreStatus"></small>
+      </div>
+      <div class="bstet-stat-grid">
+        <div><span>Correct</span><strong id="bstetCorrect">0</strong></div>
+        <div><span>Incorrect</span><strong id="bstetIncorrect">0</strong></div>
+        <div><span>Unanswered</span><strong id="bstetUnanswered">0</strong></div>
+        <div><span>Unreadable / unmatched</span><strong id="bstetUnreadable">0</strong></div>
+      </div>
+      <p class="bstet-verification" id="bstetVerification"></p>
+      <div class="bstet-result-actions">
+        <button type="button" class="btn btn-outline-primary" id="bstetShare"><i class="fa-solid fa-share-nodes me-2"></i>Share result</button>
+        <button type="button" class="btn btn-outline-secondary" id="bstetDownload"><i class="fa-solid fa-download me-2"></i>Download / print report</button>
+      </div>
+    </section>
+    <p class="bstet-disclaimer">This tool provides a raw-mark estimate only. It is not an official result, does not calculate normalized marks, and must not be used as a substitute for the official result.</p>
+  </section>
+</main>
+
+<script src="/assets/js/bihar-stet-predictor.js?v=3" defer></script>
+<%- include('../partials/footer') %>

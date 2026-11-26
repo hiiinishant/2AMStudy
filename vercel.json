@@ -2,6 +2,30 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/tools/bihar-stet-marks-predictor",
+      "destination": "https://twoamstudy-1.onrender.com/tools/bihar-stet-marks-predictor"
+    },
+    {
+      "source": "/admin/bihar-stet",
+      "destination": "https://twoamstudy-1.onrender.com/admin/bihar-stet"
+    },
+    {
+      "source": "/assets/css/bihar-stet.css",
+      "destination": "https://twoamstudy-1.onrender.com/assets/css/bihar-stet.css"
+    },
+    {
+      "source": "/assets/js/bihar-stet-predictor.js",
+      "destination": "https://twoamstudy-1.onrender.com/assets/js/bihar-stet-predictor.js"
+    },
+    {
+      "source": "/assets/js/bihar-stet-admin.js",
+      "destination": "https://twoamstudy-1.onrender.com/assets/js/bihar-stet-admin.js"
+    },
+    {
+      "source": "/assets/templates/bihar-stet-answer-key-template.json",
+      "destination": "https://twoamstudy-1.onrender.com/assets/templates/bihar-stet-answer-key-template.json"
+    },
+    {
       "source": "/api/doubt",
       "destination": "https://twoamstudy-1.onrender.com/api/doubt"
     },

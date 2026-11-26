@@ -1,0 +1,241 @@
+<%
+const embeddedMode = typeof embedded !== 'undefined' && embedded;
+if (!embeddedMode) {
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof pageTitle !== 'undefined' && pageTitle ? pageTitle : 'Bihar STET Answer Key Admin | 2AM Study' %></title>
+  <meta name="description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription : 'Manage Bihar STET answer-key versions and marking schemes.' %>">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="<%= pageCss %>">
+</head>
+<body class="bstet-admin-console">
+<div class="bstet-admin-layout">
+  <aside class="bstet-admin-sidebar" aria-label="Admin navigation">
+    <a class="bstet-admin-brand" href="/admin">
+      <span class="bstet-admin-brand-icon"><i class="fa-solid fa-moon"></i></span>
+      <span><strong>2 AM Study</strong><small>Admin control</small></span>
+    </a>
+    <span class="bstet-admin-nav-label">WORKSPACE</span>
+    <nav class="bstet-admin-nav">
+      <a href="/admin"><i class="fa-solid fa-table-columns"></i><span>Master dashboard</span></a>
+      <a class="active" href="/admin/bihar-stet" aria-current="page"><i class="fa-solid fa-square-poll-vertical"></i><span>Bihar STET keys</span></a>
+      <a href="/tools/bihar-stet-marks-predictor" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>Student predictor</span></a>
+    </nav>
+    <div class="bstet-admin-sidebar-foot">
+      <span><i class="fa-solid fa-lock me-1"></i>Protected admin workspace</span>
+      <a href="/" target="_blank" rel="noopener noreferrer">Visit website <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i></a>
+    </div>
+  </aside>
+
+  <div class="bstet-admin-main">
+    <header class="bstet-admin-topbar">
+      <div>
+        <span class="bstet-admin-topbar-kicker">ADMIN CONTROL / EXAM TOOLS</span>
+        <strong>Bihar STET answer keys</strong>
+      </div>
+      <a class="bstet-admin-topbar-link" href="/admin"><i class="fa-solid fa-arrow-left me-2"></i>Master dashboard</a>
+    </header>
+<% } %>
+
+<main class="bstet-page bstet-admin-page">
+  <% if (!embeddedMode) { %>
+  <section class="bstet-hero bstet-admin-hero">
+    <div class="container bstet-container">
+      <a class="bstet-back-link" href="/admin"><i class="fa-solid fa-arrow-left me-2"></i>Master Admin</a>
+      <div class="bstet-eyebrow"><i class="fa-solid fa-shield-halved me-2"></i>ADMIN WORKSPACE</div>
+      <h1>Bihar STET <span>Answer Keys</span></h1>
+      <p>Upload the official BSEB PDF, review its answers, verify the sources, then publish. No JSON upload is required.</p>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="container bstet-container bstet-content bstet-admin-content">
+    <section class="bstet-admin-upload-section">
+      <div class="bstet-admin-upload-grid">
+        <details class="bstet-admin-legacy-import">
+          <summary><i class="fa-solid fa-code me-2"></i>Optional legacy JSON import — not needed for the PDF workflow</summary>
+          <section class="bstet-card bstet-admin-upload-card">
+          <div class="bstet-card-heading">
+            <div class="bstet-step">Optional</div>
+            <div><h3>Upload JSON</h3><p>Use a prepared key file. The saved version starts as a draft.</p></div>
+          </div>
+          <form id="bstetAdminUpload" class="bstet-admin-upload">
+            <label class="form-label" for="bstetKeyFile">Answer-key JSON file</label>
+            <input class="form-control" type="file" id="bstetKeyFile" accept="application/json,.json" required>
+            <div class="bstet-admin-json-help">
+              <a class="bstet-admin-template-link" href="/assets/templates/bihar-stet-answer-key-template.json" download>
+                <i class="fa-solid fa-download me-2"></i>Download blank JSON template
+              </a>
+              <p>Replace every blank field using official sources. The template contains no subjects, answers or marking values.</p>
+            </div>
+            <button class="btn bstet-primary mt-2" type="submit">Upload JSON draft</button>
+            <details class="bstet-admin-schema-details">
+              <summary>View required JSON structure</summary>
+              <pre class="bstet-admin-schema"><code>{
+  "metadata": {
+    "year": "",
+    "paperId": "",
+    "subjectId": "",
+    "subjectName": "",
+    "shiftId": "",
+    "shiftName": ""
+  },
+  "questions": [{ "id": "", "answer": "" }],
+  "markingScheme": {
+    "correctMarks": null,
+    "incorrectMarks": null,
+    "unansweredMarks": null
+  },
+  "source": "",
+  "markingRulesSource": "",
+  "notes": ""
+}</code></pre>
+            </details>
+          </form>
+          <div id="bstetAdminMessage" class="bstet-error" role="status" hidden></div>
+          </section>
+        </details>
+
+        <section class="bstet-card bstet-admin-upload-card bstet-admin-pdf-card">
+          <div class="bstet-card-heading">
+            <div class="bstet-step"><i class="fa-solid fa-file-pdf"></i></div>
+            <div><h3>Upload and review official PDF</h3><p>Every upload stays unpublished until an admin verifies it.</p></div>
+          </div>
+          <div class="bstet-admin-form-label bstet-admin-step-label"><span>01</span> Select the examination</div>
+          <div class="bstet-admin-exam-selection">
+            <p>Select Paper I or II, then type a subject or choose a saved suggestion. Shifts are drawn from saved records.</p>
+            <div class="row g-3">
+              <div class="col-sm-6 col-lg-3">
+                <label class="form-label" for="bstetPdfYear">Examination year</label>
+                <input class="form-control" id="bstetPdfYear" inputmode="numeric" value="2026" maxlength="4" required>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <label class="form-label" for="bstetPdfPaper">Paper</label>
+                <select class="form-select" id="bstetPdfPaper" required>
+                  <option value="">Select paper</option>
+                  <option value="paper-1">Paper I</option>
+                  <option value="paper-2">Paper II</option>
+                </select>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <label class="form-label" for="bstetPdfSubjectName">Subject</label>
+                <input class="form-control" id="bstetPdfSubjectName" list="bstetPdfSubjectOptions" maxlength="100" placeholder="Type or choose a subject" autocomplete="off" required>
+                <datalist id="bstetPdfSubjectOptions"></datalist>
+                <div id="bstetPdfNewSubject" class="bstet-admin-new-selection mt-2" hidden>
+                  <label class="form-label" for="bstetPdfSubjectId">Subject ID <span class="text-muted fw-normal">(generated; editable)</span></label>
+                  <input class="form-control" id="bstetPdfSubjectId" maxlength="60" disabled>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <label class="form-label" for="bstetPdfShift">Examination shift</label>
+                <select class="form-select" id="bstetPdfShift" required disabled>
+                  <option value="">Select a paper and enter a subject</option>
+                </select>
+                <div id="bstetPdfNewShift" class="bstet-admin-new-selection mt-2" hidden>
+                  <label class="form-label" for="bstetPdfShiftId">New shift ID <span class="text-muted fw-normal">(from official source)</span></label>
+                  <input class="form-control mb-2" id="bstetPdfShiftId" maxlength="60" disabled>
+                  <label class="form-label" for="bstetPdfShiftName">New shift name</label>
+                  <input class="form-control" id="bstetPdfShiftName" maxlength="100" disabled>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <label class="form-label" for="bstetPdfExamDate">Examination date</label>
+                <input class="form-control" id="bstetPdfExamDate" type="date" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="bstet-admin-form-label bstet-admin-step-label"><span>02</span> Upload the official source</div>
+          <div class="mb-3">
+            <label class="form-label" for="bstetKeyPdf">Official BSEB answer-key PDF</label>
+            <input class="form-control" type="file" id="bstetKeyPdf" accept="application/pdf,.pdf">
+            <p class="bstet-help">Text extraction may not support every PDF layout. Scanned or unrecognized rows remain blank for manual entry.</p>
+          </div>
+          <button class="btn btn-outline-primary" type="button" id="bstetPreviewPdf">
+            <i class="fa-solid fa-magnifying-glass me-2"></i>Extract for review
+          </button>
+          <div id="bstetPdfMessage" class="bstet-error" role="status" hidden></div>
+
+          <section id="bstetPdfEditor" class="bstet-admin-pdf-editor" hidden>
+            <div id="bstetPdfWarnings" class="bstet-notice" role="status" hidden></div>
+            <div class="bstet-admin-form-label bstet-admin-step-label"><span>03</span> Verify sources and marking rules</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="bstetPdfSource">Answer-key source URL or document citation</label>
+                <input class="form-control" id="bstetPdfSource" maxlength="500" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="bstetPdfRulesSource">Marking-rules source URL or citation</label>
+                <input class="form-control" id="bstetPdfRulesSource" maxlength="500" required>
+              </div>
+              <div class="col-sm-4">
+                <label class="form-label" for="bstetPdfCorrectMarks">Marks per correct answer</label>
+                <input class="form-control" id="bstetPdfCorrectMarks" type="number" step="any" required>
+              </div>
+              <div class="col-sm-4">
+                <label class="form-label" for="bstetPdfIncorrectMarks">Marks per incorrect answer</label>
+                <input class="form-control" id="bstetPdfIncorrectMarks" type="number" step="any" required>
+              </div>
+              <div class="col-sm-4">
+                <label class="form-label" for="bstetPdfUnansweredMarks">Marks per unanswered question</label>
+                <input class="form-control" id="bstetPdfUnansweredMarks" type="number" step="any" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="bstetPdfNotes">Review notes <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea class="form-control" id="bstetPdfNotes" maxlength="1000" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="bstet-admin-review-heading">
+              <div>
+                <h4><span class="bstet-admin-step-number">04</span> Question review</h4>
+                <p>Check every extracted ID and answer. Add missing rows manually; blank answers are never inferred.</p>
+              </div>
+              <button type="button" class="btn btn-outline-secondary" id="bstetAddPdfRow">
+                <i class="fa-solid fa-plus me-1"></i>Add question
+              </button>
+            </div>
+            <div class="table-responsive bstet-admin-pdf-table-wrap">
+              <table class="table table-sm align-middle bstet-admin-pdf-table">
+                <thead><tr><th scope="col">Question ID</th><th scope="col">Correct answer</th><th scope="col">Review status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+                <tbody id="bstetPdfRows"></tbody>
+              </table>
+            </div>
+            <button class="btn bstet-primary mt-3" type="button" id="bstetSavePdfDraft">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save reviewed answers as draft
+            </button>
+          </section>
+        </section>
+      </div>
+    </section>
+
+    <section class="bstet-admin-keys">
+      <div class="bstet-admin-section-heading bstet-admin-keys-heading">
+        <div><span class="bstet-eyebrow">PAPERS, SUBJECTS & SHIFTS</span><h2>Answer-key library</h2></div>
+        <button type="button" class="btn btn-outline-primary" id="bstetAdminRefresh">
+          <i class="fa-solid fa-rotate me-2"></i>Refresh inventory
+        </button>
+      </div>
+      <div id="bstetAdminKeys" aria-live="polite">
+        <div class="bstet-card bstet-empty">Loading answer-key inventory…</div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<% if (!embeddedMode) { %>
+  </div>
+</div>
+<script src="/assets/js/bihar-stet-admin.js" defer></script>
+</body>
+</html>
+<% } %>

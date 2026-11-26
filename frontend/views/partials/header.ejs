@@ -33,6 +33,9 @@
     rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/media.css" />
+  <% if (typeof pageCss !== 'undefined' && pageCss) { %>
+  <link rel="stylesheet" href="<%= pageCss %>" />
+  <% } %>
 
   <!-- Social Media Meta Tags (Open Graph & Twitter Cards) -->
   <meta property="og:title"
@@ -195,6 +198,8 @@
                     </li>
                     <li><a class="dropdown-item" href="/study-tools"><i
                           class="fa-solid fa-graduation-cap me-2 opacity-75 text-primary"></i>Study Tools Hub</a></li>
+                    <li><a class="dropdown-item" href="/tools/bihar-stet-marks-predictor"><i
+                          class="fa-solid fa-square-poll-vertical me-2 opacity-75 text-primary"></i>Bihar STET Marks Predictor</a></li>
                     <li>
                       <hr class="dropdown-divider">
                     </li>
