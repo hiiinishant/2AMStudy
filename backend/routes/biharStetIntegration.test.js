@@ -139,11 +139,12 @@ test('PDF answer-key intake offers catalog-based exam selections and a required 
   assert.match(controller, /subjectNameInput\.addEventListener\('input'/);
 });
 
-test('Vercel routes admin, College Life, predictor, and feature assets to Render', () => {
+test('Vercel routes admin, music, College Life, predictor, and feature assets to Render', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
   const sources = new Set(config.rewrites.map(rewrite => rewrite.source));
   for (const source of [
     '/tools/bihar-stet-marks-predictor',
+    '/music',
     '/college-life',
     '/college-life/:id',
     '/admin',
