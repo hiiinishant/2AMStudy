@@ -3521,13 +3521,16 @@
             }
 
             // Reset add modal when closed
-            document.getElementById('addProductModal').addEventListener('hidden.bs.modal', () => {
-              addProdImages = [];
-              renderAddProdPreviews();
-              document.getElementById('createProductForm').reset();
-              if (document.getElementById('prodFeatures')) document.getElementById('prodFeatures').value = '';
-              if (document.getElementById('prodSpecs')) document.getElementById('prodSpecs').value = '';
-            });
+            const addProductModal = document.getElementById('addProductModal');
+            if (addProductModal) {
+              addProductModal.addEventListener('hidden.bs.modal', () => {
+                addProdImages = [];
+                renderAddProdPreviews();
+                document.getElementById('createProductForm').reset();
+                if (document.getElementById('prodFeatures')) document.getElementById('prodFeatures').value = '';
+                if (document.getElementById('prodSpecs')) document.getElementById('prodSpecs').value = '';
+              });
+            }
 
             // â”€â”€â”€ Edit Product â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let STORE_PRODUCTS_CACHE = {};

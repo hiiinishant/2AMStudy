@@ -62,6 +62,15 @@ test('master admin embeds Bihar STET tools as a section with its existing contro
   assert.match(view, /bihar-stet-admin\.js\?v=4/);
 });
 
+test('unauthenticated admin page guards product-modal setup when dashboard markup is absent', () => {
+  const view = fs.readFileSync(path.join(root, 'frontend/views/admin.ejs'), 'utf8');
+  const loginHandlerIndex = view.indexOf("loginForm.addEventListener('submit'");
+  const modalGuardIndex = view.indexOf("if (addProductModal) {");
+  assert.ok(loginHandlerIndex >= 0);
+  assert.ok(modalGuardIndex > loginHandlerIndex);
+  assert.match(view, /const addProductModal = document\.getElementById\('addProductModal'\);/);
+});
+
 test('predictor hides response upload until verified answer keys are available', () => {
   const view = fs.readFileSync(
     path.join(root, 'frontend/views/tools/bihar-stet-marks-predictor.ejs'),
