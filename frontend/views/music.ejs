@@ -375,7 +375,21 @@
         <button class="music-tag-pill" onclick="quickSearch('Bollywood instrumental study beats')">🎹 Instrumental Study</button>
         <button class="music-tag-pill" onclick="quickSearch('Deep focus ambient study music')">🧠 Deep Focus</button>
         <button class="music-tag-pill" onclick="quickSearch('Synthwave study beats for late night')">🌌 Synthwave 2AM</button>
+        <% if (musicPlaylists && musicPlaylists.deepFocusPlaylistUrl) { %>
+          <button type="button" class="music-tag-pill" data-music-playlist-url="<%= musicPlaylists.deepFocusPlaylistUrl %>"
+            data-music-playlist-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
+        <% } %>
+        <% if (musicPlaylists && musicPlaylists.motivationPlaylistUrl) { %>
+          <button type="button" class="music-tag-pill" data-music-playlist-url="<%= musicPlaylists.motivationPlaylistUrl %>"
+            data-music-playlist-title="2 AM Study Motivation">💪 2 AM Study Motivation</button>
+        <% } %>
       </div>
+
+      <% if (musicPlaylistsError) { %>
+        <div class="alert alert-warning border-0 rounded-4 small" role="status">
+          Custom playlist links are temporarily unavailable. Music search is still available.
+        </div>
+      <% } %>
 
       <!-- Loader -->
       <div id="ytLoader" class="text-center py-5 d-none">
@@ -395,7 +409,7 @@
           <div id="player"></div>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-3 text-secondary small px-1">
-          <span><i class="fa-solid fa-headphones me-1 text-primary"></i> 2 AM Study Focus Studio</span>
+          <span><i class="fa-solid fa-headphones me-1 text-primary"></i> <span id="ytNowPlaying">2 AM Study Focus Studio</span></span>
           <span>High-quality embeddable stream</span>
         </div>
       </div>
@@ -471,6 +485,7 @@ const API_KEY = '<%= youtubeApiKey %>';
 let player;
 let currentVideoId = '';
 let searchResults = [];
+let pendingPlaylistId = '';
 
 // Load YouTube IFrame API
 const tag = document.createElement('script');
@@ -491,7 +506,12 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
-function onPlayerReady(event) {}
+function onPlayerReady() {
+  if (pendingPlaylistId && player && player.loadPlaylist) {
+    player.loadPlaylist({ list: pendingPlaylistId, listType: 'playlist' });
+    pendingPlaylistId = '';
+  }
+}
 
 function onPlayerError(event) {
   const code = event.data;
@@ -586,10 +606,37 @@ function playVideo(videoId, title) {
 
   if (player && player.loadVideoById) {
     player.loadVideoById(videoId);
-    if (label) label.innerHTML = `${title}`;
+    if (label) label.textContent = title;
     wrap.classList.remove('d-none');
     wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
     hideError();
+  }
+}
+
+function playPlaylist(playlistUrl, title) {
+  let playlistId = '';
+  try {
+    playlistId = new URL(playlistUrl).searchParams.get('list') || '';
+  } catch (_) {}
+
+  if (!playlistId) {
+    showError('This playlist link is invalid.');
+    return;
+  }
+
+  currentVideoId = '';
+  searchResults = [];
+  const wrap = document.getElementById('ytPlayerWrap');
+  const label = document.getElementById('ytNowPlaying');
+  if (label) label.textContent = title;
+  wrap.classList.remove('d-none');
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  hideError();
+
+  if (player && player.loadPlaylist) {
+    player.loadPlaylist({ list: playlistId, listType: 'playlist' });
+  } else {
+    pendingPlaylistId = playlistId;
   }
 }
 
@@ -612,6 +659,12 @@ function hideError() {
 
 document.getElementById('ytSearchInput').addEventListener('keypress', e => {
   if (e.key === 'Enter') searchYoutube();
+});
+
+document.querySelectorAll('[data-music-playlist-url]').forEach(button => {
+  button.addEventListener('click', () => {
+    playPlaylist(button.dataset.musicPlaylistUrl, button.dataset.musicPlaylistTitle);
+  });
 });
 
 window.addEventListener('DOMContentLoaded', () => {

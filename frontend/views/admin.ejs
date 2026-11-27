@@ -680,6 +680,10 @@
               </span>
             </button>
 
+            <button class="sidebar-btn" data-section="music-playlists">
+              <span>Music Playlists</span>
+            </button>
+
             <button class="sidebar-btn" data-section="resources">
               <span>Exam Resources</span>
               <span class="badge rounded-pill bg-secondary bg-opacity-25 text-white-50" style="font-size: 10px;">
@@ -1786,7 +1790,50 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- SECTION 8: EXAM RESOURCES -->
+            <!-- SECTION 8: MUSIC PLAYLISTS -->
+            <!-- ========================================== -->
+            <div class="admin-section d-none" id="sec-music-playlists">
+              <div class="admin-card">
+                <div class="mb-3">
+                  <h4 class="fw-bold text-white fs-6 mb-1">
+                    <i class="fa-solid fa-headphones me-2 text-primary"></i>Music Playlists
+                  </h4>
+                  <p class="text-muted small mb-0">
+                    Set the YouTube playlists used by the Music page Quick Picks. Saved picks play in the on-page player.
+                    Leave a URL blank to hide that pick.
+                  </p>
+                </div>
+                <form id="musicPlaylistForm" onsubmit="saveMusicPlaylists(event)">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label text-white-50 small" for="musicDeepFocusPlaylistUrl">
+                        2 AM Study Deep Focus playlist URL
+                      </label>
+                      <input class="form-control form-control-dark" id="musicDeepFocusPlaylistUrl" type="url"
+                        placeholder="https://www.youtube.com/playlist?list=..." autocomplete="off">
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label text-white-50 small" for="musicMotivationPlaylistUrl">
+                        2 AM Study Motivation playlist URL
+                      </label>
+                      <input class="form-control form-control-dark" id="musicMotivationPlaylistUrl" type="url"
+                        placeholder="https://www.youtube.com/playlist?list=..." autocomplete="off">
+                    </div>
+                    <div class="col-12 d-flex flex-wrap align-items-center gap-3">
+                      <button class="btn btn-gradient-primary" type="submit" id="musicPlaylistSaveBtn">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Save playlist links
+                      </button>
+                      <span class="text-muted small" id="musicPlaylistStatus" role="status" aria-live="polite">
+                        Open this section to load saved links.
+                      </span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SECTION 9: EXAM RESOURCES -->
             <!-- ========================================== -->
             <div class="admin-section d-none" id="sec-resources">
               <!-- Add Resource Card Form -->
@@ -3134,6 +3181,7 @@
               safety: 'Student Safety',
               reviews: 'Shopper Reviews',
               college: 'College Life',
+              'music-playlists': 'Music Playlists',
               resources: 'Exam Resources',
               'bihar-stet': 'Bihar STET Keys'
             };
@@ -3152,6 +3200,8 @@
 
               const titleEl = document.getElementById('currentSectionTitle');
               if (titleEl && sectionTitles[secKey]) titleEl.textContent = sectionTitles[secKey];
+
+              if (secKey === 'music-playlists') loadMusicPlaylists();
 
               // Blog sub-section routing
               if (secKey === 'blogs-write') {
@@ -3195,6 +3245,77 @@
             // Helper to get admin passcode for body/query fallback
             function getAdminPasscode() {
               return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
+            }
+
+            async function loadMusicPlaylists() {
+              const form = document.getElementById('musicPlaylistForm');
+              const status = document.getElementById('musicPlaylistStatus');
+              if (!form || !status || form.dataset.loaded === 'true' || form.dataset.loading === 'true') return;
+
+              form.dataset.loading = 'true';
+              status.textContent = 'Loading saved playlist links...';
+              try {
+                const res = await fetch('/api/admin/music-playlists', {
+                  headers: { Accept: 'application/json', ...getAdminHeaders() },
+                  credentials: 'include'
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                  throw new Error(data.error || 'Could not load music playlist links.');
+                }
+
+                document.getElementById('musicDeepFocusPlaylistUrl').value =
+                  data.playlists.deepFocusPlaylistUrl || '';
+                document.getElementById('musicMotivationPlaylistUrl').value =
+                  data.playlists.motivationPlaylistUrl || '';
+                form.dataset.loaded = 'true';
+                status.textContent = 'Saved links loaded. Blank fields hide their Quick Picks.';
+              } catch (error) {
+                status.textContent = error.message || 'Could not load music playlist links.';
+              } finally {
+                form.dataset.loading = 'false';
+              }
+            }
+
+            async function saveMusicPlaylists(e) {
+              e.preventDefault();
+              const form = document.getElementById('musicPlaylistForm');
+              const status = document.getElementById('musicPlaylistStatus');
+              const saveButton = document.getElementById('musicPlaylistSaveBtn');
+              if (!form || !status || !saveButton) return;
+
+              saveButton.disabled = true;
+              status.textContent = 'Saving playlist links...';
+              try {
+                const res = await fetch('/api/admin/music-playlists', {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...getAdminHeaders()
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify({
+                    deepFocusPlaylistUrl: document.getElementById('musicDeepFocusPlaylistUrl').value,
+                    motivationPlaylistUrl: document.getElementById('musicMotivationPlaylistUrl').value
+                  })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                  throw new Error(data.error || 'Could not save music playlist links.');
+                }
+
+                document.getElementById('musicDeepFocusPlaylistUrl').value =
+                  data.playlists.deepFocusPlaylistUrl || '';
+                document.getElementById('musicMotivationPlaylistUrl').value =
+                  data.playlists.motivationPlaylistUrl || '';
+                form.dataset.loaded = 'true';
+                status.textContent = 'Playlist links saved.';
+              } catch (error) {
+                status.textContent = error.message || 'Could not save music playlist links.';
+              } finally {
+                saveButton.disabled = false;
+              }
             }
 
             // Login Form

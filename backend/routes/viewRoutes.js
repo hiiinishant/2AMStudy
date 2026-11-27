@@ -6,6 +6,7 @@ const sessionStore = require('../models/sessionStore');
 const feedbackStore = require('../models/feedbackStore');
 const collegeLifeStore = require('../models/collegeLifeStore');
 const resourceStore = require('../models/resourceStore');
+const musicPlaylistStore = require('../models/musicPlaylistStore');
 const transporter = require('../config/mail');
 
 const contactRequestCounts = new Map();
@@ -144,11 +145,23 @@ router.get('/resources/:examSlug', (req, res) => {
 
 // Community & Study Environment Pages
 
-router.get('/music', (req, res) => {
+router.get('/music', async (req, res) => {
+  let musicPlaylists;
+  let musicPlaylistsError = false;
+  try {
+    musicPlaylists = await musicPlaylistStore.getMusicPlaylists();
+  } catch (error) {
+    console.error('[Music] Playlist settings unavailable:', error.message);
+    musicPlaylists = { deepFocusPlaylistUrl: '', motivationPlaylistUrl: '' };
+    musicPlaylistsError = true;
+  }
+
   res.render('music', {
     pageTitle: 'Lofi Study Music - Best Focus & Concentration Beats',
     metaDescription: 'Listen to curated focus music, lofi beats, and ambient sounds designed to help students concentrate and reach deep work states.',
-    youtubeApiKey: process.env.YOUTUBE_API_KEY || ''
+    youtubeApiKey: process.env.YOUTUBE_API_KEY || '',
+    musicPlaylists,
+    musicPlaylistsError
   });
 });
 

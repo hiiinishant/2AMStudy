@@ -120,6 +120,7 @@ app.use(require('./routes/resourceRoutes'));
 app.use(require('./routes/blogRoutes'));
 app.use(require('./routes/safetyRoutes'));
 app.use(require('./routes/biharStetRoutes'));
+app.use(require('./routes/musicRoutes'));
 app.use(require('./routes/viewRoutes'));
 
 // ─── YouTube Live Auto-Detection Watcher ─────────────────────────────────────

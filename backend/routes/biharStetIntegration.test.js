@@ -10,11 +10,36 @@ test('predictor and admin EJS views compile', () => {
   for (const relativePath of [
     'frontend/views/tools/bihar-stet-marks-predictor.ejs',
     'frontend/views/admin-bihar-stet.ejs',
-    'frontend/views/admin.ejs'
+    'frontend/views/admin.ejs',
+    'frontend/views/music.ejs'
   ]) {
     const filename = path.join(root, relativePath);
     assert.doesNotThrow(() => ejs.compile(fs.readFileSync(filename, 'utf8'), { filename }));
   }
+});
+
+test('music page displays only admin-configured playlist picks', async () => {
+  const filename = path.join(root, 'frontend/views/music.ejs');
+  const base = {
+    pageTitle: 'Music',
+    youtubeApiKey: '',
+    musicPlaylistsError: false
+  };
+  const configured = await ejs.renderFile(filename, {
+    ...base,
+    musicPlaylists: {
+      deepFocusPlaylistUrl: 'https://www.youtube.com/playlist?list=PL_focus_123',
+      motivationPlaylistUrl: 'https://www.youtube.com/playlist?list=PL_motivation_456'
+    }
+  });
+  assert.match(configured, /data-music-playlist-title="2 AM Study Deep Focus"/);
+  assert.match(configured, /data-music-playlist-title="2 AM Study Motivation"/);
+
+  const empty = await ejs.renderFile(filename, {
+    ...base,
+    musicPlaylists: { deepFocusPlaylistUrl: '', motivationPlaylistUrl: '' }
+  });
+  assert.doesNotMatch(empty, /data-music-playlist-url=/);
 });
 
 test('Bihar STET admin matches the master-console shell without dropping its controls', () => {
