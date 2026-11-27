@@ -375,19 +375,19 @@
         <button class="music-tag-pill" onclick="quickSearch('Bollywood instrumental study beats')">🎹 Instrumental Study</button>
         <button class="music-tag-pill" onclick="quickSearch('Deep focus ambient study music')">🧠 Deep Focus</button>
         <button class="music-tag-pill" onclick="quickSearch('Synthwave study beats for late night')">🌌 Synthwave 2AM</button>
-        <% if (musicPlaylists && musicPlaylists.deepFocusPlaylistUrl) { %>
-          <button type="button" class="music-tag-pill" data-music-playlist-url="<%= musicPlaylists.deepFocusPlaylistUrl %>"
-            data-music-playlist-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
+        <% if (musicVideos && musicVideos.deepFocusVideoUrl) { %>
+          <button type="button" class="music-tag-pill" data-music-video-url="<%= musicVideos.deepFocusVideoUrl %>"
+            data-music-video-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
         <% } %>
-        <% if (musicPlaylists && musicPlaylists.motivationPlaylistUrl) { %>
-          <button type="button" class="music-tag-pill" data-music-playlist-url="<%= musicPlaylists.motivationPlaylistUrl %>"
-            data-music-playlist-title="2 AM Study Motivation">💪 2 AM Study Motivation</button>
+        <% if (musicVideos && musicVideos.motivationVideoUrl) { %>
+          <button type="button" class="music-tag-pill" data-music-video-url="<%= musicVideos.motivationVideoUrl %>"
+            data-music-video-title="2 AM Study Motivation">💪 2 AM Study Motivation</button>
         <% } %>
       </div>
 
-      <% if (musicPlaylistsError) { %>
+      <% if (musicVideosError) { %>
         <div class="alert alert-warning border-0 rounded-4 small" role="status">
-          Custom playlist links are temporarily unavailable. Music search is still available.
+          Custom Music Quick Picks are temporarily unavailable. Music search is still available.
         </div>
       <% } %>
 
@@ -485,7 +485,7 @@ const API_KEY = '<%= youtubeApiKey %>';
 let player;
 let currentVideoId = '';
 let searchResults = [];
-let pendingPlaylistId = '';
+let pendingVideo = null;
 
 // Load YouTube IFrame API
 const tag = document.createElement('script');
@@ -507,9 +507,10 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerReady() {
-  if (pendingPlaylistId && player && player.loadPlaylist) {
-    player.loadPlaylist({ list: pendingPlaylistId, listType: 'playlist' });
-    pendingPlaylistId = '';
+  if (pendingVideo && player && player.loadVideoById) {
+    const video = pendingVideo;
+    pendingVideo = null;
+    playVideo(video.videoId, video.title);
   }
 }
 
@@ -551,8 +552,11 @@ async function searchYoutube() {
   const results = document.getElementById('ytResults');
 
   loader.classList.remove('d-none');
+  const loaderText = loader.querySelector('p');
+  if (loaderText) loaderText.textContent = 'Loading focus beats...';
   errorBox.classList.add('d-none');
   results.innerHTML = '';
+  searchResults = [];
 
   try {
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(term)}&type=video&videoEmbeddable=true&key=${API_KEY}`;
@@ -566,32 +570,80 @@ async function searchYoutube() {
       return;
     }
 
-    searchResults = data.items || [];
-    if (searchResults.length === 0) {
-      showError('No playable results found.');
-      return;
-    }
-
-    results.innerHTML = searchResults.map(v => `
-      <div class="col-sm-6 col-lg-3">
-        <div class="card border-0 shadow-sm music-card h-100" onclick="playVideo('${v.id.videoId}', '${v.snippet.title.replace(/'/g, "\\'")}')">
-          <div class="music-card-thumb-wrap">
-            <img src="${v.snippet.thumbnails.medium.url}" alt="${v.snippet.title}" loading="lazy">
-            <span class="music-play-badge"><i class="fa-solid fa-play"></i> Play</span>
-          </div>
-          <div class="card-body p-3 d-flex flex-column justify-content-between">
-            <h6 class="music-card-title mb-2">${v.snippet.title}</h6>
-            <small class="text-muted d-flex align-items-center gap-1 text-truncate">
-              <i class="fa-solid fa-circle-check text-primary" style="font-size:0.75rem;"></i> ${v.snippet.channelTitle}
-            </small>
-          </div>
-        </div>
-      </div>`).join('');
+    renderMusicCards(data.items || [], 'No playable results found.');
 
   } catch (err) {
     loader.classList.add('d-none');
     showError('Search failed. Check your network or API key.');
   }
+}
+
+function renderMusicCards(items, emptyMessage) {
+  const results = document.getElementById('ytResults');
+  const videos = items.filter(item => item && item.id && item.id.videoId && item.snippet && item.snippet.title);
+  searchResults = videos;
+  results.innerHTML = '';
+
+  if (!videos.length) {
+    showError(emptyMessage);
+    return false;
+  }
+
+  videos.forEach(video => {
+    const videoId = video.id.videoId;
+    const title = video.snippet.title;
+    const channelTitle = video.snippet.channelTitle || '';
+    const thumbnails = video.snippet.thumbnails || {};
+    const thumbnail = thumbnails.medium || thumbnails.high || thumbnails.default;
+
+    const column = document.createElement('div');
+    column.className = 'col-sm-6 col-lg-3';
+
+    const card = document.createElement('div');
+    card.className = 'card border-0 shadow-sm music-card h-100';
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+    card.addEventListener('click', () => playVideo(videoId, title));
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        playVideo(videoId, title);
+      }
+    });
+
+    const thumbnailWrap = document.createElement('div');
+    thumbnailWrap.className = 'music-card-thumb-wrap';
+    const image = document.createElement('img');
+    if (thumbnail && thumbnail.url) image.src = thumbnail.url;
+    image.alt = title;
+    image.loading = 'lazy';
+    thumbnailWrap.appendChild(image);
+
+    const playBadge = document.createElement('span');
+    playBadge.className = 'music-play-badge';
+    playBadge.innerHTML = '<i class="fa-solid fa-play"></i> Play';
+    thumbnailWrap.appendChild(playBadge);
+
+    const body = document.createElement('div');
+    body.className = 'card-body p-3 d-flex flex-column justify-content-between';
+    const titleElement = document.createElement('h6');
+    titleElement.className = 'music-card-title mb-2';
+    titleElement.textContent = title;
+    const channel = document.createElement('small');
+    channel.className = 'text-muted d-flex align-items-center gap-1 text-truncate';
+    channel.innerHTML = '<i class="fa-solid fa-circle-check text-primary" style="font-size:0.75rem;"></i> ';
+    channel.appendChild(document.createTextNode(channelTitle));
+    body.appendChild(titleElement);
+    body.appendChild(channel);
+
+    card.appendChild(thumbnailWrap);
+    card.appendChild(body);
+    column.appendChild(card);
+    results.appendChild(column);
+  });
+
+  hideError();
+  return true;
 }
 
 function quickSearch(term) {
@@ -603,40 +655,90 @@ function playVideo(videoId, title) {
   currentVideoId = videoId;
   const wrap  = document.getElementById('ytPlayerWrap');
   const label = document.getElementById('ytNowPlaying');
+  if (label) label.textContent = title;
+  wrap.classList.remove('d-none');
 
   if (player && player.loadVideoById) {
     player.loadVideoById(videoId);
-    if (label) label.textContent = title;
-    wrap.classList.remove('d-none');
     wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
     hideError();
+  } else {
+    pendingVideo = { videoId, title };
   }
 }
 
-function playPlaylist(playlistUrl, title) {
-  let playlistId = '';
+function getYoutubeVideoId(videoUrl) {
+  let url;
   try {
-    playlistId = new URL(playlistUrl).searchParams.get('list') || '';
+    url = new URL(videoUrl);
   } catch (_) {}
 
-  if (!playlistId) {
-    showError('This playlist link is invalid.');
+  if (!url || url.protocol !== 'https:') return '';
+
+  let videoId = '';
+  if (url.hostname === 'youtu.be') {
+    videoId = url.pathname.split('/').filter(Boolean)[0] || '';
+  } else if (['youtube.com', 'www.youtube.com', 'music.youtube.com'].includes(url.hostname)) {
+    if (url.pathname === '/watch') {
+      videoId = url.searchParams.get('v') || '';
+    } else {
+      const pathMatch = url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)\/?$/);
+      videoId = pathMatch ? pathMatch[1] : '';
+    }
+  }
+
+  return /^[a-zA-Z0-9_-]{11}$/.test(videoId) ? videoId : '';
+}
+
+async function showConfiguredVideo(videoUrl, title) {
+  const videoId = getYoutubeVideoId(videoUrl);
+  if (!videoId) {
+    showError('This YouTube video link is invalid.');
     return;
   }
 
-  currentVideoId = '';
-  searchResults = [];
-  const wrap = document.getElementById('ytPlayerWrap');
-  const label = document.getElementById('ytNowPlaying');
-  if (label) label.textContent = title;
-  wrap.classList.remove('d-none');
-  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  hideError();
+  const loader = document.getElementById('ytLoader');
+  const loaderText = loader.querySelector('p');
+  const results = document.getElementById('ytResults');
+  const errorBox = document.getElementById('ytError');
+  const searchInput = document.getElementById('ytSearchInput');
+  if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') {
+    showError('Missing API Key. Please add it to .env');
+    return;
+  }
 
-  if (player && player.loadPlaylist) {
-    player.loadPlaylist({ list: playlistId, listType: 'playlist' });
-  } else {
-    pendingPlaylistId = playlistId;
+  if (searchInput) searchInput.value = title;
+  loader.classList.remove('d-none');
+  if (loaderText) loaderText.textContent = 'Loading video card...';
+  errorBox.classList.add('d-none');
+  results.innerHTML = '';
+  searchResults = [];
+
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(videoId)}&key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    loader.classList.add('d-none');
+
+    if (!res.ok || data.error) {
+      showError(data.error && data.error.message ? data.error.message : 'Could not load this video.');
+      return;
+    }
+
+    const video = (data.items || []).find(item => item && item.id === videoId && item.snippet);
+    if (!video) {
+      showError('This YouTube video is unavailable.');
+      return;
+    }
+
+    if (renderMusicCards([{ id: { videoId }, snippet: video.snippet }], 'This YouTube video is unavailable.')) {
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } catch (err) {
+    loader.classList.add('d-none');
+    showError('Could not load this video card. Check your network or YouTube API key.');
+  } finally {
+    if (loaderText) loaderText.textContent = 'Loading focus beats...';
   }
 }
 
@@ -661,9 +763,9 @@ document.getElementById('ytSearchInput').addEventListener('keypress', e => {
   if (e.key === 'Enter') searchYoutube();
 });
 
-document.querySelectorAll('[data-music-playlist-url]').forEach(button => {
+document.querySelectorAll('[data-music-video-url]').forEach(button => {
   button.addEventListener('click', () => {
-    playPlaylist(button.dataset.musicPlaylistUrl, button.dataset.musicPlaylistTitle);
+    showConfiguredVideo(button.dataset.musicVideoUrl, button.dataset.musicVideoTitle);
   });
 });
 

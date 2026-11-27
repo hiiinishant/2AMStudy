@@ -1,8 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  createMusicPlaylistStore,
-  PlaylistUrlValidationError
+  createMusicQuickPickStore,
+  VideoUrlValidationError
 } = require('./musicPlaylistStore');
 
 function createFakeFirestore(initialValue) {
@@ -32,45 +32,62 @@ function createFakeFirestore(initialValue) {
   return { db, getStoredValue: () => storedValue };
 }
 
-test('returns empty playlist links when no Firestore configuration exists yet', async () => {
+test('returns empty direct video links when no Firestore configuration exists yet', async () => {
   const { db } = createFakeFirestore(undefined);
-  const store = createMusicPlaylistStore(db);
+  const store = createMusicQuickPickStore(db);
 
-  assert.deepEqual(await store.getMusicPlaylists(), {
-    deepFocusPlaylistUrl: '',
-    motivationPlaylistUrl: ''
+  assert.deepEqual(await store.getMusicVideos(), {
+    deepFocusVideoUrl: '',
+    motivationVideoUrl: ''
   });
 });
 
-test('saves and reloads the two validated playlist URLs', async () => {
+test('saves direct video links and strips playlist parameters from watch URLs', async () => {
   const { db, getStoredValue } = createFakeFirestore(undefined);
-  const store = createMusicPlaylistStore(db);
-  const playlists = {
-    deepFocusPlaylistUrl: 'https://www.youtube.com/playlist?list=PL_focus_123',
-    motivationPlaylistUrl: 'https://music.youtube.com/playlist?list=PL-motivation-456'
+  const store = createMusicQuickPickStore(db);
+  const videos = {
+    deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48&list=PLA1IG2dsOU-c',
+    motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY&list=PLQfqZFVQZ3To'
+  };
+  const normalized = {
+    deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
+    motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY'
   };
 
-  assert.deepEqual(await store.saveMusicPlaylists(playlists), playlists);
-  assert.deepEqual(await store.getMusicPlaylists(), playlists);
+  assert.deepEqual(await store.saveMusicVideos(videos), normalized);
+  assert.deepEqual(await store.getMusicVideos(), normalized);
+  assert.deepEqual(getStoredValue().deepFocusVideoUrl, normalized.deepFocusVideoUrl);
   assert.equal(typeof getStoredValue().updatedAt, 'string');
 });
 
-test('rejects non-YouTube links and URLs without playlist IDs', async () => {
-  const { db } = createFakeFirestore(undefined);
-  const store = createMusicPlaylistStore(db);
+test('migrates existing watch links and ignores playlist-only legacy values', async () => {
+  const { db } = createFakeFirestore({
+    deepFocusPlaylistUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48&list=PLA1IG2dsOU-c',
+    motivationPlaylistUrl: 'https://www.youtube.com/playlist?list=PLQfqZFVQZ3To'
+  });
+  const store = createMusicQuickPickStore(db);
 
-  await assert.rejects(
-    store.saveMusicPlaylists({
-      deepFocusPlaylistUrl: 'https://example.com/playlist?list=PL_focus',
-      motivationPlaylistUrl: ''
-    }),
-    PlaylistUrlValidationError
-  );
-  await assert.rejects(
-    store.saveMusicPlaylists({
-      deepFocusPlaylistUrl: 'https://youtube.com/watch?v=video',
-      motivationPlaylistUrl: ''
-    }),
-    PlaylistUrlValidationError
-  );
+  assert.deepEqual(await store.getMusicVideos(), {
+    deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
+    motivationVideoUrl: ''
+  });
+});
+
+test('rejects non-YouTube links, playlist-only links, and invalid video IDs', async () => {
+  const { db } = createFakeFirestore(undefined);
+  const store = createMusicQuickPickStore(db);
+
+  for (const invalidUrl of [
+    'https://example.com/watch?v=kB8g2lH8e48',
+    'https://www.youtube.com/playlist?list=PLA1IG2dsOU-c',
+    'https://www.youtube.com/watch?v=short'
+  ]) {
+    await assert.rejects(
+      store.saveMusicVideos({
+        deepFocusVideoUrl: invalidUrl,
+        motivationVideoUrl: ''
+      }),
+      VideoUrlValidationError
+    );
+  }
 });

@@ -681,7 +681,7 @@
             </button>
 
             <button class="sidebar-btn" data-section="music-playlists">
-              <span>Music Playlists</span>
+              <span>Music Quick Picks</span>
             </button>
 
             <button class="sidebar-btn" data-section="resources">
@@ -1790,41 +1790,41 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- SECTION 8: MUSIC PLAYLISTS -->
+            <!-- SECTION 8: MUSIC QUICK PICKS -->
             <!-- ========================================== -->
             <div class="admin-section d-none" id="sec-music-playlists">
               <div class="admin-card">
                 <div class="mb-3">
                   <h4 class="fw-bold text-white fs-6 mb-1">
-                    <i class="fa-solid fa-headphones me-2 text-primary"></i>Music Playlists
+                    <i class="fa-solid fa-headphones me-2 text-primary"></i>Music Quick Picks
                   </h4>
                   <p class="text-muted small mb-0">
-                    Set the YouTube playlists used by the Music page Quick Picks. Saved picks play in the on-page player.
+                    Paste one direct YouTube video URL for each Music page Quick Pick. Clicking a pick shows its video card; selecting the card plays that video.
                     Leave a URL blank to hide that pick.
                   </p>
                 </div>
-                <form id="musicPlaylistForm" onsubmit="saveMusicPlaylists(event)">
+                <form id="musicVideoForm" onsubmit="saveMusicVideos(event)">
                   <div class="row g-3">
                     <div class="col-12">
-                      <label class="form-label text-white-50 small" for="musicDeepFocusPlaylistUrl">
-                        2 AM Study Deep Focus playlist URL
+                      <label class="form-label text-white-50 small" for="musicDeepFocusVideoUrl">
+                        2 AM Study Deep Focus video URL
                       </label>
-                      <input class="form-control form-control-dark" id="musicDeepFocusPlaylistUrl" type="url"
-                        placeholder="https://www.youtube.com/playlist?list=..." autocomplete="off">
+                      <input class="form-control form-control-dark" id="musicDeepFocusVideoUrl" type="url"
+                        placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
                     </div>
                     <div class="col-12">
-                      <label class="form-label text-white-50 small" for="musicMotivationPlaylistUrl">
-                        2 AM Study Motivation playlist URL
+                      <label class="form-label text-white-50 small" for="musicMotivationVideoUrl">
+                        2 AM Study Motivation video URL
                       </label>
-                      <input class="form-control form-control-dark" id="musicMotivationPlaylistUrl" type="url"
-                        placeholder="https://www.youtube.com/playlist?list=..." autocomplete="off">
+                      <input class="form-control form-control-dark" id="musicMotivationVideoUrl" type="url"
+                        placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
                     </div>
                     <div class="col-12 d-flex flex-wrap align-items-center gap-3">
-                      <button class="btn btn-gradient-primary" type="submit" id="musicPlaylistSaveBtn">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>Save playlist links
+                      <button class="btn btn-gradient-primary" type="submit" id="musicVideoSaveBtn">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Save video links
                       </button>
-                      <span class="text-muted small" id="musicPlaylistStatus" role="status" aria-live="polite">
-                        Open this section to load saved links.
+                      <span class="text-muted small" id="musicVideoStatus" role="status" aria-live="polite">
+                        Open this section to load saved video links.
                       </span>
                     </div>
                   </div>
@@ -3181,7 +3181,7 @@
               safety: 'Student Safety',
               reviews: 'Shopper Reviews',
               college: 'College Life',
-              'music-playlists': 'Music Playlists',
+              'music-playlists': 'Music Quick Picks',
               resources: 'Exam Resources',
               'bihar-stet': 'Bihar STET Keys'
             };
@@ -3201,7 +3201,7 @@
               const titleEl = document.getElementById('currentSectionTitle');
               if (titleEl && sectionTitles[secKey]) titleEl.textContent = sectionTitles[secKey];
 
-              if (secKey === 'music-playlists') loadMusicPlaylists();
+              if (secKey === 'music-playlists') loadMusicVideos();
 
               // Blog sub-section routing
               if (secKey === 'blogs-write') {
@@ -3247,13 +3247,13 @@
               return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
             }
 
-            async function loadMusicPlaylists() {
-              const form = document.getElementById('musicPlaylistForm');
-              const status = document.getElementById('musicPlaylistStatus');
+            async function loadMusicVideos() {
+              const form = document.getElementById('musicVideoForm');
+              const status = document.getElementById('musicVideoStatus');
               if (!form || !status || form.dataset.loaded === 'true' || form.dataset.loading === 'true') return;
 
               form.dataset.loading = 'true';
-              status.textContent = 'Loading saved playlist links...';
+              status.textContent = 'Loading saved video links...';
               try {
                 const res = await fetch('/api/admin/music-playlists', {
                   headers: { Accept: 'application/json', ...getAdminHeaders() },
@@ -3261,31 +3261,31 @@
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) {
-                  throw new Error(data.error || 'Could not load music playlist links.');
+                  throw new Error(data.error || 'Could not load Music Quick Pick links.');
                 }
 
-                document.getElementById('musicDeepFocusPlaylistUrl').value =
-                  data.playlists.deepFocusPlaylistUrl || '';
-                document.getElementById('musicMotivationPlaylistUrl').value =
-                  data.playlists.motivationPlaylistUrl || '';
+                document.getElementById('musicDeepFocusVideoUrl').value =
+                  data.videos.deepFocusVideoUrl || '';
+                document.getElementById('musicMotivationVideoUrl').value =
+                  data.videos.motivationVideoUrl || '';
                 form.dataset.loaded = 'true';
-                status.textContent = 'Saved links loaded. Blank fields hide their Quick Picks.';
+                status.textContent = 'Saved video links loaded. Blank fields hide their Quick Picks.';
               } catch (error) {
-                status.textContent = error.message || 'Could not load music playlist links.';
+                status.textContent = error.message || 'Could not load Music Quick Pick links.';
               } finally {
                 form.dataset.loading = 'false';
               }
             }
 
-            async function saveMusicPlaylists(e) {
+            async function saveMusicVideos(e) {
               e.preventDefault();
-              const form = document.getElementById('musicPlaylistForm');
-              const status = document.getElementById('musicPlaylistStatus');
-              const saveButton = document.getElementById('musicPlaylistSaveBtn');
+              const form = document.getElementById('musicVideoForm');
+              const status = document.getElementById('musicVideoStatus');
+              const saveButton = document.getElementById('musicVideoSaveBtn');
               if (!form || !status || !saveButton) return;
 
               saveButton.disabled = true;
-              status.textContent = 'Saving playlist links...';
+              status.textContent = 'Saving video links...';
               try {
                 const res = await fetch('/api/admin/music-playlists', {
                   method: 'PUT',
@@ -3296,23 +3296,23 @@
                   },
                   credentials: 'include',
                   body: JSON.stringify({
-                    deepFocusPlaylistUrl: document.getElementById('musicDeepFocusPlaylistUrl').value,
-                    motivationPlaylistUrl: document.getElementById('musicMotivationPlaylistUrl').value
+                    deepFocusVideoUrl: document.getElementById('musicDeepFocusVideoUrl').value,
+                    motivationVideoUrl: document.getElementById('musicMotivationVideoUrl').value
                   })
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) {
-                  throw new Error(data.error || 'Could not save music playlist links.');
+                  throw new Error(data.error || 'Could not save Music Quick Pick links.');
                 }
 
-                document.getElementById('musicDeepFocusPlaylistUrl').value =
-                  data.playlists.deepFocusPlaylistUrl || '';
-                document.getElementById('musicMotivationPlaylistUrl').value =
-                  data.playlists.motivationPlaylistUrl || '';
+                document.getElementById('musicDeepFocusVideoUrl').value =
+                  data.videos.deepFocusVideoUrl || '';
+                document.getElementById('musicMotivationVideoUrl').value =
+                  data.videos.motivationVideoUrl || '';
                 form.dataset.loaded = 'true';
-                status.textContent = 'Playlist links saved.';
+                status.textContent = 'Video links saved.';
               } catch (error) {
-                status.textContent = error.message || 'Could not save music playlist links.';
+                status.textContent = error.message || 'Could not save Music Quick Pick links.';
               } finally {
                 saveButton.disabled = false;
               }

@@ -2,18 +2,19 @@ const { firestoreDb } = require('../config/firebase');
 
 const COLLECTION = 'siteSettings';
 const DOCUMENT = 'musicPlaylists';
-const EMPTY_PLAYLISTS = Object.freeze({
-  deepFocusPlaylistUrl: '',
-  motivationPlaylistUrl: ''
+const EMPTY_MUSIC_VIDEOS = Object.freeze({
+  deepFocusVideoUrl: '',
+  motivationVideoUrl: ''
 });
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'music.youtube.com']);
+const VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 
-class PlaylistUrlValidationError extends Error {}
+class VideoUrlValidationError extends Error {}
 
-function normalizePlaylistUrl(value, label) {
+function extractYoutubeVideoId(value, label) {
   if (value === undefined || value === null) value = '';
   if (typeof value !== 'string') {
-    throw new PlaylistUrlValidationError(`${label} must be a YouTube playlist URL.`);
+    throw new VideoUrlValidationError(`${label} must be a YouTube video URL.`);
   }
 
   const trimmed = value.trim();
@@ -23,60 +24,92 @@ function normalizePlaylistUrl(value, label) {
   try {
     url = new URL(trimmed);
   } catch {
-    throw new PlaylistUrlValidationError(`${label} must be a valid YouTube playlist URL.`);
+    throw new VideoUrlValidationError(`${label} must be a valid YouTube video URL.`);
   }
 
-  const playlistId = url.searchParams.get('list');
-  if (
-    url.protocol !== 'https:' ||
-    !YOUTUBE_HOSTS.has(url.hostname.toLowerCase()) ||
-    !playlistId ||
-    !/^[a-zA-Z0-9_-]+$/.test(playlistId)
-  ) {
-    throw new PlaylistUrlValidationError(`${label} must be a YouTube playlist URL with a playlist ID.`);
+  let videoId = '';
+  const hostname = url.hostname.toLowerCase();
+  if (url.protocol === 'https:' && hostname === 'youtu.be') {
+    videoId = url.pathname.split('/').filter(Boolean)[0] || '';
+  } else if (url.protocol === 'https:' && YOUTUBE_HOSTS.has(hostname)) {
+    if (url.pathname === '/watch') {
+      videoId = url.searchParams.get('v') || '';
+    } else {
+      const pathMatch = url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)\/?$/);
+      videoId = pathMatch ? pathMatch[1] : '';
+    }
   }
 
-  return url.toString();
+  if (!VIDEO_ID_PATTERN.test(videoId)) {
+    throw new VideoUrlValidationError(`${label} must be a YouTube video URL with a valid video ID.`);
+  }
+  return videoId;
 }
 
-function normalizePlaylistSettings(value) {
+function normalizeVideoUrl(value, label) {
+  const videoId = extractYoutubeVideoId(value, label);
+  return videoId ? `https://www.youtube.com/watch?v=${videoId}` : '';
+}
+
+function normalizeMusicVideoSettings(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new PlaylistUrlValidationError('Playlist settings must be an object.');
+    throw new VideoUrlValidationError('Music video settings must be an object.');
   }
 
   return {
-    deepFocusPlaylistUrl: normalizePlaylistUrl(value.deepFocusPlaylistUrl, 'Deep Focus'),
-    motivationPlaylistUrl: normalizePlaylistUrl(value.motivationPlaylistUrl, 'Motivation')
+    deepFocusVideoUrl: normalizeVideoUrl(value.deepFocusVideoUrl, 'Deep Focus'),
+    motivationVideoUrl: normalizeVideoUrl(value.motivationVideoUrl, 'Motivation')
   };
 }
 
-function createMusicPlaylistStore(db) {
+function normalizeLegacyVideoUrl(value) {
+  if (!value) return '';
+  try {
+    return normalizeVideoUrl(value, 'Saved');
+  } catch (error) {
+    if (error instanceof VideoUrlValidationError) return '';
+    throw error;
+  }
+}
+
+function readMusicVideoSettings(value) {
+  return normalizeMusicVideoSettings({
+    deepFocusVideoUrl: value.deepFocusVideoUrl !== undefined
+      ? value.deepFocusVideoUrl
+      : normalizeLegacyVideoUrl(value.deepFocusPlaylistUrl),
+    motivationVideoUrl: value.motivationVideoUrl !== undefined
+      ? value.motivationVideoUrl
+      : normalizeLegacyVideoUrl(value.motivationPlaylistUrl)
+  });
+}
+
+function createMusicQuickPickStore(db) {
   return {
-    async getMusicPlaylists() {
-      if (!db) throw new Error('Firestore is not configured for music playlists.');
+    async getMusicVideos() {
+      if (!db) throw new Error('Firestore is not configured for music quick picks.');
       const snapshot = await db.collection(COLLECTION).doc(DOCUMENT).get();
-      if (!snapshot.exists) return { ...EMPTY_PLAYLISTS };
-      return normalizePlaylistSettings(snapshot.data() || {});
+      if (!snapshot.exists) return { ...EMPTY_MUSIC_VIDEOS };
+      return readMusicVideoSettings(snapshot.data() || {});
     },
 
-    async saveMusicPlaylists(value) {
-      if (!db) throw new Error('Firestore is not configured for music playlists.');
-      const playlists = normalizePlaylistSettings(value);
+    async saveMusicVideos(value) {
+      if (!db) throw new Error('Firestore is not configured for music quick picks.');
+      const videos = normalizeMusicVideoSettings(value);
       await db.collection(COLLECTION).doc(DOCUMENT).set({
-        ...playlists,
+        ...videos,
         updatedAt: new Date().toISOString()
       });
-      return playlists;
+      return videos;
     }
   };
 }
 
-const store = createMusicPlaylistStore(firestoreDb);
+const store = createMusicQuickPickStore(firestoreDb);
 
 module.exports = {
   ...store,
-  createMusicPlaylistStore,
-  normalizePlaylistSettings,
-  PlaylistUrlValidationError,
-  EMPTY_PLAYLISTS
+  createMusicQuickPickStore,
+  normalizeMusicVideoSettings,
+  VideoUrlValidationError,
+  EMPTY_MUSIC_VIDEOS
 };

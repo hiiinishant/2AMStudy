@@ -18,28 +18,39 @@ test('predictor and admin EJS views compile', () => {
   }
 });
 
-test('music page displays only admin-configured playlist picks', async () => {
+test('music page displays admin-configured video picks as clickable cards', async () => {
   const filename = path.join(root, 'frontend/views/music.ejs');
   const base = {
     pageTitle: 'Music',
     youtubeApiKey: '',
-    musicPlaylistsError: false
+    musicVideosError: false
   };
   const configured = await ejs.renderFile(filename, {
     ...base,
-    musicPlaylists: {
-      deepFocusPlaylistUrl: 'https://www.youtube.com/playlist?list=PL_focus_123',
-      motivationPlaylistUrl: 'https://www.youtube.com/playlist?list=PL_motivation_456'
+    musicVideos: {
+      deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
+      motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY'
     }
   });
-  assert.match(configured, /data-music-playlist-title="2 AM Study Deep Focus"/);
-  assert.match(configured, /data-music-playlist-title="2 AM Study Motivation"/);
+  assert.match(configured, /data-music-video-title="2 AM Study Deep Focus"/);
+  assert.match(configured, /data-music-video-title="2 AM Study Motivation"/);
+  assert.match(configured, /async function showConfiguredVideo/);
+  assert.match(configured, /youtube\/v3\/videos\?part=snippet&id=/);
+  assert.match(configured, /renderMusicCards\(\[\{ id: \{ videoId \}, snippet: video\.snippet \}\]/);
+  assert.match(configured, /card\.addEventListener\('click', \(\) => playVideo\(videoId, title\)\)/);
+  assert.match(configured, /showConfiguredVideo\(button\.dataset\.musicVideoUrl, button\.dataset\.musicVideoTitle\)/);
+  assert.doesNotMatch(configured, /playlistItems|player\.loadPlaylist/);
 
   const empty = await ejs.renderFile(filename, {
     ...base,
-    musicPlaylists: { deepFocusPlaylistUrl: '', motivationPlaylistUrl: '' }
+    musicVideos: { deepFocusVideoUrl: '', motivationVideoUrl: '' }
   });
-  assert.doesNotMatch(empty, /data-music-playlist-url=/);
+  assert.doesNotMatch(empty, /data-music-video-url=/);
+
+  const admin = fs.readFileSync(path.join(root, 'frontend/views/admin.ejs'), 'utf8');
+  assert.match(admin, /2 AM Study Deep Focus video URL/);
+  assert.match(admin, /2 AM Study Motivation video URL/);
+  assert.doesNotMatch(admin, /playlist\?list=\.\.\./);
 });
 
 test('Bihar STET admin matches the master-console shell without dropping its controls', () => {
