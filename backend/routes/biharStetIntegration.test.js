@@ -58,6 +58,15 @@ test('music page displays admin-configured video picks as clickable cards', asyn
   assert.doesNotMatch(admin, /playlist\?list=\.\.\./);
 });
 
+test('homepage WhatsApp group button points to the working group invite', () => {
+  const home = fs.readFileSync(path.join(root, 'frontend/views/index.ejs'), 'utf8');
+
+  assert.match(
+    home,
+    /<a href="https:\/\/chat\.whatsapp\.com\/Fq87TyqNwL4GAmxRsKUkid\?mode=gi_t"[^>]*[\s\S]*?<span>Join WhatsApp Group<\/span>/
+  );
+});
+
 test('Bihar STET admin matches the master-console shell without dropping its controls', () => {
   const view = fs.readFileSync(path.join(root, 'frontend/views/admin-bihar-stet.ejs'), 'utf8');
   assert.match(view, /class="bstet-admin-layout"/);
