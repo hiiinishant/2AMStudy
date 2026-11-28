@@ -153,7 +153,7 @@ router.get('/music', async (req, res) => {
   } catch (error) {
     console.error('[Music] Quick Pick settings unavailable:', error.message);
     musicVideos = {
-      deepFocusVideoUrl: '',
+      deepFocusVideoUrls: Array(12).fill(''),
       motivationVideoUrls: Array(12).fill('')
     };
     musicVideosError = true;

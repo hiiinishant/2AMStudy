@@ -1799,26 +1799,31 @@
                     <i class="fa-solid fa-headphones me-2 text-primary"></i>Music Quick Picks
                   </h4>
                   <p class="text-muted small mb-0">
-                    Paste a direct YouTube video URL for Deep Focus and up to 12 Motivation Songs. Clicking a pick shows its video card; selecting the card plays that video.
-                    Leave a URL blank to hide that pick.
+                    Select a section and add up to 12 direct YouTube video URLs. Blank URLs hide their picks. Clicking a pick shows its video card; selecting the card plays that video.
                   </p>
                 </div>
                 <form id="musicVideoForm" onsubmit="saveMusicVideos(event)">
                   <div class="row g-3">
                     <div class="col-12">
-                      <label class="form-label text-white-50 small" for="musicDeepFocusVideoUrl">
-                        2 AM Study Deep Focus video URL
+                      <label class="form-label text-white-50 small" for="musicVideoCategory">
+                        Quick Pick section
                       </label>
-                      <input class="form-control form-control-dark" id="musicDeepFocusVideoUrl" type="url"
-                        placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                      <select class="form-select form-select-dark" id="musicVideoCategory">
+                        <option value="deepFocus">2 AM Study Deep Focus</option>
+                        <option value="motivation">2 AM Study Motivation</option>
+                      </select>
                     </div>
-                    <% for (let motivationIndex = 1; motivationIndex <= 12; motivationIndex++) { %>
+                    <div class="col-12">
+                      <h5 class="text-white fs-6 mb-0" id="musicVideoCategoryTitle">2 AM Study Deep Focus</h5>
+                    </div>
+                    <% for (let videoIndex = 1; videoIndex <= 12; videoIndex++) { %>
                       <div class="col-12 col-md-6">
-                        <label class="form-label text-white-50 small" for="musicMotivationVideoUrl<%= motivationIndex %>">
-                          2 AM Study Motivation Song <%= motivationIndex %> video URL
+                        <label class="form-label text-white-50 small" id="musicVideoUrlLabel<%= videoIndex %>"
+                          for="musicQuickPickVideoUrl<%= videoIndex %>">
+                          2 AM Study Deep Focus video URL <%= videoIndex %>
                         </label>
-                        <input class="form-control form-control-dark" id="musicMotivationVideoUrl<%= motivationIndex %>"
-                          data-motivation-video-url type="url"
+                        <input class="form-control form-control-dark" id="musicQuickPickVideoUrl<%= videoIndex %>"
+                          data-music-video-url type="url"
                           placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
                       </div>
                     <% } %>
@@ -3250,6 +3255,47 @@
               return sessionStorage.getItem('admin_passcode') || localStorage.getItem('admin_passcode') || '';
             }
 
+            const musicVideoCategories = {
+              deepFocus: { label: '2 AM Study Deep Focus', urls: Array(12).fill('') },
+              motivation: { label: '2 AM Study Motivation', urls: Array(12).fill('') }
+            };
+            let activeMusicVideoCategory = 'deepFocus';
+
+            function captureMusicVideoUrls() {
+              const category = musicVideoCategories[activeMusicVideoCategory];
+              if (!category) return;
+              category.urls = Array.from(
+                document.querySelectorAll('[data-music-video-url]'),
+                input => input.value
+              );
+            }
+
+            function renderMusicVideoCategory() {
+              const category = musicVideoCategories[activeMusicVideoCategory];
+              if (!category) return;
+
+              const title = document.getElementById('musicVideoCategoryTitle');
+              if (title) title.textContent = category.label;
+              document.querySelectorAll('[data-music-video-url]').forEach((input, index) => {
+                input.value = category.urls[index] || '';
+                const label = document.getElementById(`musicVideoUrlLabel${index + 1}`);
+                if (label) label.textContent = `${category.label} video URL ${index + 1}`;
+              });
+            }
+
+            const musicVideoCategorySelect = document.getElementById('musicVideoCategory');
+            if (musicVideoCategorySelect) {
+              musicVideoCategorySelect.addEventListener('change', () => {
+                captureMusicVideoUrls();
+                activeMusicVideoCategory = musicVideoCategorySelect.value;
+                renderMusicVideoCategory();
+                const status = document.getElementById('musicVideoStatus');
+                if (status) {
+                  status.textContent = `${musicVideoCategories[activeMusicVideoCategory].label} selected. Save to store its links.`;
+                }
+              });
+            }
+
             async function loadMusicVideos() {
               const form = document.getElementById('musicVideoForm');
               const status = document.getElementById('musicVideoStatus');
@@ -3267,11 +3313,11 @@
                   throw new Error(data.error || 'Could not load Music Quick Pick links.');
                 }
 
-                document.getElementById('musicDeepFocusVideoUrl').value =
-                  data.videos.deepFocusVideoUrl || '';
-                document.querySelectorAll('[data-motivation-video-url]').forEach((input, index) => {
-                  input.value = data.videos.motivationVideoUrls[index] || '';
-                });
+                musicVideoCategories.deepFocus.urls =
+                  data.videos.deepFocusVideoUrls || Array(12).fill('');
+                musicVideoCategories.motivation.urls =
+                  data.videos.motivationVideoUrls || Array(12).fill('');
+                renderMusicVideoCategory();
                 form.dataset.loaded = 'true';
                 status.textContent = 'Saved video links loaded. Blank fields hide their Quick Picks.';
               } catch (error) {
@@ -3288,6 +3334,7 @@
               const saveButton = document.getElementById('musicVideoSaveBtn');
               if (!form || !status || !saveButton) return;
 
+              captureMusicVideoUrls();
               saveButton.disabled = true;
               status.textContent = 'Saving video links...';
               try {
@@ -3300,11 +3347,8 @@
                   },
                   credentials: 'include',
                   body: JSON.stringify({
-                    deepFocusVideoUrl: document.getElementById('musicDeepFocusVideoUrl').value,
-                    motivationVideoUrls: Array.from(
-                      document.querySelectorAll('[data-motivation-video-url]'),
-                      input => input.value
-                    )
+                    deepFocusVideoUrls: musicVideoCategories.deepFocus.urls,
+                    motivationVideoUrls: musicVideoCategories.motivation.urls
                   })
                 });
                 const data = await res.json().catch(() => ({}));
@@ -3312,11 +3356,9 @@
                   throw new Error(data.error || 'Could not save Music Quick Pick links.');
                 }
 
-                document.getElementById('musicDeepFocusVideoUrl').value =
-                  data.videos.deepFocusVideoUrl || '';
-                document.querySelectorAll('[data-motivation-video-url]').forEach((input, index) => {
-                  input.value = data.videos.motivationVideoUrls[index] || '';
-                });
+                musicVideoCategories.deepFocus.urls = data.videos.deepFocusVideoUrls;
+                musicVideoCategories.motivation.urls = data.videos.motivationVideoUrls;
+                renderMusicVideoCategory();
                 form.dataset.loaded = 'true';
                 status.textContent = 'Video links saved.';
               } catch (error) {

@@ -2,10 +2,10 @@ const { firestoreDb } = require('../config/firebase');
 
 const COLLECTION = 'siteSettings';
 const DOCUMENT = 'musicPlaylists';
-const MOTIVATION_VIDEO_COUNT = 12;
+const MUSIC_VIDEO_COUNT = 12;
 const EMPTY_MUSIC_VIDEOS = Object.freeze({
-  deepFocusVideoUrl: '',
-  motivationVideoUrls: Object.freeze(Array(MOTIVATION_VIDEO_COUNT).fill(''))
+  deepFocusVideoUrls: Object.freeze(Array(MUSIC_VIDEO_COUNT).fill('')),
+  motivationVideoUrls: Object.freeze(Array(MUSIC_VIDEO_COUNT).fill(''))
 });
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'music.youtube.com']);
 const VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
@@ -52,22 +52,34 @@ function normalizeVideoUrl(value, label) {
   return videoId ? `https://www.youtube.com/watch?v=${videoId}` : '';
 }
 
+function normalizeVideoUrls(value, legacyValue, label) {
+  const urls = value === undefined
+    ? [legacyValue === undefined ? '' : legacyValue]
+    : value;
+  if (!Array.isArray(urls) || urls.length > MUSIC_VIDEO_COUNT) {
+    throw new VideoUrlValidationError(`${label} videos must contain no more than ${MUSIC_VIDEO_COUNT} URLs.`);
+  }
+
+  return Array.from({ length: MUSIC_VIDEO_COUNT }, (_, index) =>
+    normalizeVideoUrl(urls[index], `${label} ${index + 1}`)
+  );
+}
+
 function normalizeMusicVideoSettings(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new VideoUrlValidationError('Music video settings must be an object.');
   }
 
-  const motivationVideoUrls = value.motivationVideoUrls === undefined
-    ? [value.motivationVideoUrl || '']
-    : value.motivationVideoUrls;
-  if (!Array.isArray(motivationVideoUrls) || motivationVideoUrls.length > MOTIVATION_VIDEO_COUNT) {
-    throw new VideoUrlValidationError(`Motivation videos must contain no more than ${MOTIVATION_VIDEO_COUNT} URLs.`);
-  }
-
   return {
-    deepFocusVideoUrl: normalizeVideoUrl(value.deepFocusVideoUrl, 'Deep Focus'),
-    motivationVideoUrls: Array.from({ length: MOTIVATION_VIDEO_COUNT }, (_, index) =>
-      normalizeVideoUrl(motivationVideoUrls[index], `Motivation ${index + 1}`)
+    deepFocusVideoUrls: normalizeVideoUrls(
+      value.deepFocusVideoUrls,
+      value.deepFocusVideoUrl,
+      'Deep Focus'
+    ),
+    motivationVideoUrls: normalizeVideoUrls(
+      value.motivationVideoUrls,
+      value.motivationVideoUrl,
+      'Motivation'
     )
   };
 }
@@ -84,9 +96,11 @@ function normalizeLegacyVideoUrl(value) {
 
 function readMusicVideoSettings(value) {
   return normalizeMusicVideoSettings({
-    deepFocusVideoUrl: value.deepFocusVideoUrl !== undefined
-      ? value.deepFocusVideoUrl
-      : normalizeLegacyVideoUrl(value.deepFocusPlaylistUrl),
+    deepFocusVideoUrls: value.deepFocusVideoUrls !== undefined
+      ? value.deepFocusVideoUrls
+      : [value.deepFocusVideoUrl !== undefined
+        ? value.deepFocusVideoUrl
+        : normalizeLegacyVideoUrl(value.deepFocusPlaylistUrl)],
     motivationVideoUrls: value.motivationVideoUrls !== undefined
       ? value.motivationVideoUrls
       : [value.motivationVideoUrl !== undefined
@@ -124,5 +138,5 @@ module.exports = {
   normalizeMusicVideoSettings,
   VideoUrlValidationError,
   EMPTY_MUSIC_VIDEOS,
-  MOTIVATION_VIDEO_COUNT
+  MUSIC_VIDEO_COUNT
 };

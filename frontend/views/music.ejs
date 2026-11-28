@@ -375,9 +375,11 @@
         <button class="music-tag-pill" onclick="quickSearch('Bollywood instrumental study beats')">🎹 Instrumental Study</button>
         <button class="music-tag-pill" onclick="quickSearch('Deep focus ambient study music')">🧠 Deep Focus</button>
         <button class="music-tag-pill" onclick="quickSearch('Synthwave study beats for late night')">🌌 Synthwave 2AM</button>
-        <% if (musicVideos && musicVideos.deepFocusVideoUrl) { %>
-          <button type="button" class="music-tag-pill" data-music-video-url="<%= musicVideos.deepFocusVideoUrl %>"
-            data-music-video-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
+        <% if (musicVideos && Array.isArray(musicVideos.deepFocusVideoUrls)) { %>
+          <% musicVideos.deepFocusVideoUrls.forEach((videoUrl, index) => { if (videoUrl) { %>
+            <button type="button" class="music-tag-pill" data-music-video-url="<%= videoUrl %>"
+              data-music-video-title="2 AM Study Deep Focus <%= index + 1 %>">🎧 2 AM Study Deep Focus <%= index + 1 %></button>
+          <% } }); %>
         <% } %>
         <% if (musicVideos && Array.isArray(musicVideos.motivationVideoUrls)) { %>
           <% musicVideos.motivationVideoUrls.forEach((videoUrl, index) => { if (videoUrl) { %>
