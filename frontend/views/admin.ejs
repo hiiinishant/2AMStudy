@@ -1799,7 +1799,7 @@
                     <i class="fa-solid fa-headphones me-2 text-primary"></i>Music Quick Picks
                   </h4>
                   <p class="text-muted small mb-0">
-                    Paste one direct YouTube video URL for each Music page Quick Pick. Clicking a pick shows its video card; selecting the card plays that video.
+                    Paste a direct YouTube video URL for Deep Focus and up to 12 Motivation Songs. Clicking a pick shows its video card; selecting the card plays that video.
                     Leave a URL blank to hide that pick.
                   </p>
                 </div>
@@ -1812,13 +1812,16 @@
                       <input class="form-control form-control-dark" id="musicDeepFocusVideoUrl" type="url"
                         placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
                     </div>
-                    <div class="col-12">
-                      <label class="form-label text-white-50 small" for="musicMotivationVideoUrl">
-                        2 AM Study Motivation video URL
-                      </label>
-                      <input class="form-control form-control-dark" id="musicMotivationVideoUrl" type="url"
-                        placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
-                    </div>
+                    <% for (let motivationIndex = 1; motivationIndex <= 12; motivationIndex++) { %>
+                      <div class="col-12 col-md-6">
+                        <label class="form-label text-white-50 small" for="musicMotivationVideoUrl<%= motivationIndex %>">
+                          2 AM Study Motivation Song <%= motivationIndex %> video URL
+                        </label>
+                        <input class="form-control form-control-dark" id="musicMotivationVideoUrl<%= motivationIndex %>"
+                          data-motivation-video-url type="url"
+                          placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                      </div>
+                    <% } %>
                     <div class="col-12 d-flex flex-wrap align-items-center gap-3">
                       <button class="btn btn-gradient-primary" type="submit" id="musicVideoSaveBtn">
                         <i class="fa-solid fa-floppy-disk me-1"></i>Save video links
@@ -3266,8 +3269,9 @@
 
                 document.getElementById('musicDeepFocusVideoUrl').value =
                   data.videos.deepFocusVideoUrl || '';
-                document.getElementById('musicMotivationVideoUrl').value =
-                  data.videos.motivationVideoUrl || '';
+                document.querySelectorAll('[data-motivation-video-url]').forEach((input, index) => {
+                  input.value = data.videos.motivationVideoUrls[index] || '';
+                });
                 form.dataset.loaded = 'true';
                 status.textContent = 'Saved video links loaded. Blank fields hide their Quick Picks.';
               } catch (error) {
@@ -3297,7 +3301,10 @@
                   credentials: 'include',
                   body: JSON.stringify({
                     deepFocusVideoUrl: document.getElementById('musicDeepFocusVideoUrl').value,
-                    motivationVideoUrl: document.getElementById('musicMotivationVideoUrl').value
+                    motivationVideoUrls: Array.from(
+                      document.querySelectorAll('[data-motivation-video-url]'),
+                      input => input.value
+                    )
                   })
                 });
                 const data = await res.json().catch(() => ({}));
@@ -3307,8 +3314,9 @@
 
                 document.getElementById('musicDeepFocusVideoUrl').value =
                   data.videos.deepFocusVideoUrl || '';
-                document.getElementById('musicMotivationVideoUrl').value =
-                  data.videos.motivationVideoUrl || '';
+                document.querySelectorAll('[data-motivation-video-url]').forEach((input, index) => {
+                  input.value = data.videos.motivationVideoUrls[index] || '';
+                });
                 form.dataset.loaded = 'true';
                 status.textContent = 'Video links saved.';
               } catch (error) {

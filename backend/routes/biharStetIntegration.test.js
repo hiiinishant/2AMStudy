@@ -29,11 +29,13 @@ test('music page displays admin-configured video picks as clickable cards', asyn
     ...base,
     musicVideos: {
       deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
-      motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY'
+      motivationVideoUrls: Array(12).fill('https://www.youtube.com/watch?v=uNboFgKLGDY')
     }
   });
   assert.match(configured, /data-music-video-title="2 AM Study Deep Focus"/);
-  assert.match(configured, /data-music-video-title="2 AM Study Motivation"/);
+  assert.match(configured, /data-music-video-title="2 AM Study Motivation Song 1"/);
+  assert.match(configured, /data-music-video-title="2 AM Study Motivation Song 12"/);
+  assert.equal((configured.match(/data-music-video-url=/g) || []).length, 13);
   assert.match(configured, /async function showConfiguredVideo/);
   assert.match(configured, /youtube\/v3\/videos\?part=snippet&id=/);
   assert.match(configured, /renderMusicCards\(\[\{ id: \{ videoId \}, snippet: video\.snippet \}\]/);
@@ -43,13 +45,16 @@ test('music page displays admin-configured video picks as clickable cards', asyn
 
   const empty = await ejs.renderFile(filename, {
     ...base,
-    musicVideos: { deepFocusVideoUrl: '', motivationVideoUrl: '' }
+    musicVideos: { deepFocusVideoUrl: '', motivationVideoUrls: Array(12).fill('') }
   });
   assert.doesNotMatch(empty, /data-music-video-url=/);
 
   const admin = fs.readFileSync(path.join(root, 'frontend/views/admin.ejs'), 'utf8');
   assert.match(admin, /2 AM Study Deep Focus video URL/);
-  assert.match(admin, /2 AM Study Motivation video URL/);
+  assert.match(admin, /2 AM Study Motivation Song <%= motivationIndex %> video URL/);
+  assert.match(admin, /motivationIndex <= 12/);
+  assert.match(admin, /id="musicMotivationVideoUrl<%= motivationIndex %>"/);
+  assert.match(admin, /querySelectorAll\('\[data-motivation-video-url\]'\)/);
   assert.doesNotMatch(admin, /playlist\?list=\.\.\./);
 });
 

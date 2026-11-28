@@ -2,9 +2,10 @@ const { firestoreDb } = require('../config/firebase');
 
 const COLLECTION = 'siteSettings';
 const DOCUMENT = 'musicPlaylists';
+const MOTIVATION_VIDEO_COUNT = 12;
 const EMPTY_MUSIC_VIDEOS = Object.freeze({
   deepFocusVideoUrl: '',
-  motivationVideoUrl: ''
+  motivationVideoUrls: Object.freeze(Array(MOTIVATION_VIDEO_COUNT).fill(''))
 });
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'music.youtube.com']);
 const VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
@@ -56,9 +57,18 @@ function normalizeMusicVideoSettings(value) {
     throw new VideoUrlValidationError('Music video settings must be an object.');
   }
 
+  const motivationVideoUrls = value.motivationVideoUrls === undefined
+    ? [value.motivationVideoUrl || '']
+    : value.motivationVideoUrls;
+  if (!Array.isArray(motivationVideoUrls) || motivationVideoUrls.length > MOTIVATION_VIDEO_COUNT) {
+    throw new VideoUrlValidationError(`Motivation videos must contain no more than ${MOTIVATION_VIDEO_COUNT} URLs.`);
+  }
+
   return {
     deepFocusVideoUrl: normalizeVideoUrl(value.deepFocusVideoUrl, 'Deep Focus'),
-    motivationVideoUrl: normalizeVideoUrl(value.motivationVideoUrl, 'Motivation')
+    motivationVideoUrls: Array.from({ length: MOTIVATION_VIDEO_COUNT }, (_, index) =>
+      normalizeVideoUrl(motivationVideoUrls[index], `Motivation ${index + 1}`)
+    )
   };
 }
 
@@ -77,9 +87,11 @@ function readMusicVideoSettings(value) {
     deepFocusVideoUrl: value.deepFocusVideoUrl !== undefined
       ? value.deepFocusVideoUrl
       : normalizeLegacyVideoUrl(value.deepFocusPlaylistUrl),
-    motivationVideoUrl: value.motivationVideoUrl !== undefined
-      ? value.motivationVideoUrl
-      : normalizeLegacyVideoUrl(value.motivationPlaylistUrl)
+    motivationVideoUrls: value.motivationVideoUrls !== undefined
+      ? value.motivationVideoUrls
+      : [value.motivationVideoUrl !== undefined
+        ? value.motivationVideoUrl
+        : normalizeLegacyVideoUrl(value.motivationPlaylistUrl)]
   });
 }
 
@@ -111,5 +123,6 @@ module.exports = {
   createMusicQuickPickStore,
   normalizeMusicVideoSettings,
   VideoUrlValidationError,
-  EMPTY_MUSIC_VIDEOS
+  EMPTY_MUSIC_VIDEOS,
+  MOTIVATION_VIDEO_COUNT
 };

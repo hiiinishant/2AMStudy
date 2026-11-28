@@ -379,9 +379,11 @@
           <button type="button" class="music-tag-pill" data-music-video-url="<%= musicVideos.deepFocusVideoUrl %>"
             data-music-video-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
         <% } %>
-        <% if (musicVideos && musicVideos.motivationVideoUrl) { %>
-          <button type="button" class="music-tag-pill" data-music-video-url="<%= musicVideos.motivationVideoUrl %>"
-            data-music-video-title="2 AM Study Motivation">💪 2 AM Study Motivation</button>
+        <% if (musicVideos && Array.isArray(musicVideos.motivationVideoUrls)) { %>
+          <% musicVideos.motivationVideoUrls.forEach((videoUrl, index) => { if (videoUrl) { %>
+            <button type="button" class="music-tag-pill" data-music-video-url="<%= videoUrl %>"
+              data-music-video-title="2 AM Study Motivation Song <%= index + 1 %>">💪 2 AM Study Motivation <%= index + 1 %></button>
+          <% } }); %>
         <% } %>
       </div>
 

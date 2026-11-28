@@ -38,7 +38,7 @@ test('returns empty direct video links when no Firestore configuration exists ye
 
   assert.deepEqual(await store.getMusicVideos(), {
     deepFocusVideoUrl: '',
-    motivationVideoUrl: ''
+    motivationVideoUrls: Array(12).fill('')
   });
 });
 
@@ -47,11 +47,18 @@ test('saves direct video links and strips playlist parameters from watch URLs', 
   const store = createMusicQuickPickStore(db);
   const videos = {
     deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48&list=PLA1IG2dsOU-c',
-    motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY&list=PLQfqZFVQZ3To'
+    motivationVideoUrls: [
+      'https://www.youtube.com/watch?v=uNboFgKLGDY&list=PLQfqZFVQZ3To',
+      'https://youtu.be/kB8g2lH8e48'
+    ]
   };
   const normalized = {
     deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
-    motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY'
+    motivationVideoUrls: [
+      'https://www.youtube.com/watch?v=uNboFgKLGDY',
+      'https://www.youtube.com/watch?v=kB8g2lH8e48',
+      ...Array(10).fill('')
+    ]
   };
 
   assert.deepEqual(await store.saveMusicVideos(videos), normalized);
@@ -69,7 +76,7 @@ test('migrates existing watch links and ignores playlist-only legacy values', as
 
   assert.deepEqual(await store.getMusicVideos(), {
     deepFocusVideoUrl: 'https://www.youtube.com/watch?v=kB8g2lH8e48',
-    motivationVideoUrl: ''
+    motivationVideoUrls: Array(12).fill('')
   });
 });
 
@@ -85,9 +92,35 @@ test('rejects non-YouTube links, playlist-only links, and invalid video IDs', as
     await assert.rejects(
       store.saveMusicVideos({
         deepFocusVideoUrl: invalidUrl,
-        motivationVideoUrl: ''
+        motivationVideoUrls: Array(12).fill('')
       }),
       VideoUrlValidationError
     );
   }
+});
+
+test('migrates the existing Motivation URL into the first of twelve slots', async () => {
+  const { db } = createFakeFirestore({
+    deepFocusVideoUrl: '',
+    motivationVideoUrl: 'https://www.youtube.com/watch?v=uNboFgKLGDY'
+  });
+  const store = createMusicQuickPickStore(db);
+
+  assert.deepEqual((await store.getMusicVideos()).motivationVideoUrls, [
+    'https://www.youtube.com/watch?v=uNboFgKLGDY',
+    ...Array(11).fill('')
+  ]);
+});
+
+test('rejects more than twelve Motivation URLs', async () => {
+  const { db } = createFakeFirestore(undefined);
+  const store = createMusicQuickPickStore(db);
+
+  await assert.rejects(
+    store.saveMusicVideos({
+      deepFocusVideoUrl: '',
+      motivationVideoUrls: Array(13).fill('')
+    }),
+    VideoUrlValidationError
+  );
 });
