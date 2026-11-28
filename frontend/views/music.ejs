@@ -375,17 +375,15 @@
         <button class="music-tag-pill" onclick="quickSearch('Bollywood instrumental study beats')">🎹 Instrumental Study</button>
         <button class="music-tag-pill" onclick="quickSearch('Deep focus ambient study music')">🧠 Deep Focus</button>
         <button class="music-tag-pill" onclick="quickSearch('Synthwave study beats for late night')">🌌 Synthwave 2AM</button>
-        <% if (musicVideos && Array.isArray(musicVideos.deepFocusVideoUrls)) { %>
-          <% musicVideos.deepFocusVideoUrls.forEach((videoUrl, index) => { if (videoUrl) { %>
-            <button type="button" class="music-tag-pill" data-music-video-url="<%= videoUrl %>"
-              data-music-video-title="2 AM Study Deep Focus <%= index + 1 %>">🎧 2 AM Study Deep Focus <%= index + 1 %></button>
-          <% } }); %>
+        <% if (musicVideos && Array.isArray(musicVideos.deepFocusVideoUrls) && musicVideos.deepFocusVideoUrls.some(Boolean)) { %>
+          <button type="button" class="music-tag-pill"
+            data-music-video-urls="<%= JSON.stringify(musicVideos.deepFocusVideoUrls.filter(Boolean)) %>"
+            data-music-video-title="2 AM Study Deep Focus">🎧 2 AM Study Deep Focus</button>
         <% } %>
-        <% if (musicVideos && Array.isArray(musicVideos.motivationVideoUrls)) { %>
-          <% musicVideos.motivationVideoUrls.forEach((videoUrl, index) => { if (videoUrl) { %>
-            <button type="button" class="music-tag-pill" data-music-video-url="<%= videoUrl %>"
-              data-music-video-title="2 AM Study Motivation Song <%= index + 1 %>">💪 2 AM Study Motivation <%= index + 1 %></button>
-          <% } }); %>
+        <% if (musicVideos && Array.isArray(musicVideos.motivationVideoUrls) && musicVideos.motivationVideoUrls.some(Boolean)) { %>
+          <button type="button" class="music-tag-pill"
+            data-music-video-urls="<%= JSON.stringify(musicVideos.motivationVideoUrls.filter(Boolean)) %>"
+            data-music-video-title="2 AM Study Motivation">💪 2 AM Study Motivation</button>
         <% } %>
       </div>
 
@@ -695,9 +693,30 @@ function getYoutubeVideoId(videoUrl) {
 }
 
 async function showConfiguredVideo(videoUrl, title) {
-  const videoId = getYoutubeVideoId(videoUrl);
-  if (!videoId) {
-    showError('This YouTube video link is invalid.');
+  await showConfiguredVideos([videoUrl], title, false);
+}
+
+async function showConfiguredVideoGroup(videoUrlsJson, title) {
+  let videoUrls;
+  try {
+    videoUrls = JSON.parse(videoUrlsJson);
+  } catch (_) {
+    showError('The saved video links could not be read.');
+    return;
+  }
+
+  if (!Array.isArray(videoUrls) || !videoUrls.every(videoUrl => typeof videoUrl === 'string')) {
+    showError('The saved video links are invalid.');
+    return;
+  }
+
+  await showConfiguredVideos(videoUrls, title, true);
+}
+
+async function showConfiguredVideos(videoUrls, title, isGroup) {
+  const videoIds = videoUrls.map(getYoutubeVideoId);
+  if (!videoIds.length || videoIds.some(videoId => !videoId)) {
+    showError('One or more saved YouTube video links are invalid.');
     return;
   }
 
@@ -713,13 +732,13 @@ async function showConfiguredVideo(videoUrl, title) {
 
   if (searchInput) searchInput.value = title;
   loader.classList.remove('d-none');
-  if (loaderText) loaderText.textContent = 'Loading video card...';
+  if (loaderText) loaderText.textContent = isGroup ? 'Loading video cards...' : 'Loading video card...';
   errorBox.classList.add('d-none');
   results.innerHTML = '';
   searchResults = [];
 
   try {
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(videoId)}&key=${API_KEY}`;
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(videoIds.join(','))}&key=${API_KEY}`;
     const res = await fetch(url);
     const data = await res.json();
     loader.classList.add('d-none');
@@ -729,18 +748,30 @@ async function showConfiguredVideo(videoUrl, title) {
       return;
     }
 
-    const video = (data.items || []).find(item => item && item.id === videoId && item.snippet);
-    if (!video) {
-      showError('This YouTube video is unavailable.');
+    const videosById = new Map(
+      (data.items || [])
+        .filter(video => video && video.id && video.snippet)
+        .map(video => [video.id, video])
+    );
+    const cards = videoIds
+      .map(videoId => videosById.get(videoId))
+      .filter(Boolean)
+      .map(video => ({ id: { videoId: video.id }, snippet: video.snippet }));
+
+    if (!cards.length) {
+      showError(isGroup ? 'These YouTube videos are unavailable.' : 'This YouTube video is unavailable.');
       return;
     }
 
-    if (renderMusicCards([{ id: { videoId }, snippet: video.snippet }], 'This YouTube video is unavailable.')) {
+    if (renderMusicCards(cards, 'No available videos found.')) {
+      if (cards.length < videoIds.length) {
+        showError('Some saved YouTube videos are unavailable.');
+      }
       results.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   } catch (err) {
     loader.classList.add('d-none');
-    showError('Could not load this video card. Check your network or YouTube API key.');
+    showError('Could not load these video cards. Check your network or YouTube API key.');
   } finally {
     if (loaderText) loaderText.textContent = 'Loading focus beats...';
   }
@@ -770,6 +801,12 @@ document.getElementById('ytSearchInput').addEventListener('keypress', e => {
 document.querySelectorAll('[data-music-video-url]').forEach(button => {
   button.addEventListener('click', () => {
     showConfiguredVideo(button.dataset.musicVideoUrl, button.dataset.musicVideoTitle);
+  });
+});
+
+document.querySelectorAll('[data-music-video-urls]').forEach(button => {
+  button.addEventListener('click', () => {
+    showConfiguredVideoGroup(button.dataset.musicVideoUrls, button.dataset.musicVideoTitle);
   });
 });
 

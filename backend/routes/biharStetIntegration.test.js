@@ -32,16 +32,20 @@ test('music page displays admin-configured video picks as clickable cards', asyn
       motivationVideoUrls: Array(12).fill('https://www.youtube.com/watch?v=uNboFgKLGDY')
     }
   });
-  assert.match(configured, /data-music-video-title="2 AM Study Deep Focus 1"/);
-  assert.match(configured, /data-music-video-title="2 AM Study Deep Focus 12"/);
-  assert.match(configured, /data-music-video-title="2 AM Study Motivation Song 1"/);
-  assert.match(configured, /data-music-video-title="2 AM Study Motivation Song 12"/);
-  assert.equal((configured.match(/data-music-video-url=/g) || []).length, 24);
+  assert.match(configured, /data-music-video-title="2 AM Study Deep Focus"/);
+  assert.doesNotMatch(configured, /data-music-video-title="2 AM Study Deep Focus \d+"/);
+  assert.match(configured, /data-music-video-title="2 AM Study Motivation"/);
+  assert.doesNotMatch(configured, /data-music-video-title="2 AM Study Motivation Song/);
+  assert.equal((configured.match(/data-music-video-url=/g) || []).length, 0);
+  assert.equal((configured.match(/data-music-video-urls=/g) || []).length, 2);
   assert.match(configured, /async function showConfiguredVideo/);
+  assert.match(configured, /async function showConfiguredVideoGroup/);
+  assert.match(configured, /videoIds\.join\(','\)/);
   assert.match(configured, /youtube\/v3\/videos\?part=snippet&id=/);
-  assert.match(configured, /renderMusicCards\(\[\{ id: \{ videoId \}, snippet: video\.snippet \}\]/);
+  assert.match(configured, /renderMusicCards\(cards,/);
   assert.match(configured, /card\.addEventListener\('click', \(\) => playVideo\(videoId, title\)\)/);
   assert.match(configured, /showConfiguredVideo\(button\.dataset\.musicVideoUrl, button\.dataset\.musicVideoTitle\)/);
+  assert.match(configured, /showConfiguredVideoGroup\(button\.dataset\.musicVideoUrls, button\.dataset\.musicVideoTitle\)/);
   assert.doesNotMatch(configured, /playlistItems|player\.loadPlaylist/);
 
   const empty = await ejs.renderFile(filename, {
@@ -52,6 +56,7 @@ test('music page displays admin-configured video picks as clickable cards', asyn
     }
   });
   assert.doesNotMatch(empty, /data-music-video-url=/);
+  assert.doesNotMatch(empty, /data-music-video-urls=/);
 
   const admin = fs.readFileSync(path.join(root, 'frontend/views/admin.ejs'), 'utf8');
   assert.match(admin, /id="musicVideoCategory"/);
